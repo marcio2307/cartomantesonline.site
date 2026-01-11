@@ -321,7 +321,7 @@ body{
   .btn{ font-size:12px; }
 }
 
-/* ✅ DISPONÍVEL = VERDE (como você pediu) */
+/* ✅ DISPONÍVEL = VERDE */
 .btn.disponivel{
   background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
   color:#fff;
@@ -538,16 +538,14 @@ consultores.forEach((c, idx) => {
 
 /* ===========================
    ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
-   - sempre 1 ou 2 indisponíveis (descanso rápido)
-   - resto mistura online/ocupado
-   - troca de status mais rápida (sem demorar)
-   - SEM regra fixa 2h às 10h
+   - REGRA FIXA: 02:00 até 07:35 -> TODOS INDISPONÍVEIS
+   - fora isso: 1 ou 2 indisponíveis, resto online/ocupado
+   - troca mais rápida
 =========================== */
 const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
-const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
 
-const STORAGE_KEY = "status_realista_v2";
+const STORAGE_KEY = "status_realista_v3";
 let estado = null;
 
 function carregarEstado(){
@@ -580,7 +578,7 @@ function setStatusDOM(card, status){
     badge.textContent = 'Online';
     dot.style.animation = 'blink 1s infinite';
     btn.textContent = 'INICIAR CONSULTA';
-    btn.classList.add('disponivel'); // ✅ verde no CSS
+    btn.classList.add('disponivel'); // ✅ verde
     btn.style.pointerEvents = '';
   }else if(status === "ocupado"){
     badge.textContent = 'Ocupado';
@@ -622,13 +620,20 @@ function initEstado(){
   salvarEstado();
 }
 
-/* escolhe 1 ou 2 indisponíveis e segura por poucos minutos */
+/* 02:00 -> 07:35 (inclusive do período) */
+function janelaSonoGlobal(){
+  const d = new Date();
+  const minutos = d.getHours() * 60 + d.getMinutes();
+  const ini = 2 * 60;          // 02:00 => 120
+  const fim = 7 * 60 + 35;     // 07:35 => 455
+  return minutos >= ini && minutos < fim;
+}
+
 function escolherIndisponiveis(cards){
   const total = cards.length;
-  const qtd = chance(0.55) ? 1 : 2; // 55% 1, senão 2
+  const qtd = chance(0.55) ? 1 : 2;
 
   const indices = [...Array(total)].map((_,i)=>i);
-  // shuffle simples
   for(let i=indices.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
     [indices[i], indices[j]] = [indices[j], indices[i]];
@@ -641,27 +646,36 @@ function aplicarStatusRealista(forceAll=false){
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  // probabilidade de ocupado por hora (um pouco mais real à noite)
+  /* ✅ REGRA FIXA MADRUGADA: todos indisponíveis */
+  if (janelaSonoGlobal()){
+    cards.forEach((card, i) => {
+      estado.consultores[i].status = "indisp";
+      // segura mais tempo durante a madrugada (evita ficar trocando)
+      estado.consultores[i].holdUntil = now + randInt(2, 6) * 60 * 1000;
+      setStatusDOM(card, "indisp");
+    });
+    salvarEstado();
+    return;
+  }
+
+  // probabilidade de ocupado por hora
   let ocupProb = 0.40;
   if (hora >= 9 && hora < 12) ocupProb = 0.34;
   if (hora >= 12 && hora < 17) ocupProb = 0.44;
   if (hora >= 17 && hora < 22) ocupProb = 0.56;
   if (hora >= 22 || hora < 6) ocupProb = 0.38;
 
-  // sempre força 1 ou 2 indisponíveis (descanso curto)
   const indispSet = escolherIndisponiveis(cards);
 
   cards.forEach((card, i) => {
     const st = estado.consultores[i];
 
-    // se está em "hold", respeita por pouco tempo (troca mais rápida)
     const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
     if (emHold){
       setStatusDOM(card, st.status);
       return;
     }
 
-    // se foi escolhido como indisponível, segura 2-5 min
     if (indispSet.has(i)){
       st.status = "indisp";
       st.holdUntil = now + randInt(2, 5) * 60 * 1000;
@@ -669,12 +683,9 @@ function aplicarStatusRealista(forceAll=false){
       return;
     }
 
-    // para os demais: define online/ocupado
     const novoStatus = chance(ocupProb) ? "ocupado" : "online";
     st.status = novoStatus;
 
-    // hold mais curto (muda sem muita demora)
-    // online: 1-3 min | ocupado: 2-6 min
     st.holdUntil = (novoStatus === "ocupado")
       ? now + randInt(2, 6) * 60 * 1000
       : now + randInt(1, 3) * 60 * 1000;
@@ -689,7 +700,7 @@ function aplicarStatusRealista(forceAll=false){
 initEstado();
 aplicarStatusRealista(false);
 
-// atualiza mais rápido (a cada 20s) pra ficar vivo sem ficar piscando demais
+// atualiza rápido (20s)
 setInterval(() => aplicarStatusRealista(false), 20000);
 
 document.addEventListener('visibilitychange', () => {
