@@ -33,21 +33,17 @@ body{
   color:#fff;
 }
 
-/* Banner sem corte */
-.banner{
+/* ✅ CARROSSEL DE BANNERS (SEM CORTE) */
+.banner-carousel{
   width:100%;
   margin:0;
   border-bottom:2px solid var(--gold-3);
   box-shadow:0 18px 60px rgba(0,0,0,0.55);
   position:relative;
   background:#000;
+  overflow:hidden;
 }
-.banner img{
-  width:100%;
-  height:auto;
-  display:block;
-}
-.banner::after{
+.banner-carousel::after{
   content:"";
   position:absolute;
   inset:0;
@@ -55,10 +51,39 @@ body{
     radial-gradient(1200px 520px at 50% 15%, rgba(0,0,0,0.10), rgba(0,0,0,0.48) 60%),
     linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.35) 100%);
   pointer-events:none;
+  z-index:3;
+}
+
+/* slides */
+.banner-carousel .slide{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  transition:opacity .45s ease;
+  z-index:1;
+}
+.banner-carousel .slide.active{
+  opacity:1;
+  z-index:2;
+}
+.banner-carousel img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+/* altura automática baseada na imagem, mantendo “sem corte” */
+.banner-carousel .spacer{
+  width:100%;
+  pointer-events:none;
+}
+.banner-carousel .spacer img{
+  opacity:0;
+  visibility:hidden;
 }
 
 @media (max-width:480px){
-  .banner{ border-bottom-width:1px; }
+  .banner-carousel{ border-bottom-width:1px; }
   :root{
     --btn-h:64px;
     --btn-px:16px;
@@ -73,7 +98,7 @@ body{
 /* ✅ IMAGEM ABAIXO DO BANNER (RESPONSIVA) */
 .como-consultar-img{
   max-width:1100px;
-  margin:18px auto 18px;  /* espaço entre banner e título */
+  margin:18px auto 18px;
   padding:0 10px;
 }
 .como-consultar-img img{
@@ -154,7 +179,6 @@ body{
   position:relative;
   isolation:isolate;
 
-  /* ✅ remove animações de movimento */
   transition:none;
   transform:none !important;
 }
@@ -184,7 +208,6 @@ body{
   z-index:0;
 }
 
-/* ✅ hover sem movimento (só muda brilho/borda) */
 .card:hover{
   border-color:rgba(246,226,122,0.85);
   box-shadow:
@@ -306,14 +329,12 @@ body{
   box-shadow:0 14px 26px rgba(0,0,0,0.45);
   border:1px solid rgba(255,255,255,0.10);
 
-  /* ✅ remove animação de “pular” */
   transition:filter .2s ease;
 }
 @media (max-width:480px){
   .btn{ font-size:12px; }
 }
 
-/* ONLINE = VERDE */
 .btn.disponivel{
   background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
   color:#fff;
@@ -332,7 +353,6 @@ body{
   pointer-events:none;
 }
 
-/* ✅ novos atendentes: sem subir/descer, só brilho */
 .card.novo{
   border-color:rgba(246,226,122,0.95);
 }
@@ -344,16 +364,28 @@ body{
 
 <body>
 
-<div class="banner">
-  <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="Cartomantes Online - Banner" />
+<!-- ✅ Agora os 3 banners ficam NO MESMO LUGAR, em carrossel a cada 5s -->
+<div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
+  <!-- spacer: mantém a altura com base no primeiro banner (sem corte) -->
+  <div class="spacer">
+    <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="" />
+  </div>
+
+  <div class="slide active">
+    <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="Cartomantes Online - Banner" />
+  </div>
+
+  <div class="slide">
+    <img src="https://i.ibb.co/bMmJcykt/Chat-GPT-Image-10-01-2026-22-08-33.png" alt="Como se consultar" />
+  </div>
+
+  <!-- ✅ NOVA IMAGEM NO CARROSSEL -->
+  <div class="slide">
+    <img src="https://i.ibb.co/rRvmn4Q7/56e5b5c7-3199-4b85-a6d8-22608f6c0402.png" alt="Banner adicional" />
+  </div>
 </div>
 
 <div class="page">
-
-  <!-- ✅ imagem colocada abaixo do banner com espaço (responsiva/celular) -->
-  <div class="como-consultar-img">
-    <img src="https://i.ibb.co/bMmJcykt/Chat-GPT-Image-10-01-2026-22-08-33.png" alt="Como se consultar" />
-  </div>
 
   <section class="hero">
     <h1>Consulta de tarot online</h1>
@@ -368,6 +400,28 @@ body{
 </div>
 
 <script>
+/* ===========================
+   ✅ CARROSSEL 3 BANNERS (5s)
+=========================== */
+(function initBannerCarousel(){
+  const carousel = document.getElementById('bannerCarousel');
+  if(!carousel) return;
+
+  const slides = Array.from(carousel.querySelectorAll('.slide'));
+  if(slides.length <= 1) return;
+
+  let i = 0;
+
+  function show(index){
+    slides.forEach((s, k) => s.classList.toggle('active', k === index));
+  }
+
+  setInterval(() => {
+    i = (i + 1) % slides.length;
+    show(i);
+  }, 5000);
+})();
+
 /* ===========================
    LISTA DE CONSULTORES
 =========================== */
@@ -424,7 +478,6 @@ consultores.forEach((c, idx) => {
     localStorage.setItem('consultorValor', c.valor);
     localStorage.setItem('consultorImagem', c.imagem);
 
-    // ✅ DIRECIONA PARA O LINK FIXO (GITHUB PAGES)
     window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pix.html';
   });
 
@@ -639,4 +692,3 @@ document.addEventListener('visibilitychange', () => {
 
 </body>
 </html>
-
