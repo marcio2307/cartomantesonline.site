@@ -1,15 +1,16 @@
-const CACHE = "cartomantes-cache-v1";
+const CACHE = "cartomantes-cache-v2";
+
 const ASSETS = [
   "./",
   "./index.html",
+  "./leituras.html",
   "./manifest.json",
+  "./service-worker.js",
   "./logo.png"
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS))
-  );
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
   self.skipWaiting();
 });
 
