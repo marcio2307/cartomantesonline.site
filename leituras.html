@@ -233,6 +233,7 @@ body{
   background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
 }
 .badge.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
+.badge.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
 
 .content{
   padding:12px 14px 16px;
@@ -266,6 +267,7 @@ body{
 }
 @keyframes blink{ 50%{ opacity:0; } }
 .dot.ocupado{ background:#e67e22; animation:none; box-shadow:none; }
+.dot.indisp{ background:#e74c3c; animation:none; box-shadow:none; }
 
 .stars{
   color:transparent;
@@ -319,19 +321,22 @@ body{
   .btn{ font-size:12px; }
 }
 
+/* ✅ DISPONÍVEL = VERDE (como você pediu) */
 .btn.disponivel{
-  background:
-    radial-gradient(220px 90px at 50% 0%, rgba(255,240,166,0.18), rgba(0,0,0,0) 65%),
-    linear-gradient(180deg, rgba(199,160,8,0.95) 0%, rgba(184,134,11,0.95) 38%, rgba(246,226,122,0.95) 100%);
-  color:#111;
-  border-color:rgba(255,240,166,0.22);
-  text-shadow:0 1px 0 rgba(255,255,255,0.15);
+  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
+  color:#fff;
+  border-color:rgba(255,255,255,0.16);
 }
 .btn:hover{ filter:brightness(1.06); }
 
 .btn.ocupado{
   background:linear-gradient(180deg, #f39c12 0%, #d35400 100%);
   color:#111;
+  pointer-events:none;
+}
+.btn.indisp{
+  background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+  color:#fff;
   pointer-events:none;
 }
 
@@ -460,11 +465,9 @@ source[src*="fabapp-ads"]{
   if(slides.length <= 1) return;
 
   let i = 0;
-
   function show(index){
     slides.forEach((s, k) => s.classList.toggle('active', k === index));
   }
-
   setInterval(() => {
     i = (i + 1) % slides.length;
     show(i);
@@ -534,34 +537,75 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   ✅ COMPORTAMENTO REALISTA (SÓ ONLINE/OCUPADO)
-   ✅ REMOVIDO: indisponível + regra 2h às 10h
+   ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
+   - sempre 1 ou 2 indisponíveis (descanso rápido)
+   - resto mistura online/ocupado
+   - troca de status mais rápida (sem demorar)
+   - SEM regra fixa 2h às 10h
 =========================== */
 const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
+const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
 
-const STORAGE_KEY = "status_online_ocupado_v1";
+const STORAGE_KEY = "status_realista_v2";
 let estado = null;
 
-function carregarEstado() {
-  try {
+function carregarEstado(){
+  try{
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+    if(!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.consultores)) return null;
+    if(!parsed || !Array.isArray(parsed.consultores)) return null;
     return parsed;
-  } catch { return null; }
+  }catch{ return null; }
+}
+function salvarEstado(){
+  try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{}
 }
 
-function salvarEstado() {
-  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); } catch {}
+function setStatusDOM(card, status){
+  const badge = card.querySelector('.badge');
+  const dot = card.querySelector('.dot');
+  const btn = card.querySelector('.btn');
+
+  card.dataset.status = status;
+
+  badge.classList.remove('ocupado','indisp');
+  dot.classList.remove('ocupado','indisp');
+  btn.classList.remove('ocupado','indisp','disponivel');
+
+  dot.style.animation = '';
+
+  if(status === "online"){
+    badge.textContent = 'Online';
+    dot.style.animation = 'blink 1s infinite';
+    btn.textContent = 'INICIAR CONSULTA';
+    btn.classList.add('disponivel'); // ✅ verde no CSS
+    btn.style.pointerEvents = '';
+  }else if(status === "ocupado"){
+    badge.textContent = 'Ocupado';
+    badge.classList.add('ocupado');
+    dot.classList.add('ocupado');
+    dot.style.animation = 'none';
+    btn.textContent = 'OCUPADO';
+    btn.classList.add('ocupado');
+    btn.style.pointerEvents = 'none';
+  }else{
+    badge.textContent = 'Indisponível';
+    badge.classList.add('indisp');
+    dot.classList.add('indisp');
+    dot.style.animation = 'none';
+    btn.textContent = 'INDISPONÍVEL';
+    btn.classList.add('indisp');
+    btn.style.pointerEvents = 'none';
+  }
 }
 
-function initEstado() {
+function initEstado(){
   const dia = new Date().toDateString();
   const anterior = carregarEstado();
 
-  if (anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length) {
+  if(anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length){
     estado = anterior;
     return;
   }
@@ -578,70 +622,62 @@ function initEstado() {
   salvarEstado();
 }
 
-function setStatusDOM(card, status) {
-  const badge = card.querySelector('.badge');
-  const dot = card.querySelector('.dot');
-  const btn = card.querySelector('.btn');
+/* escolhe 1 ou 2 indisponíveis e segura por poucos minutos */
+function escolherIndisponiveis(cards){
+  const total = cards.length;
+  const qtd = chance(0.55) ? 1 : 2; // 55% 1, senão 2
 
-  card.dataset.status = status;
-
-  badge.classList.remove('ocupado');
-  dot.classList.remove('ocupado');
-  btn.classList.remove('ocupado','disponivel');
-
-  dot.style.animation = '';
-
-  if (status === "online") {
-    badge.textContent = 'Online';
-    dot.style.animation = 'blink 1s infinite';
-    btn.textContent = 'INICIAR CONSULTA';
-    btn.classList.add('disponivel');
-    btn.style.pointerEvents = '';
-  } else {
-    badge.textContent = 'Ocupado';
-    badge.classList.add('ocupado');
-    dot.classList.add('ocupado');
-    dot.style.animation = 'none';
-    btn.textContent = 'OCUPADO';
-    btn.classList.add('ocupado');
-    btn.style.pointerEvents = 'none';
+  const indices = [...Array(total)].map((_,i)=>i);
+  // shuffle simples
+  for(let i=indices.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
   }
+  return new Set(indices.slice(0, Math.min(qtd, total)));
 }
 
-function aplicarStatusRealista(forceAll = false) {
+function aplicarStatusRealista(forceAll=false){
   const now = Date.now();
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  // probabilidade de "ocupado" por faixa (igual a sua lógica, mas só 2 estados)
+  // probabilidade de ocupado por hora (um pouco mais real à noite)
   let ocupProb = 0.40;
-  if (hora >= 10 && hora < 13) ocupProb = 0.35;
-  if (hora >= 13 && hora < 18) ocupProb = 0.42;
-  if (hora >= 18 && hora < 23) ocupProb = 0.52;
-  if (hora >= 23 || hora < 2) ocupProb = 0.33;
+  if (hora >= 9 && hora < 12) ocupProb = 0.34;
+  if (hora >= 12 && hora < 17) ocupProb = 0.44;
+  if (hora >= 17 && hora < 22) ocupProb = 0.56;
+  if (hora >= 22 || hora < 6) ocupProb = 0.38;
+
+  // sempre força 1 ou 2 indisponíveis (descanso curto)
+  const indispSet = escolherIndisponiveis(cards);
 
   cards.forEach((card, i) => {
     const st = estado.consultores[i];
+
+    // se está em "hold", respeita por pouco tempo (troca mais rápida)
     const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
-
-    if (emHold) {
+    if (emHold){
       setStatusDOM(card, st.status);
       return;
     }
 
-    const podeMudar = chance(0.55);
-    if (!podeMudar) {
-      st.holdUntil = now + randInt(6, 14) * 60 * 1000;
-      setStatusDOM(card, st.status);
+    // se foi escolhido como indisponível, segura 2-5 min
+    if (indispSet.has(i)){
+      st.status = "indisp";
+      st.holdUntil = now + randInt(2, 5) * 60 * 1000;
+      setStatusDOM(card, "indisp");
       return;
     }
 
+    // para os demais: define online/ocupado
     const novoStatus = chance(ocupProb) ? "ocupado" : "online";
     st.status = novoStatus;
 
+    // hold mais curto (muda sem muita demora)
+    // online: 1-3 min | ocupado: 2-6 min
     st.holdUntil = (novoStatus === "ocupado")
-      ? now + randInt(8, 22) * 60 * 1000
-      : now + randInt(5, 16) * 60 * 1000;
+      ? now + randInt(2, 6) * 60 * 1000
+      : now + randInt(1, 3) * 60 * 1000;
 
     setStatusDOM(card, novoStatus);
   });
@@ -652,7 +688,10 @@ function aplicarStatusRealista(forceAll = false) {
 /* START */
 initEstado();
 aplicarStatusRealista(false);
-setInterval(() => aplicarStatusRealista(false), 45000);
+
+// atualiza mais rápido (a cada 20s) pra ficar vivo sem ficar piscando demais
+setInterval(() => aplicarStatusRealista(false), 20000);
+
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) aplicarStatusRealista(false);
 });
