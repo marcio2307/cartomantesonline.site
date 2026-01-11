@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consultores Disponíveis</title>
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="logo.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -350,45 +354,90 @@ body{
     0 0 22px rgba(199,160,8,0.10);
 }
 
-/* ==========================================================
-   ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
-   - Esconde e impede que apareça no rodapé
-========================================================== */
-fabapp-banner-footer,
-fabapp-banner-footer *{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  min-height:0 !important;
-  width:0 !important;
-  max-width:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
+/* ✅ POPUP (overlay) */
+.app-popup-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.70);
+  backdrop-filter: blur(4px);
+  z-index:9999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
 }
-
-#ads-container,
-[id="ads-container"],
-[id*="ads-container"],
-[class*="ads-container"],
-iframe[src*="fabapp-ads"],
-video[src*="fabapp-ads"],
-source[src*="fabapp-ads"]{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
+.app-popup{
+  width:min(520px, 96vw);
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid rgba(199,160,8,0.55);
+  background:
+    radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(5,5,5,0.98) 100%);
+  box-shadow:0 30px 80px rgba(0,0,0,0.70);
+  position:relative;
 }
+.app-popup .inner{ padding:18px 16px 16px; }
+.app-popup .close{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(0,0,0,0.35);
+  color:#fff;
+  cursor:pointer;
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.app-popup .head{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.app-popup .logo{
+  width:54px; height:54px; border-radius:14px; overflow:hidden;
+  border:1px solid rgba(199,160,8,0.35);
+  box-shadow:0 12px 26px rgba(0,0,0,0.55);
+  background:#000;
+}
+.app-popup .logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.app-popup h2{
+  margin:0;
+  font-family:'Cinzel', serif;
+  font-size:18px;
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-3) 55%, var(--gold-2) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+.app-popup p{ margin:8px 0 14px; color:rgba(255,255,255,0.88); font-size:14px; line-height:1.6; }
+.app-popup .actions{ display:grid; grid-template-columns:1fr; gap:10px; }
+.app-btn{
+  height:56px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.10);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  letter-spacing:0.7px;
+  cursor:pointer;
+  box-shadow: 0 16px 30px rgba(0,0,0,0.55);
+}
+.app-btn.primary{
+  background:
+    radial-gradient(220px 90px at 50% 0%, rgba(255,240,166,0.18), rgba(0,0,0,0) 65%),
+    linear-gradient(180deg, rgba(199,160,8,0.95) 0%, rgba(184,134,11,0.95) 38%, rgba(246,226,122,0.95) 100%);
+  color:#111;
+}
+.app-btn.secondary{ background:rgba(255,255,255,0.08); color:#fff; }
+.app-popup .small{ margin-top:10px; font-size:12px; color:rgba(255,255,255,0.70); }
 </style>
 </head>
 
 <body>
 
-<!-- ✅ Carrossel (8s) -->
 <div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
   <div class="spacer">
     <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="" />
@@ -408,7 +457,6 @@ source[src*="fabapp-ads"]{
 </div>
 
 <div class="page">
-
   <section class="hero">
     <h1>Consulta de tarot online</h1>
     <p>
@@ -418,52 +466,44 @@ source[src*="fabapp-ads"]{
   </section>
 
   <div class="container" id="cards-container"></div>
+</div>
 
+<!-- ✅ POPUP -->
+<div class="app-popup-overlay" id="appPopup" aria-hidden="true">
+  <div class="app-popup" role="dialog" aria-modal="true" aria-label="Baixar aplicativo">
+    <button class="close" id="appPopupClose" aria-label="Fechar">✕</button>
+    <div class="inner">
+      <div class="head">
+        <div class="logo"><img src="logo.png" alt="Logo do aplicativo"></div>
+        <div>
+          <h2>Baixe o aplicativo do site</h2>
+          <div class="small">Instale no seu celular e acesse mais rápido.</div>
+        </div>
+      </div>
+
+      <p>Toque em <b>BAIXAR O APLICATIVO</b> para instalar o app na sua tela inicial.</p>
+
+      <div class="actions">
+        <button class="app-btn primary" id="installAppBtn">BAIXAR O APLICATIVO</button>
+        <button class="app-btn secondary" id="laterAppBtn">AGORA NÃO</button>
+      </div>
+
+      <div class="small" id="iosHint" style="display:none;">
+        No iPhone: toque em <b>Compartilhar</b> → <b>Adicionar à Tela de Início</b>.
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-/* ==========================================================
-   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
-========================================================== */
-(function bloquearPropagandasInjetadas(){
-  const SELECTORS = [
-    'fabapp-banner-footer',
-    'fabapp-banner-footer video',
-    '#ads-container',
-    '[id="ads-container"]',
-    'iframe[src*="fabapp-ads"]',
-    'video[src*="fabapp-ads"]',
-    'source[src*="fabapp-ads"]',
-    'script[src*="fabapp-ads"]'
-  ];
+/* ✅ registra Service Worker (PWA) */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  });
+}
 
-  function remover() {
-    for (const sel of SELECTORS) {
-      document.querySelectorAll(sel).forEach(el => {
-        try { el.remove(); } catch {}
-      });
-    }
-  }
-
-  // tenta remover já no início
-  remover();
-
-  // fica monitorando e removendo sempre que o host inserir algo
-  const obs = new MutationObserver(() => remover());
-  obs.observe(document.documentElement, { childList:true, subtree:true });
-
-  // reforço extra nos primeiros segundos (caso injete depois do load)
-  let tries = 0;
-  const t = setInterval(() => {
-    remover();
-    tries++;
-    if (tries >= 30) clearInterval(t); // ~15s
-  }, 500);
-})();
-
-/* ===========================
-   ✅ CARROSSEL (8s)
-=========================== */
+/* ✅ Carrossel */
 (function initBannerCarousel(){
   const carousel = document.getElementById('bannerCarousel');
   if(!carousel) return;
@@ -472,24 +512,88 @@ source[src*="fabapp-ads"]{
   if(slides.length <= 1) return;
 
   let i = 0;
-
-  function show(index){
-    slides.forEach((s, k) => s.classList.toggle('active', k === index));
-  }
-
   setInterval(() => {
     i = (i + 1) % slides.length;
-    show(i);
-  }, 8000); // ✅ 8 segundos
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+  }, 8000);
 })();
 
-/* ===========================
-   LISTA DE CONSULTORES
-=========================== */
+/* ✅ Popup Install */
+(function initAppPopupInstall(){
+  const popup = document.getElementById('appPopup');
+  const btnInstall = document.getElementById('installAppBtn');
+  const btnLater = document.getElementById('laterAppBtn');
+  const btnClose = document.getElementById('appPopupClose');
+  const iosHint = document.getElementById('iosHint');
+
+  const POPUP_KEY = "app_install_popup_v1";
+  let deferredPrompt = null;
+
+  const isStandalone = () =>
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true;
+
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  function openPopup(){
+    popup.style.display = 'flex';
+    popup.setAttribute('aria-hidden','false');
+  }
+  function closePopup(){
+    popup.style.display = 'none';
+    popup.setAttribute('aria-hidden','true');
+  }
+
+  function shouldShowPopup(){
+    if (isStandalone()) return false;
+    const last = Number(localStorage.getItem(POPUP_KEY) || "0");
+    const now = Date.now();
+    return (now - last) > (24 * 60 * 60 * 1000);
+  }
+  function markShown(){
+    try { localStorage.setItem(POPUP_KEY, String(Date.now())); } catch {}
+  }
+
+  // iPhone: mostra popup com dica também
+  if (isIOS() && shouldShowPopup()){
+    iosHint.style.display = 'block';
+    setTimeout(() => { openPopup(); markShown(); }, 1800);
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    if (shouldShowPopup()){
+      setTimeout(() => { openPopup(); markShown(); }, 1800);
+    }
+  });
+
+  btnInstall.addEventListener('click', async () => {
+    if (!deferredPrompt){
+      if (isIOS()) iosHint.style.display = 'block';
+      return;
+    }
+    closePopup();
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch {}
+    deferredPrompt = null;
+  });
+
+  function dismiss(){
+    closePopup();
+    markShown();
+  }
+
+  btnLater.addEventListener('click', dismiss);
+  btnClose.addEventListener('click', dismiss);
+  popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
+})();
+
+/* ✅ consultores */
 const consultores = [
   { nome: "P.Márcio", valor: 3, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Dalila", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/11//0b284c7b42-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Adria", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/07/25//d6152621b2-1-_3.webp", estrelas: 5, novo: true },
@@ -497,7 +601,6 @@ const consultores = [
   { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
   { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
   { nome: "M.Padilha", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2025/01/27//699974ac8a-1-.jpg", estrelas: 4 },
@@ -509,18 +612,12 @@ const consultores = [
 
 const container = document.getElementById('cards-container');
 
-/* ===========================
-   RENDER DOS CARDS
-=========================== */
-consultores.forEach((c, idx) => {
+consultores.forEach((c) => {
   const card = document.createElement('div');
   card.className = 'card' + (c.novo ? ' novo' : '');
-  card.dataset.idx = String(idx);
 
   card.innerHTML = `
-    <div class="img-wrap">
-      <img src="${c.imagem}" alt="${c.nome}">
-    </div>
+    <div class="img-wrap"><img src="${c.imagem}" alt="${c.nome}"></div>
     <span class="badge">Online</span>
     <div class="content">
       <div class="name">${c.nome} <span class="dot"></span></div>
@@ -532,222 +629,15 @@ consultores.forEach((c, idx) => {
 
   card.querySelector('.btn').addEventListener('click', (e) => {
     e.preventDefault();
-    if (card.dataset.status !== "online") return;
-
     localStorage.clear();
     localStorage.setItem('consultorNome', c.nome);
     localStorage.setItem('consultorValor', c.valor);
     localStorage.setItem('consultorImagem', c.imagem);
-
     window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pix.html';
   });
 
   container.appendChild(card);
 });
-
-/* ===========================
-   ✅ COMPORTAMENTO REALISTA
-=========================== */
-function horarioIndisponivelGlobal() {
-  const h = new Date().getHours();
-  return h >= 2 && h < 10;
-}
-
-const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
-const chance = (p) => Math.random() < p;
-
-function gerarEscalaDescanso() {
-  const janelas = [];
-  const qtd = chance(0.45) ? 2 : 1;
-
-  for (let i = 0; i < qtd; i++) {
-    let inicio = randInt(10, 21);
-    let dur = chance(0.20) ? 3 : (chance(0.55) ? 2 : 1);
-    let fim = clamp(inicio + dur, 10, 23);
-
-    if (janelas.some(j => Math.abs(j.inicio - inicio) < 2)) {
-      inicio = clamp(inicio + 2, 10, 22);
-      fim = clamp(inicio + dur, 10, 23);
-    }
-
-    janelas.push({ inicio, fim });
-  }
-
-  if (chance(0.12)) {
-    const start = randInt(12, 18);
-    janelas.push({ inicio:start, fim: clamp(start + 1, 10, 23) });
-  }
-
-  return janelas;
-}
-
-const STORAGE_KEY = "status_realista_v1";
-let estado = null;
-
-function carregarEstado() {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.consultores)) return null;
-    return parsed;
-  } catch { return null; }
-}
-
-function salvarEstado() {
-  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); } catch {}
-}
-
-function initEstado() {
-  const dia = new Date().toDateString();
-  const anterior = carregarEstado();
-
-  if (anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length) {
-    estado = anterior;
-    return;
-  }
-
-  estado = {
-    dia,
-    consultores: consultores.map(() => ({
-      descanso: gerarEscalaDescanso(),
-      status: "online",
-      holdUntil: 0
-    }))
-  };
-
-  aplicarStatusRealista(true);
-  salvarEstado();
-}
-
-function emDescansoPorEscala(idx, hora) {
-  return estado.consultores[idx].descanso.some(w => hora >= w.inicio && hora < w.fim);
-}
-
-function setStatusDOM(card, status) {
-  const badge = card.querySelector('.badge');
-  const dot = card.querySelector('.dot');
-  const btn = card.querySelector('.btn');
-
-  card.dataset.status = status;
-
-  badge.classList.remove('ocupado','indisp');
-  dot.classList.remove('ocupado','indisp');
-  btn.classList.remove('ocupado','indisp','disponivel');
-
-  dot.style.animation = '';
-
-  if (status === "online") {
-    badge.textContent = 'Online';
-    dot.style.animation = 'blink 1s infinite';
-    btn.textContent = 'INICIAR CONSULTA';
-    btn.classList.add('disponivel');
-    btn.style.pointerEvents = '';
-  } else if (status === "ocupado") {
-    badge.textContent = 'Ocupado';
-    badge.classList.add('ocupado');
-    dot.classList.add('ocupado');
-    dot.style.animation = 'none';
-    btn.textContent = 'OCUPADO';
-    btn.classList.add('ocupado');
-    btn.style.pointerEvents = 'none';
-  } else {
-    badge.textContent = 'Indisponível';
-    badge.classList.add('indisp');
-    dot.classList.add('indisp');
-    dot.style.animation = 'none';
-    btn.textContent = 'INDISPONÍVEL';
-    btn.classList.add('indisp');
-    btn.style.pointerEvents = 'none';
-  }
-}
-
-function aplicarStatusRealista(forceAll = false) {
-  const now = Date.now();
-  const hora = new Date().getHours();
-  const cards = Array.from(document.querySelectorAll('.card'));
-
-  if (horarioIndisponivelGlobal()) {
-    cards.forEach((card, i) => {
-      estado.consultores[i].status = "indisp";
-      estado.consultores[i].holdUntil = now + 10 * 60 * 1000;
-      setStatusDOM(card, "indisp");
-    });
-    salvarEstado();
-    return;
-  }
-
-  const indisponiveisFixos = [];
-  cards.forEach((_, i) => {
-    if (emDescansoPorEscala(i, hora)) indisponiveisFixos.push(i);
-  });
-
-  const alvoIndisp = chance(0.55) ? 1 : 2;
-  const indispSet = new Set(indisponiveisFixos);
-
-  if (indispSet.size < alvoIndisp) {
-    const candidatos = cards.map((_, i) => i).filter(i => !indispSet.has(i));
-    while (indispSet.size < alvoIndisp && candidatos.length) {
-      const pick = candidatos.splice(randInt(0, candidatos.length - 1), 1)[0];
-      indispSet.add(pick);
-      estado.consultores[pick].holdUntil = now + randInt(25, 60) * 60 * 1000;
-    }
-  }
-
-  let ocupProb = 0.40;
-  if (hora >= 10 && hora < 13) ocupProb = 0.35;
-  if (hora >= 13 && hora < 18) ocupProb = 0.42;
-  if (hora >= 18 && hora < 23) ocupProb = 0.52;
-  if (hora >= 23 || hora < 2) ocupProb = 0.33;
-
-  cards.forEach((card, i) => {
-    const st = estado.consultores[i];
-    const bloqueado = indispSet.has(i);
-    const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
-
-    if (bloqueado) {
-      st.status = "indisp";
-      if (!st.holdUntil || st.holdUntil < now) {
-        st.holdUntil = now + randInt(20, 55) * 60 * 1000;
-      }
-      setStatusDOM(card, "indisp");
-      return;
-    }
-
-    if (emHold) {
-      setStatusDOM(card, st.status);
-      return;
-    }
-
-    const podeMudar = chance(0.55);
-    if (!podeMudar) {
-      st.holdUntil = now + randInt(6, 14) * 60 * 1000;
-      setStatusDOM(card, st.status);
-      return;
-    }
-
-    const novoStatus = chance(ocupProb) ? "ocupado" : "online";
-    st.status = novoStatus;
-
-    st.holdUntil = (novoStatus === "ocupado")
-      ? now + randInt(8, 22) * 60 * 1000
-      : now + randInt(5, 16) * 60 * 1000;
-
-    setStatusDOM(card, novoStatus);
-  });
-
-  salvarEstado();
-}
-
-/* START */
-initEstado();
-aplicarStatusRealista(false);
-setInterval(() => aplicarStatusRealista(false), 45000);
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) aplicarStatusRealista(false);
-});
 </script>
-
 </body>
 </html>
