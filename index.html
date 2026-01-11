@@ -636,8 +636,10 @@ if ("serviceWorker" in navigator) {
 
 /* ===========================
    ✅ POPUP + INSTALAR APP (PWA)
-   - Mostra popup quando houver "beforeinstallprompt"
-   - iPhone: mostra dica (Safari não tem beforeinstallprompt)
+   ✅ AGORA FUNCIONA SEM DEPENDER DO beforeinstallprompt:
+   - Mostra popup sempre (1x a cada 6h) quando NÃO estiver instalado
+   - Se Android liberar prompt, o botão instala
+   - Se iPhone, mostra a dica de "Adicionar à Tela de Início"
 =========================== */
 (function initInstallPopup(){
   const popup = document.getElementById('appPopup');
@@ -646,7 +648,7 @@ if ("serviceWorker" in navigator) {
   const btnClose = document.getElementById('appPopupClose');
   const iosHint = document.getElementById('iosHint');
 
-  const POPUP_KEY = "app_install_popup_v1";
+  const POPUP_KEY = "app_install_popup_v2"; // ✅ trocado pra destravar testes
   let deferredPrompt = null;
 
   const isStandalone = () =>
@@ -668,36 +670,48 @@ if ("serviceWorker" in navigator) {
     if (isStandalone()) return false;
     const last = Number(localStorage.getItem(POPUP_KEY) || "0");
     const now = Date.now();
-    return (now - last) > (24 * 60 * 60 * 1000); // 1 dia
+    return (now - last) > (6 * 60 * 60 * 1000); // ✅ 6 horas
   }
   function markShown(){
     try { localStorage.setItem(POPUP_KEY, String(Date.now())); } catch {}
   }
 
-  // iPhone: mostra popup com dica também (sem prompt nativo)
-  if (isIOS() && shouldShowPopup()){
-    iosHint.style.display = 'block';
-    setTimeout(() => { openPopup(); markShown(); }, 1800);
-  }
+  // ✅ Mostra no carregamento (não depende do prompt do Chrome)
+  window.addEventListener('load', () => {
+    if (!shouldShowPopup()) return;
+    if (isIOS()) iosHint.style.display = 'block';
+    setTimeout(() => { openPopup(); markShown(); }, 1500);
+  });
 
+  // ✅ Captura o prompt do Android/Chrome quando existir
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 
-    if (shouldShowPopup()){
-      setTimeout(() => { openPopup(); markShown(); }, 1800);
+    // se ainda não abriu, abre
+    if (!isStandalone() && shouldShowPopup()){
+      setTimeout(() => { openPopup(); markShown(); }, 800);
     }
   });
 
   btnInstall.addEventListener('click', async () => {
-    if (!deferredPrompt){
-      if (isIOS()) iosHint.style.display = 'block';
+    // ✅ Android/Chrome com prompt
+    if (deferredPrompt){
+      closePopup();
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch {}
+      deferredPrompt = null;
       return;
     }
-    closePopup();
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch {}
-    deferredPrompt = null;
+
+    // ✅ iPhone (sem prompt)
+    if (isIOS()){
+      iosHint.style.display = 'block';
+      return;
+    }
+
+    // ✅ outros casos
+    alert("Para instalar: no Chrome toque em ⋮ e depois em 'Instalar app'.");
   });
 
   function dismiss(){
