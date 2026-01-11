@@ -1,4 +1,11 @@
-const CACHE_VERSION = "v1.0.2";
+/* service-worker.js
+   PWA simples e estável:
+   - Instala e salva os arquivos básicos
+   - Usa cache-first para estáticos
+   - Usa network-first para navegação (HTML) para evitar "site preso no cache"
+*/
+
+const CACHE_VERSION = "v1.0.3"; // ✅ aumente sempre que mudar index/manifest
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -31,11 +38,13 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
+  // ✅ HTML: network-first
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -44,11 +53,14 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(req).then((r) => r || caches.match("./index.html")))
+        .catch(() =>
+          caches.match(req).then((r) => r || caches.match("./index.html"))
+        )
     );
     return;
   }
 
+  // ✅ estáticos: cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -56,6 +68,7 @@ self.addEventListener("fetch", (event) => {
       return fetch(req)
         .then((res) => {
           if (!res || res.status !== 200) return res;
+
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
