@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagar Consulta - Cartomantes Online</title>
+<style>
+body { background: radial-gradient(circle at top, #1a1a1a, #000); color: #fff;
+font-family: 'Poppins', Arial, sans-serif; margin: 0; padding: 20px; }
+.container { max-width: 420px; margin: 40px auto; background: rgba(255,255,255,0.05);
+border: 2px solid gold; border-radius: 15px; padding: 25px; box-shadow: 0 0 20px rgba(255,215,0,0.2); text-align: center; }
+.consultor-img { width: 150px; border-radius: 10px; margin-bottom: 10px; }
+h1 { color: gold; font-size: 22px; margin: 10px 0; }
+p { font-size: 14px; color: #ccc; margin-bottom: 20px; }
+.option { background: rgba(255,255,255,0.08); border: 1px solid #c7a008;
+border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer;
+transition: all 0.3s ease; }
+.option:hover { background: rgba(255,215,0,0.15); transform: scale(1.02); }
+.option.selected { background: rgba(255,215,0,0.3); border: 2px solid gold; }
+.pix-logo { width: 150px; margin: 20px auto; display: block; filter: drop-shadow(0 0 6px #0cdfb9); }
+.pix-btn { background: linear-gradient(90deg, #00bfa5, #00937b); border: none;
+color: white; padding: 12px 20px; border-radius: 8px; font-size: 16px;
+cursor: pointer; font-weight: bold; transition: transform 0.2s ease; width: 100%; max-width: 250px; }
+.pix-btn:hover { transform: scale(1.05); }
+.price-display { color: gold; font-size: 20px; margin-top: 20px; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="container">
+    <img id="consultorImagem" class="consultor-img" src="" alt="Consultor">
+    <h1 id="consultorNome">Consultor</h1>
+    <p>Escolha quantos minutos deseja na sua consulta.</p>
+    <div id="opcoes"></div>
+    <div class="price-display" id="precoSelecionado">Selecione uma opção</div>
+    <img class="pix-logo" src="https://artpoin.com/wp-content/uploads/2023/09/artpoin-logo-pix.png" alt="PIX Logo">
+    <button class="pix-btn" id="pixButton" disabled>Pagar com PIX</button>
+</div>
+
+<script>
+// 🔮 Dados do consultor vindos do localStorage
+const nome = localStorage.getItem('consultorNome') || "Consultor";
+const valor = parseFloat(localStorage.getItem('consultorValor')) || 1.00;
+const imagem = localStorage.getItem('consultorImagem') || "https://via.placeholder.com/150";
+document.getElementById('consultorNome').textContent = nome;
+document.getElementById('consultorImagem').src = imagem;
+
+// 🔢 Opções de minutos
+const minutos = [10, 20, 30, 60];
+const opcoesDiv = document.getElementById('opcoes');
+const precoSelecionado = document.getElementById('precoSelecionado');
+const botaoPix = document.getElementById('pixButton');
+let minutosSelecionados = null;
+let precoFinal = null;
+
+// 🧭 Cria as opções dinamicamente
+minutos.forEach(m => {
+  const preco = (m * valor).toFixed(2);
+  const div = document.createElement('div');
+  div.className = 'option';
+  div.innerHTML = `<h2>${m} Minutos</h2><p>R$ ${preco}</p>`;
+  div.onclick = () => {
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    div.classList.add('selected');
+    minutosSelecionados = m;
+    precoFinal = preco;
+    precoSelecionado.textContent = `Você selecionou ${m} minutos - R$ ${preco}`;
+    botaoPix.disabled = false;
+  };
+  opcoesDiv.appendChild(div);
+});
+
+// 💰 Ao clicar em “Pagar com Pix”
+botaoPix.onclick = () => {
+  if (minutosSelecionados && precoFinal) {
+    // Formata valores e descrição
+    const descricao = encodeURIComponent(`MINUTOS ${nome.toUpperCase()}`);
+    const valorFormatado = precoFinal.replace('.', ',');
+    const linkPix = `https://cartomantespagamento.com.br/index.php?valor=${valorFormatado}&descricao=${descricao}`;
+    // Redireciona para o link Pix
+    window.location.href = linkPix;
+  }
+};
+</script>
+</body>
+</html>
+
