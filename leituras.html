@@ -5,11 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consultores Disponíveis</title>
 
-<!-- ✅ PWA -->
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#000000" />
-<link rel="icon" href="logo.png" />
-
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -357,6 +352,7 @@ body{
 
 /* ==========================================================
    ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
+   - Esconde e impede que apareça no rodapé
 ========================================================== */
 fabapp-banner-footer,
 fabapp-banner-footer *{
@@ -386,123 +382,6 @@ source[src*="fabapp-ads"]{
   max-height:0 !important;
   overflow:hidden !important;
   pointer-events:none !important;
-}
-
-/* ==========================================================
-   ✅ POPUP DE INSTALAÇÃO DO APP (PWA)
-========================================================== */
-.app-popup-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.72);
-  backdrop-filter: blur(4px);
-  z-index:99999;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-}
-.app-popup{
-  width:min(520px, 96vw);
-  border-radius:18px;
-  overflow:hidden;
-  border:1px solid rgba(199,160,8,0.55);
-  background:
-    radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
-    linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(5,5,5,0.99) 100%);
-  box-shadow:0 30px 80px rgba(0,0,0,0.70);
-  position:relative;
-}
-.app-popup .inner{
-  padding:18px 16px 16px;
-}
-.app-popup .close{
-  position:absolute;
-  top:10px;
-  right:10px;
-  width:42px;
-  height:42px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.10);
-  background:rgba(0,0,0,0.35);
-  color:#fff;
-  cursor:pointer;
-  font-size:20px;
-  line-height:1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 14px 30px rgba(0,0,0,0.55);
-}
-.app-popup .head{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:10px;
-}
-.app-popup .logo{
-  width:54px;
-  height:54px;
-  border-radius:14px;
-  overflow:hidden;
-  border:1px solid rgba(199,160,8,0.35);
-  box-shadow:0 12px 26px rgba(0,0,0,0.55);
-  background:#000;
-  flex:0 0 auto;
-}
-.app-popup .logo img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-.app-popup h2{
-  margin:0;
-  font-family:'Cinzel', serif;
-  font-size:18px;
-  letter-spacing:0.2px;
-  color:transparent;
-  background-image:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-3) 55%, var(--gold-2) 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-}
-.app-popup p{
-  margin:8px 0 14px;
-  color:rgba(255,255,255,0.88);
-  font-size:14px;
-  line-height:1.6;
-}
-.app-popup .actions{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-}
-.app-btn{
-  height:56px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.10);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight:900;
-  letter-spacing:0.7px;
-  cursor:pointer;
-  box-shadow: 0 16px 30px rgba(0,0,0,0.55);
-}
-.app-btn.primary{
-  background:
-    radial-gradient(220px 90px at 50% 0%, rgba(255,240,166,0.18), rgba(0,0,0,0) 65%),
-    linear-gradient(180deg, rgba(199,160,8,0.95) 0%, rgba(184,134,11,0.95) 38%, rgba(246,226,122,0.95) 100%);
-  color:#111;
-}
-.app-btn.secondary{
-  background:rgba(255,255,255,0.08);
-  color:#fff;
-}
-.app-popup .small{
-  margin-top:10px;
-  font-size:12px;
-  color:rgba(255,255,255,0.70);
 }
 </style>
 </head>
@@ -542,41 +421,7 @@ source[src*="fabapp-ads"]{
 
 </div>
 
-<!-- ✅ POPUP INSTALAR APP -->
-<div class="app-popup-overlay" id="appPopup" aria-hidden="true">
-  <div class="app-popup" role="dialog" aria-modal="true" aria-label="Instalar aplicativo">
-    <button class="close" id="appPopupClose" aria-label="Fechar">✕</button>
-    <div class="inner">
-      <div class="head">
-        <div class="logo"><img src="logo.png" alt="Logo do aplicativo"></div>
-        <div>
-          <h2>Baixe o aplicativo do site</h2>
-          <div class="small">Instale no celular e acesse mais rápido.</div>
-        </div>
-      </div>
-
-      <p>Toque em <b>BAIXAR O APLICATIVO</b> para instalar o app na sua tela inicial.</p>
-
-      <div class="actions">
-        <button class="app-btn primary" id="installAppBtn">BAIXAR O APLICATIVO</button>
-        <button class="app-btn secondary" id="laterAppBtn">AGORA NÃO</button>
-      </div>
-
-      <div class="small" id="iosHint" style="display:none;">
-        No iPhone: toque em <b>Compartilhar</b> → <b>Adicionar à Tela de Início</b>.
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
-/* ✅ Registrar Service Worker (necessário para PWA) */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-  });
-}
-
 /* ==========================================================
    ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
 ========================================================== */
@@ -600,15 +445,19 @@ if ("serviceWorker" in navigator) {
     }
   }
 
+  // tenta remover já no início
   remover();
+
+  // fica monitorando e removendo sempre que o host inserir algo
   const obs = new MutationObserver(() => remover());
   obs.observe(document.documentElement, { childList:true, subtree:true });
 
+  // reforço extra nos primeiros segundos (caso injete depois do load)
   let tries = 0;
   const t = setInterval(() => {
     remover();
     tries++;
-    if (tries >= 30) clearInterval(t);
+    if (tries >= 30) clearInterval(t); // ~15s
   }, 500);
 })();
 
@@ -631,83 +480,7 @@ if ("serviceWorker" in navigator) {
   setInterval(() => {
     i = (i + 1) % slides.length;
     show(i);
-  }, 8000);
-})();
-
-/* ===========================
-   ✅ POPUP + INSTALAR APP (PWA)
-   - Mostra popup quando houver "beforeinstallprompt"
-   - iPhone: mostra dica (Safari não tem beforeinstallprompt)
-=========================== */
-(function initInstallPopup(){
-  const popup = document.getElementById('appPopup');
-  const btnInstall = document.getElementById('installAppBtn');
-  const btnLater = document.getElementById('laterAppBtn');
-  const btnClose = document.getElementById('appPopupClose');
-  const iosHint = document.getElementById('iosHint');
-
-  const POPUP_KEY = "app_install_popup_v1";
-  let deferredPrompt = null;
-
-  const isStandalone = () =>
-    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-    window.navigator.standalone === true;
-
-  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
-
-  function openPopup(){
-    popup.style.display = 'flex';
-    popup.setAttribute('aria-hidden','false');
-  }
-  function closePopup(){
-    popup.style.display = 'none';
-    popup.setAttribute('aria-hidden','true');
-  }
-
-  function shouldShowPopup(){
-    if (isStandalone()) return false;
-    const last = Number(localStorage.getItem(POPUP_KEY) || "0");
-    const now = Date.now();
-    return (now - last) > (24 * 60 * 60 * 1000); // 1 dia
-  }
-  function markShown(){
-    try { localStorage.setItem(POPUP_KEY, String(Date.now())); } catch {}
-  }
-
-  // iPhone: mostra popup com dica também (sem prompt nativo)
-  if (isIOS() && shouldShowPopup()){
-    iosHint.style.display = 'block';
-    setTimeout(() => { openPopup(); markShown(); }, 1800);
-  }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    if (shouldShowPopup()){
-      setTimeout(() => { openPopup(); markShown(); }, 1800);
-    }
-  });
-
-  btnInstall.addEventListener('click', async () => {
-    if (!deferredPrompt){
-      if (isIOS()) iosHint.style.display = 'block';
-      return;
-    }
-    closePopup();
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch {}
-    deferredPrompt = null;
-  });
-
-  function dismiss(){
-    closePopup();
-    markShown();
-  }
-
-  btnLater.addEventListener('click', dismiss);
-  btnClose.addEventListener('click', dismiss);
-  popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
+  }, 8000); // ✅ 8 segundos
 })();
 
 /* ===========================
@@ -978,3 +751,4 @@ document.addEventListener('visibilitychange', () => {
 
 </body>
 </html>
+
