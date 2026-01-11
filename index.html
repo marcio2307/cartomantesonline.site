@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
@@ -9,6 +9,12 @@
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#000000" />
 <link rel="icon" href="logo.png" />
+
+<!-- ✅ iOS (Adicionar à Tela Inicial) -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Cartomantes" />
+<link rel="apple-touch-icon" href="logo.png" />
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
@@ -498,6 +504,41 @@ source[src*="fabapp-ads"]{
   font-size:12px;
   color:rgba(255,255,255,0.70);
 }
+
+/* ✅ iOS: bloco com passo a passo */
+.ios-steps{
+  margin:10px 0 14px;
+  padding:12px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.90);
+  font-size:13px;
+  line-height:1.55;
+}
+.ios-steps b{ color:#fff; }
+.ios-steps .row{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  margin:8px 0;
+}
+.ios-steps .num{
+  width:26px;
+  height:26px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  background:rgba(199,160,8,0.22);
+  border:1px solid rgba(199,160,8,0.40);
+  flex:0 0 auto;
+}
+.ios-steps .ico{
+  font-size:16px;
+  margin-right:6px;
+}
 </style>
 </head>
 
@@ -542,11 +583,36 @@ source[src*="fabapp-ads"]{
         <div class="logo"><img src="logo.png" alt="Logo do aplicativo"></div>
         <div>
           <h2>Baixe o aplicativo do site</h2>
-          <div class="small">Instale no celular e acesse mais rápido.</div>
+          <div class="small" id="subtitleInstall">Instale no celular e acesse mais rápido.</div>
         </div>
       </div>
 
-      <p>Toque em <b>BAIXAR O APLICATIVO</b> para instalar o app na sua tela inicial.</p>
+      <p id="installText">Toque em <b>BAIXAR O APLICATIVO</b> para instalar o app na sua tela inicial.</p>
+
+      <!-- ✅ iOS passo a passo (mostra apenas no iPhone/iPad) -->
+      <div class="ios-steps" id="iosSteps" style="display:none;">
+        <div class="row">
+          <div class="num">1</div>
+          <div>
+            Toque em <b>Compartilhar</b> <span class="ico">⤴️</span> (na barra do Safari).
+          </div>
+        </div>
+        <div class="row">
+          <div class="num">2</div>
+          <div>
+            Role e toque em <b>Adicionar à Tela de Início</b> <span class="ico">➕</span>.
+          </div>
+        </div>
+        <div class="row">
+          <div class="num">3</div>
+          <div>
+            Confirme em <b>Adicionar</b>. Pronto ✅
+          </div>
+        </div>
+        <div class="small" style="margin-top:10px;">
+          Dica: se você estiver em outro navegador no iPhone, abra este site no <b>Safari</b>.
+        </div>
+      </div>
 
       <div class="actions">
         <button class="app-btn primary" id="installAppBtn">BAIXAR O APLICATIVO</button>
@@ -570,6 +636,8 @@ if ("serviceWorker" in navigator) {
 
 /* ===========================
    ✅ POPUP + INSTALAR APP (PWA)
+   - Android: usa beforeinstallprompt (como já estava)
+   - iOS: mostra passo a passo "Adicionar à Tela Inicial"
 =========================== */
 (function initInstallPopup(){
   const popup = document.getElementById('appPopup');
@@ -577,6 +645,9 @@ if ("serviceWorker" in navigator) {
   const btnLater = document.getElementById('laterAppBtn');
   const btnClose = document.getElementById('appPopupClose');
   const iosHint = document.getElementById('iosHint');
+  const iosSteps = document.getElementById('iosSteps');
+  const subtitleInstall = document.getElementById('subtitleInstall');
+  const installText = document.getElementById('installText');
 
   let deferredPrompt = null;
 
@@ -585,6 +656,12 @@ if ("serviceWorker" in navigator) {
     window.navigator.standalone === true;
 
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = () => {
+    const ua = navigator.userAgent.toLowerCase();
+    const isAppleWebKit = ua.includes('applewebkit');
+    const isNotOther = !ua.includes('crios') && !ua.includes('fxios') && !ua.includes('edgios') && !ua.includes('opios');
+    return isAppleWebKit && isNotOther; // Safari "de verdade"
+  };
 
   function openPopup(){
     popup.style.display = 'flex';
@@ -595,18 +672,52 @@ if ("serviceWorker" in navigator) {
     popup.setAttribute('aria-hidden','true');
   }
 
+  // ✅ iOS: controla frequência do popup para não encher
+  const IOS_DISMISS_KEY = "ios_a2hs_dismissed_v1";
+  function canShowIOSPopup(){
+    try{
+      const raw = localStorage.getItem(IOS_DISMISS_KEY);
+      if(!raw) return true;
+      const t = parseInt(raw, 10);
+      if(!t) return true;
+      // mostra de novo após 2 dias
+      return (Date.now() - t) > (2 * 24 * 60 * 60 * 1000);
+    }catch{
+      return true;
+    }
+  }
+  function markIOSDismiss(){
+    try{ localStorage.setItem(IOS_DISMISS_KEY, String(Date.now())); }catch{}
+  }
+
   function showPopupIfNotInstalled(){
     if (isStandalone()) return;
 
+    // ✅ iOS: mostrar o tutorial de Tela Inicial
     if (isIOS()){
+      if(!canShowIOSPopup()) return;
+
       iosHint.style.display = 'block';
+      iosSteps.style.display = 'block';
+
+      // Ajusta textos para iOS
+      subtitleInstall.textContent = 'No iPhone, você adiciona pela Tela de Início.';
+      installText.innerHTML = isSafari()
+        ? 'Siga o passo a passo abaixo para colocar o app na sua <b>Tela de Início</b>.'
+        : 'Abra este site no <b>Safari</b> e siga o passo a passo abaixo para colocar na <b>Tela de Início</b>.';
+
+      // Botão vira "ENTENDI" no iOS (não tenta instalar)
+      btnInstall.textContent = 'ENTENDI';
+
       setTimeout(openPopup, 800);
       return;
     }
 
+    // ✅ Android (mantém o comportamento que você já tinha)
     setTimeout(openPopup, 800);
   }
 
+  // ✅ Android: captura o evento de instalação
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -615,10 +726,14 @@ if ("serviceWorker" in navigator) {
   window.addEventListener('load', showPopupIfNotInstalled);
 
   btnInstall.addEventListener('click', async () => {
+    // ✅ iOS: apenas fecha (tutorial)
     if (isIOS()){
-      iosHint.style.display = 'block';
+      markIOSDismiss();
+      closePopup();
       return;
     }
+
+    // ✅ Android: mantém igual
     if (!deferredPrompt){
       alert('Para instalar: use o Chrome no Android e abra o menu ⋮ > "Instalar app".');
       return;
@@ -629,7 +744,10 @@ if ("serviceWorker" in navigator) {
     deferredPrompt = null;
   });
 
-  function dismiss(){ closePopup(); }
+  function dismiss(){
+    if (isIOS()) markIOSDismiss();
+    closePopup();
+  }
 
   btnLater.addEventListener('click', dismiss);
   btnClose.addEventListener('click', dismiss);
