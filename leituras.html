@@ -233,7 +233,6 @@ body{
   background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
 }
 .badge.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
-.badge.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
 
 .content{
   padding:12px 14px 16px;
@@ -267,7 +266,6 @@ body{
 }
 @keyframes blink{ 50%{ opacity:0; } }
 .dot.ocupado{ background:#e67e22; animation:none; box-shadow:none; }
-.dot.indisp{ background:#e74c3c; animation:none; box-shadow:none; }
 
 .stars{
   color:transparent;
@@ -336,11 +334,6 @@ body{
   color:#111;
   pointer-events:none;
 }
-.btn.indisp{
-  background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
-  color:#fff;
-  pointer-events:none;
-}
 
 .card.novo{
   border-color:rgba(246,226,122,0.95);
@@ -352,7 +345,6 @@ body{
 
 /* ==========================================================
    ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
-   - Esconde e impede que apareça no rodapé
 ========================================================== */
 fabapp-banner-footer,
 fabapp-banner-footer *{
@@ -445,19 +437,15 @@ source[src*="fabapp-ads"]{
     }
   }
 
-  // tenta remover já no início
   remover();
-
-  // fica monitorando e removendo sempre que o host inserir algo
   const obs = new MutationObserver(() => remover());
   obs.observe(document.documentElement, { childList:true, subtree:true });
 
-  // reforço extra nos primeiros segundos (caso injete depois do load)
   let tries = 0;
   const t = setInterval(() => {
     remover();
     tries++;
-    if (tries >= 30) clearInterval(t); // ~15s
+    if (tries >= 30) clearInterval(t);
   }, 500);
 })();
 
@@ -480,7 +468,7 @@ source[src*="fabapp-ads"]{
   setInterval(() => {
     i = (i + 1) % slides.length;
     show(i);
-  }, 8000); // ✅ 8 segundos
+  }, 8000);
 })();
 
 /* ===========================
@@ -546,43 +534,13 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   ✅ COMPORTAMENTO REALISTA
+   ✅ COMPORTAMENTO REALISTA (SÓ ONLINE/OCUPADO)
+   ✅ REMOVIDO: indisponível + regra 2h às 10h
 =========================== */
-function horarioIndisponivelGlobal() {
-  const h = new Date().getHours();
-  return h >= 2 && h < 10;
-}
-
-const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
 
-function gerarEscalaDescanso() {
-  const janelas = [];
-  const qtd = chance(0.45) ? 2 : 1;
-
-  for (let i = 0; i < qtd; i++) {
-    let inicio = randInt(10, 21);
-    let dur = chance(0.20) ? 3 : (chance(0.55) ? 2 : 1);
-    let fim = clamp(inicio + dur, 10, 23);
-
-    if (janelas.some(j => Math.abs(j.inicio - inicio) < 2)) {
-      inicio = clamp(inicio + 2, 10, 22);
-      fim = clamp(inicio + dur, 10, 23);
-    }
-
-    janelas.push({ inicio, fim });
-  }
-
-  if (chance(0.12)) {
-    const start = randInt(12, 18);
-    janelas.push({ inicio:start, fim: clamp(start + 1, 10, 23) });
-  }
-
-  return janelas;
-}
-
-const STORAGE_KEY = "status_realista_v1";
+const STORAGE_KEY = "status_online_ocupado_v1";
 let estado = null;
 
 function carregarEstado() {
@@ -611,7 +569,6 @@ function initEstado() {
   estado = {
     dia,
     consultores: consultores.map(() => ({
-      descanso: gerarEscalaDescanso(),
       status: "online",
       holdUntil: 0
     }))
@@ -621,10 +578,6 @@ function initEstado() {
   salvarEstado();
 }
 
-function emDescansoPorEscala(idx, hora) {
-  return estado.consultores[idx].descanso.some(w => hora >= w.inicio && hora < w.fim);
-}
-
 function setStatusDOM(card, status) {
   const badge = card.querySelector('.badge');
   const dot = card.querySelector('.dot');
@@ -632,9 +585,9 @@ function setStatusDOM(card, status) {
 
   card.dataset.status = status;
 
-  badge.classList.remove('ocupado','indisp');
-  dot.classList.remove('ocupado','indisp');
-  btn.classList.remove('ocupado','indisp','disponivel');
+  badge.classList.remove('ocupado');
+  dot.classList.remove('ocupado');
+  btn.classList.remove('ocupado','disponivel');
 
   dot.style.animation = '';
 
@@ -644,21 +597,13 @@ function setStatusDOM(card, status) {
     btn.textContent = 'INICIAR CONSULTA';
     btn.classList.add('disponivel');
     btn.style.pointerEvents = '';
-  } else if (status === "ocupado") {
+  } else {
     badge.textContent = 'Ocupado';
     badge.classList.add('ocupado');
     dot.classList.add('ocupado');
     dot.style.animation = 'none';
     btn.textContent = 'OCUPADO';
     btn.classList.add('ocupado');
-    btn.style.pointerEvents = 'none';
-  } else {
-    badge.textContent = 'Indisponível';
-    badge.classList.add('indisp');
-    dot.classList.add('indisp');
-    dot.style.animation = 'none';
-    btn.textContent = 'INDISPONÍVEL';
-    btn.classList.add('indisp');
     btn.style.pointerEvents = 'none';
   }
 }
@@ -668,33 +613,7 @@ function aplicarStatusRealista(forceAll = false) {
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  if (horarioIndisponivelGlobal()) {
-    cards.forEach((card, i) => {
-      estado.consultores[i].status = "indisp";
-      estado.consultores[i].holdUntil = now + 10 * 60 * 1000;
-      setStatusDOM(card, "indisp");
-    });
-    salvarEstado();
-    return;
-  }
-
-  const indisponiveisFixos = [];
-  cards.forEach((_, i) => {
-    if (emDescansoPorEscala(i, hora)) indisponiveisFixos.push(i);
-  });
-
-  const alvoIndisp = chance(0.55) ? 1 : 2;
-  const indispSet = new Set(indisponiveisFixos);
-
-  if (indispSet.size < alvoIndisp) {
-    const candidatos = cards.map((_, i) => i).filter(i => !indispSet.has(i));
-    while (indispSet.size < alvoIndisp && candidatos.length) {
-      const pick = candidatos.splice(randInt(0, candidatos.length - 1), 1)[0];
-      indispSet.add(pick);
-      estado.consultores[pick].holdUntil = now + randInt(25, 60) * 60 * 1000;
-    }
-  }
-
+  // probabilidade de "ocupado" por faixa (igual a sua lógica, mas só 2 estados)
   let ocupProb = 0.40;
   if (hora >= 10 && hora < 13) ocupProb = 0.35;
   if (hora >= 13 && hora < 18) ocupProb = 0.42;
@@ -703,17 +622,7 @@ function aplicarStatusRealista(forceAll = false) {
 
   cards.forEach((card, i) => {
     const st = estado.consultores[i];
-    const bloqueado = indispSet.has(i);
     const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
-
-    if (bloqueado) {
-      st.status = "indisp";
-      if (!st.holdUntil || st.holdUntil < now) {
-        st.holdUntil = now + randInt(20, 55) * 60 * 1000;
-      }
-      setStatusDOM(card, "indisp");
-      return;
-    }
 
     if (emHold) {
       setStatusDOM(card, st.status);
@@ -751,4 +660,3 @@ document.addEventListener('visibilitychange', () => {
 
 </body>
 </html>
-
