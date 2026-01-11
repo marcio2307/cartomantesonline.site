@@ -389,7 +389,7 @@ source[src*="fabapp-ads"]{
 }
 
 /* ==========================================================
-   ✅ POPUP DE INSTALAÇÃO DO APP (PWA)
+   ✅ POPUP DE INSTALAÇÃO DO APP (PWA) - SEMPRE APARECER
 ========================================================== */
 .app-popup-overlay{
   position:fixed;
@@ -635,11 +635,9 @@ if ("serviceWorker" in navigator) {
 })();
 
 /* ===========================
-   ✅ POPUP + INSTALAR APP (PWA)
-   ✅ AGORA FUNCIONA SEM DEPENDER DO beforeinstallprompt:
-   - Mostra popup sempre (1x a cada 6h) quando NÃO estiver instalado
-   - Se Android liberar prompt, o botão instala
-   - Se iPhone, mostra a dica de "Adicionar à Tela de Início"
+   ✅ POPUP + INSTALAR APP (PWA) - SEMPRE APARECER
+   - Android/Chrome: só dá pra "instalar" se tiver beforeinstallprompt
+   - iPhone/Safari: não tem beforeinstallprompt, então mostra dica
 =========================== */
 (function initInstallPopup(){
   const popup = document.getElementById('appPopup');
@@ -648,7 +646,6 @@ if ("serviceWorker" in navigator) {
   const btnClose = document.getElementById('appPopupClose');
   const iosHint = document.getElementById('iosHint');
 
-  const POPUP_KEY = "app_install_popup_v2"; // ✅ trocado pra destravar testes
   let deferredPrompt = null;
 
   const isStandalone = () =>
@@ -666,57 +663,52 @@ if ("serviceWorker" in navigator) {
     popup.setAttribute('aria-hidden','true');
   }
 
-  function shouldShowPopup(){
-    if (isStandalone()) return false;
-    const last = Number(localStorage.getItem(POPUP_KEY) || "0");
-    const now = Date.now();
-    return (now - last) > (6 * 60 * 60 * 1000); // ✅ 6 horas
-  }
-  function markShown(){
-    try { localStorage.setItem(POPUP_KEY, String(Date.now())); } catch {}
-  }
+  // ✅ SEMPRE que abrir (desde que não esteja instalado)
+  function alwaysShowIfNotInstalled(){
+    if (isStandalone()) return;
 
-  // ✅ Mostra no carregamento (não depende do prompt do Chrome)
-  window.addEventListener('load', () => {
-    if (!shouldShowPopup()) return;
-    if (isIOS()) iosHint.style.display = 'block';
-    setTimeout(() => { openPopup(); markShown(); }, 1500);
-  });
-
-  // ✅ Captura o prompt do Android/Chrome quando existir
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    // se ainda não abriu, abre
-    if (!isStandalone() && shouldShowPopup()){
-      setTimeout(() => { openPopup(); markShown(); }, 800);
-    }
-  });
-
-  btnInstall.addEventListener('click', async () => {
-    // ✅ Android/Chrome com prompt
-    if (deferredPrompt){
-      closePopup();
-      deferredPrompt.prompt();
-      try { await deferredPrompt.userChoice; } catch {}
-      deferredPrompt = null;
+    // iOS: mostra dica sempre
+    if (isIOS()) {
+      iosHint.style.display = 'block';
+      setTimeout(openPopup, 800);
       return;
     }
 
-    // ✅ iPhone (sem prompt)
-    if (isIOS()){
+    // Android/Chrome: abre popup sempre.
+    // Se ainda não tiver beforeinstallprompt, o botão vai mostrar mensagem.
+    setTimeout(openPopup, 800);
+  }
+
+  // Android/Chrome: captura o evento de instalação
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  // Mostra popup sempre ao carregar
+  window.addEventListener('load', alwaysShowIfNotInstalled);
+
+  btnInstall.addEventListener('click', async () => {
+    // iOS: só dica (não existe prompt nativo)
+    if (isIOS()) {
       iosHint.style.display = 'block';
       return;
     }
 
-    // ✅ outros casos
-    alert("Para instalar: no Chrome toque em ⋮ e depois em 'Instalar app'.");
+    // Chrome/Android: se não tiver prompt disponível, avisa
+    if (!deferredPrompt) {
+      alert('Para instalar: use o Chrome no Android e abra o menu ⋮ > "Instalar app".');
+      return;
+    }
+
+    closePopup();
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch {}
+    deferredPrompt = null;
   });
 
   function dismiss(){
     closePopup();
-    markShown();
   }
 
   btnLater.addEventListener('click', dismiss);
