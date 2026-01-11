@@ -1,11 +1,4 @@
-/* service-worker.js
-   PWA simples e estável:
-   - Instala e salva os arquivos básicos
-   - Usa cache-first para estáticos
-   - Usa network-first para navegação (HTML) para evitar "site preso no cache"
-*/
-
-const CACHE_VERSION = "v1.0.1"; // ✅ MUDOU AQUI
+const CACHE_VERSION = "v1.0.2";
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
