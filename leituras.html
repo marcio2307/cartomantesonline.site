@@ -15,12 +15,10 @@
   --gold-4:#b8860b;
   --black:#000000;
 
-  /* botões sem cortar */
   --btn-h:56px;
   --btn-px:14px;
 }
 
-/* fundo preto/dourado */
 body{
   margin:0;
   min-height:100vh;
@@ -77,6 +75,7 @@ body{
   opacity:0;
   visibility:hidden;
 }
+
 @media (max-width:480px){
   .banner-carousel{ border-bottom-width:1px; }
   :root{
@@ -85,7 +84,6 @@ body{
   }
 }
 
-/* conteúdo */
 .page{
   padding:22px 20px 28px;
 }
@@ -136,14 +134,7 @@ body{
   .hero h1{ font-size:26px; }
 }
 
-/* =========================================================
-   ✅ CARDS MAIS ELEGANTES (COMBINANDO COM OS BANNERS)
-   - vidro/metal dourado
-   - borda com brilho sutil
-   - imagem com moldura interna
-   - botão com “metal” dourado + brilho
-   - sem “subir/descer”
-========================================================= */
+/* ✅ Cards elegantes */
 .card{
   position:relative;
   border-radius:18px;
@@ -162,8 +153,6 @@ body{
   transform:none !important;
   transition:none;
 }
-
-/* “aura” dourada externa */
 .card::before{
   content:"";
   position:absolute;
@@ -176,8 +165,6 @@ body{
   pointer-events:none;
   z-index:0;
 }
-
-/* brilho “metal” passando bem leve */
 .card::after{
   content:"";
   position:absolute;
@@ -193,8 +180,6 @@ body{
   pointer-events:none;
   z-index:1;
 }
-
-/* hover sem movimento: só refina brilho/borda */
 .card:hover{
   border-color:rgba(246,226,122,0.95);
   box-shadow:
@@ -203,18 +188,10 @@ body{
     0 0 0 1px rgba(255,240,166,0.10) inset;
 }
 
-/* imagem */
 .card .img-wrap{
   position:relative;
   z-index:2;
   padding:10px 10px 0;
-}
-.card .img-wrap::before{
-  content:"";
-  position:absolute;
-  inset:10px 10px auto 10px;
-  height:0;
-  pointer-events:none;
 }
 .card .img-wrap img{
   width:100%;
@@ -228,8 +205,6 @@ body{
     0 0 0 1px rgba(255,240,166,0.06) inset;
   filter:saturate(1.06) contrast(1.06);
 }
-
-/* gradiente na base da imagem */
 .card .img-wrap::after{
   content:"";
   position:absolute;
@@ -260,14 +235,12 @@ body{
 .badge.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
 .badge.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
 
-/* Conteúdo */
 .content{
   padding:12px 14px 16px;
   position:relative;
   z-index:3;
 }
 
-/* nome com fonte “mística” */
 .name{
   font-family:'Cinzel', serif;
   font-size:16px;
@@ -285,7 +258,6 @@ body{
   text-shadow:0 0 18px rgba(199,160,8,0.12);
 }
 
-/* bolinha */
 .dot{
   width:9px; height:9px;
   border-radius:50%;
@@ -321,7 +293,7 @@ body{
   background-clip:text;
 }
 
-/* Botões (mais “luxo”) */
+/* Botões */
 .btn{
   width:100%;
   height:var(--btn-h);
@@ -370,7 +342,6 @@ body{
   pointer-events:none;
 }
 
-/* destaque “novo” elegante */
 .card.novo{
   border-color:rgba(246,226,122,0.95);
   box-shadow:
@@ -383,7 +354,7 @@ body{
 
 <body>
 
-<!-- ✅ Carrossel (5s) -->
+<!-- ✅ Carrossel (8s) -->
 <div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
   <div class="spacer">
     <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="" />
@@ -418,7 +389,7 @@ body{
 
 <script>
 /* ===========================
-   ✅ CARROSSEL (5s)
+   ✅ CARROSSEL (8s)
 =========================== */
 (function initBannerCarousel(){
   const carousel = document.getElementById('bannerCarousel');
@@ -436,14 +407,14 @@ body{
   setInterval(() => {
     i = (i + 1) % slides.length;
     show(i);
-  }, 5000);
+  }, 8000); // ✅ 8 segundos
 })();
 
 /* ===========================
    LISTA DE CONSULTORES
 =========================== */
 const consultores = [
-  { nome: "Pai Márcio", valor: 3, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
+  { nome: "P.Márcio", valor: 3, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
 
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
