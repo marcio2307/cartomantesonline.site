@@ -349,6 +349,40 @@ body{
     0 0 0 1px rgba(246,226,122,0.10) inset,
     0 0 22px rgba(199,160,8,0.10);
 }
+
+/* ==========================================================
+   ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
+   - Esconde e impede que apareça no rodapé
+========================================================== */
+fabapp-banner-footer,
+fabapp-banner-footer *{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  height:0 !important;
+  max-height:0 !important;
+  min-height:0 !important;
+  width:0 !important;
+  max-width:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
+
+#ads-container,
+[id="ads-container"],
+[id*="ads-container"],
+[class*="ads-container"],
+iframe[src*="fabapp-ads"],
+video[src*="fabapp-ads"],
+source[src*="fabapp-ads"]{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  height:0 !important;
+  max-height:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
 </style>
 </head>
 
@@ -388,6 +422,45 @@ body{
 </div>
 
 <script>
+/* ==========================================================
+   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
+========================================================== */
+(function bloquearPropagandasInjetadas(){
+  const SELECTORS = [
+    'fabapp-banner-footer',
+    'fabapp-banner-footer video',
+    '#ads-container',
+    '[id="ads-container"]',
+    'iframe[src*="fabapp-ads"]',
+    'video[src*="fabapp-ads"]',
+    'source[src*="fabapp-ads"]',
+    'script[src*="fabapp-ads"]'
+  ];
+
+  function remover() {
+    for (const sel of SELECTORS) {
+      document.querySelectorAll(sel).forEach(el => {
+        try { el.remove(); } catch {}
+      });
+    }
+  }
+
+  // tenta remover já no início
+  remover();
+
+  // fica monitorando e removendo sempre que o host inserir algo
+  const obs = new MutationObserver(() => remover());
+  obs.observe(document.documentElement, { childList:true, subtree:true });
+
+  // reforço extra nos primeiros segundos (caso injete depois do load)
+  let tries = 0;
+  const t = setInterval(() => {
+    remover();
+    tries++;
+    if (tries >= 30) clearInterval(t); // ~15s
+  }, 500);
+})();
+
 /* ===========================
    ✅ CARROSSEL (8s)
 =========================== */
@@ -678,4 +751,3 @@ document.addEventListener('visibilitychange', () => {
 
 </body>
 </html>
-
