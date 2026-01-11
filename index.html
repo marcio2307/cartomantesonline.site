@@ -326,13 +326,11 @@ body{
   .btn{ font-size:12px; }
 }
 
+/* ✅ DISPONÍVEL = VERDE */
 .btn.disponivel{
-  background:
-    radial-gradient(220px 90px at 50% 0%, rgba(255,240,166,0.18), rgba(0,0,0,0) 65%),
-    linear-gradient(180deg, rgba(199,160,8,0.95) 0%, rgba(184,134,11,0.95) 38%, rgba(246,226,122,0.95) 100%);
-  color:#111;
-  border-color:rgba(255,240,166,0.22);
-  text-shadow:0 1px 0 rgba(255,255,255,0.15);
+  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
+  color:#fff;
+  border-color:rgba(255,255,255,0.16);
 }
 .btn:hover{ filter:brightness(1.06); }
 
@@ -389,7 +387,7 @@ source[src*="fabapp-ads"]{
 }
 
 /* ==========================================================
-   ✅ POPUP DE INSTALAÇÃO DO APP (PWA) - SEMPRE APARECER
+   ✅ POPUP DE INSTALAÇÃO DO APP (PWA)
 ========================================================== */
 .app-popup-overlay{
   position:fixed;
@@ -577,6 +575,74 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+/* ===========================
+   ✅ POPUP + INSTALAR APP (PWA)
+=========================== */
+(function initInstallPopup(){
+  const popup = document.getElementById('appPopup');
+  const btnInstall = document.getElementById('installAppBtn');
+  const btnLater = document.getElementById('laterAppBtn');
+  const btnClose = document.getElementById('appPopupClose');
+  const iosHint = document.getElementById('iosHint');
+
+  let deferredPrompt = null;
+
+  const isStandalone = () =>
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true;
+
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  function openPopup(){
+    popup.style.display = 'flex';
+    popup.setAttribute('aria-hidden','false');
+  }
+  function closePopup(){
+    popup.style.display = 'none';
+    popup.setAttribute('aria-hidden','true');
+  }
+
+  function showPopupIfNotInstalled(){
+    if (isStandalone()) return;
+
+    if (isIOS()){
+      iosHint.style.display = 'block';
+      setTimeout(openPopup, 800);
+      return;
+    }
+
+    setTimeout(openPopup, 800);
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  window.addEventListener('load', showPopupIfNotInstalled);
+
+  btnInstall.addEventListener('click', async () => {
+    if (isIOS()){
+      iosHint.style.display = 'block';
+      return;
+    }
+    if (!deferredPrompt){
+      alert('Para instalar: use o Chrome no Android e abra o menu ⋮ > "Instalar app".');
+      return;
+    }
+    closePopup();
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch {}
+    deferredPrompt = null;
+  });
+
+  function dismiss(){ closePopup(); }
+
+  btnLater.addEventListener('click', dismiss);
+  btnClose.addEventListener('click', dismiss);
+  popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
+})();
+
 /* ==========================================================
    ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
 ========================================================== */
@@ -623,97 +689,13 @@ if ("serviceWorker" in navigator) {
   if(slides.length <= 1) return;
 
   let i = 0;
-
   function show(index){
     slides.forEach((s, k) => s.classList.toggle('active', k === index));
   }
-
   setInterval(() => {
     i = (i + 1) % slides.length;
     show(i);
   }, 8000);
-})();
-
-/* ===========================
-   ✅ POPUP + INSTALAR APP (PWA) - SEMPRE APARECER
-   - Android/Chrome: só dá pra "instalar" se tiver beforeinstallprompt
-   - iPhone/Safari: não tem beforeinstallprompt, então mostra dica
-=========================== */
-(function initInstallPopup(){
-  const popup = document.getElementById('appPopup');
-  const btnInstall = document.getElementById('installAppBtn');
-  const btnLater = document.getElementById('laterAppBtn');
-  const btnClose = document.getElementById('appPopupClose');
-  const iosHint = document.getElementById('iosHint');
-
-  let deferredPrompt = null;
-
-  const isStandalone = () =>
-    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-    window.navigator.standalone === true;
-
-  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
-
-  function openPopup(){
-    popup.style.display = 'flex';
-    popup.setAttribute('aria-hidden','false');
-  }
-  function closePopup(){
-    popup.style.display = 'none';
-    popup.setAttribute('aria-hidden','true');
-  }
-
-  // ✅ SEMPRE que abrir (desde que não esteja instalado)
-  function alwaysShowIfNotInstalled(){
-    if (isStandalone()) return;
-
-    // iOS: mostra dica sempre
-    if (isIOS()) {
-      iosHint.style.display = 'block';
-      setTimeout(openPopup, 800);
-      return;
-    }
-
-    // Android/Chrome: abre popup sempre.
-    // Se ainda não tiver beforeinstallprompt, o botão vai mostrar mensagem.
-    setTimeout(openPopup, 800);
-  }
-
-  // Android/Chrome: captura o evento de instalação
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-  });
-
-  // Mostra popup sempre ao carregar
-  window.addEventListener('load', alwaysShowIfNotInstalled);
-
-  btnInstall.addEventListener('click', async () => {
-    // iOS: só dica (não existe prompt nativo)
-    if (isIOS()) {
-      iosHint.style.display = 'block';
-      return;
-    }
-
-    // Chrome/Android: se não tiver prompt disponível, avisa
-    if (!deferredPrompt) {
-      alert('Para instalar: use o Chrome no Android e abra o menu ⋮ > "Instalar app".');
-      return;
-    }
-
-    closePopup();
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch {}
-    deferredPrompt = null;
-  });
-
-  function dismiss(){
-    closePopup();
-  }
-
-  btnLater.addEventListener('click', dismiss);
-  btnClose.addEventListener('click', dismiss);
-  popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
 })();
 
 /* ===========================
@@ -779,86 +761,31 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   ✅ COMPORTAMENTO REALISTA
+   ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
+   - REGRA FIXA: 02:00 até 07:35 -> TODOS INDISPONÍVEIS
+   - fora isso: 1 ou 2 indisponíveis, resto online/ocupado
+   - troca mais rápida
 =========================== */
-function horarioIndisponivelGlobal() {
-  const h = new Date().getHours();
-  return h >= 2 && h < 10;
-}
-
-const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
 
-function gerarEscalaDescanso() {
-  const janelas = [];
-  const qtd = chance(0.45) ? 2 : 1;
-
-  for (let i = 0; i < qtd; i++) {
-    let inicio = randInt(10, 21);
-    let dur = chance(0.20) ? 3 : (chance(0.55) ? 2 : 1);
-    let fim = clamp(inicio + dur, 10, 23);
-
-    if (janelas.some(j => Math.abs(j.inicio - inicio) < 2)) {
-      inicio = clamp(inicio + 2, 10, 22);
-      fim = clamp(inicio + dur, 10, 23);
-    }
-
-    janelas.push({ inicio, fim });
-  }
-
-  if (chance(0.12)) {
-    const start = randInt(12, 18);
-    janelas.push({ inicio:start, fim: clamp(start + 1, 10, 23) });
-  }
-
-  return janelas;
-}
-
-const STORAGE_KEY = "status_realista_v1";
+const STORAGE_KEY = "status_realista_v3";
 let estado = null;
 
-function carregarEstado() {
-  try {
+function carregarEstado(){
+  try{
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
+    if(!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.consultores)) return null;
+    if(!parsed || !Array.isArray(parsed.consultores)) return null;
     return parsed;
-  } catch { return null; }
+  }catch{ return null; }
+}
+function salvarEstado(){
+  try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{}
 }
 
-function salvarEstado() {
-  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); } catch {}
-}
-
-function initEstado() {
-  const dia = new Date().toDateString();
-  const anterior = carregarEstado();
-
-  if (anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length) {
-    estado = anterior;
-    return;
-  }
-
-  estado = {
-    dia,
-    consultores: consultores.map(() => ({
-      descanso: gerarEscalaDescanso(),
-      status: "online",
-      holdUntil: 0
-    }))
-  };
-
-  aplicarStatusRealista(true);
-  salvarEstado();
-}
-
-function emDescansoPorEscala(idx, hora) {
-  return estado.consultores[idx].descanso.some(w => hora >= w.inicio && hora < w.fim);
-}
-
-function setStatusDOM(card, status) {
+function setStatusDOM(card, status){
   const badge = card.querySelector('.badge');
   const dot = card.querySelector('.dot');
   const btn = card.querySelector('.btn');
@@ -871,13 +798,13 @@ function setStatusDOM(card, status) {
 
   dot.style.animation = '';
 
-  if (status === "online") {
+  if(status === "online"){
     badge.textContent = 'Online';
     dot.style.animation = 'blink 1s infinite';
     btn.textContent = 'INICIAR CONSULTA';
     btn.classList.add('disponivel');
     btn.style.pointerEvents = '';
-  } else if (status === "ocupado") {
+  }else if(status === "ocupado"){
     badge.textContent = 'Ocupado';
     badge.classList.add('ocupado');
     dot.classList.add('ocupado');
@@ -885,7 +812,7 @@ function setStatusDOM(card, status) {
     btn.textContent = 'OCUPADO';
     btn.classList.add('ocupado');
     btn.style.pointerEvents = 'none';
-  } else {
+  }else{
     badge.textContent = 'Indisponível';
     badge.classList.add('indisp');
     dot.classList.add('indisp');
@@ -896,67 +823,83 @@ function setStatusDOM(card, status) {
   }
 }
 
-function aplicarStatusRealista(forceAll = false) {
+function initEstado(){
+  const dia = new Date().toDateString();
+  const anterior = carregarEstado();
+
+  if(anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length){
+    estado = anterior;
+    return;
+  }
+
+  estado = {
+    dia,
+    consultores: consultores.map(() => ({
+      status: "online",
+      holdUntil: 0
+    }))
+  };
+
+  aplicarStatusRealista(true);
+  salvarEstado();
+}
+
+function janelaSonoGlobal(){
+  const d = new Date();
+  const minutos = d.getHours() * 60 + d.getMinutes();
+  const ini = 2 * 60;          // 02:00
+  const fim = 7 * 60 + 35;     // 07:35
+  return minutos >= ini && minutos < fim;
+}
+
+function escolherIndisponiveis(cards){
+  const total = cards.length;
+  const qtd = chance(0.55) ? 1 : 2;
+
+  const indices = [...Array(total)].map((_,i)=>i);
+  for(let i=indices.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return new Set(indices.slice(0, Math.min(qtd, total)));
+}
+
+function aplicarStatusRealista(forceAll=false){
   const now = Date.now();
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  if (horarioIndisponivelGlobal()) {
+  if (janelaSonoGlobal()){
     cards.forEach((card, i) => {
       estado.consultores[i].status = "indisp";
-      estado.consultores[i].holdUntil = now + 10 * 60 * 1000;
+      estado.consultores[i].holdUntil = now + randInt(2, 6) * 60 * 1000;
       setStatusDOM(card, "indisp");
     });
     salvarEstado();
     return;
   }
 
-  const indisponiveisFixos = [];
-  cards.forEach((_, i) => {
-    if (emDescansoPorEscala(i, hora)) indisponiveisFixos.push(i);
-  });
-
-  const alvoIndisp = chance(0.55) ? 1 : 2;
-  const indispSet = new Set(indisponiveisFixos);
-
-  if (indispSet.size < alvoIndisp) {
-    const candidatos = cards.map((_, i) => i).filter(i => !indispSet.has(i));
-    while (indispSet.size < alvoIndisp && candidatos.length) {
-      const pick = candidatos.splice(randInt(0, candidatos.length - 1), 1)[0];
-      indispSet.add(pick);
-      estado.consultores[pick].holdUntil = now + randInt(25, 60) * 60 * 1000;
-    }
-  }
-
   let ocupProb = 0.40;
-  if (hora >= 10 && hora < 13) ocupProb = 0.35;
-  if (hora >= 13 && hora < 18) ocupProb = 0.42;
-  if (hora >= 18 && hora < 23) ocupProb = 0.52;
-  if (hora >= 23 || hora < 2) ocupProb = 0.33;
+  if (hora >= 9 && hora < 12) ocupProb = 0.34;
+  if (hora >= 12 && hora < 17) ocupProb = 0.44;
+  if (hora >= 17 && hora < 22) ocupProb = 0.56;
+  if (hora >= 22 || hora < 6) ocupProb = 0.38;
+
+  const indispSet = escolherIndisponiveis(cards);
 
   cards.forEach((card, i) => {
     const st = estado.consultores[i];
-    const bloqueado = indispSet.has(i);
+
     const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
+    if (emHold){
+      setStatusDOM(card, st.status);
+      return;
+    }
 
-    if (bloqueado) {
+    if (indispSet.has(i)){
       st.status = "indisp";
-      if (!st.holdUntil || st.holdUntil < now) {
-        st.holdUntil = now + randInt(20, 55) * 60 * 1000;
-      }
+      st.holdUntil = now + randInt(2, 5) * 60 * 1000;
       setStatusDOM(card, "indisp");
-      return;
-    }
-
-    if (emHold) {
-      setStatusDOM(card, st.status);
-      return;
-    }
-
-    const podeMudar = chance(0.55);
-    if (!podeMudar) {
-      st.holdUntil = now + randInt(6, 14) * 60 * 1000;
-      setStatusDOM(card, st.status);
       return;
     }
 
@@ -964,8 +907,8 @@ function aplicarStatusRealista(forceAll = false) {
     st.status = novoStatus;
 
     st.holdUntil = (novoStatus === "ocupado")
-      ? now + randInt(8, 22) * 60 * 1000
-      : now + randInt(5, 16) * 60 * 1000;
+      ? now + randInt(2, 6) * 60 * 1000
+      : now + randInt(1, 3) * 60 * 1000;
 
     setStatusDOM(card, novoStatus);
   });
@@ -973,10 +916,10 @@ function aplicarStatusRealista(forceAll = false) {
   salvarEstado();
 }
 
-/* START */
 initEstado();
 aplicarStatusRealista(false);
-setInterval(() => aplicarStatusRealista(false), 45000);
+setInterval(() => aplicarStatusRealista(false), 20000);
+
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) aplicarStatusRealista(false);
 });
