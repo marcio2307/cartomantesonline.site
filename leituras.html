@@ -17,9 +17,6 @@
 
   --btn-h:56px;
   --btn-px:14px;
-
-  /* ✅ espaço para não deixar o banner do FabApp cobrir o conteúdo */
-  --fabapp-banner-space: 92px;
 }
 
 body{
@@ -32,10 +29,6 @@ body{
     #000;
   font-family:'Poppins',sans-serif;
   color:#fff;
-
-  /* ✅ garante “respiro” no final mesmo com banner fixo embaixo */
-  padding-bottom: calc(var(--fabapp-banner-space) + env(safe-area-inset-bottom, 0px));
-  box-sizing:border-box;
 }
 
 /* ✅ CARROSSEL DE BANNERS (SEM CORTE) */
@@ -88,14 +81,11 @@ body{
   :root{
     --btn-h:64px;
     --btn-px:16px;
-    --fabapp-banner-space: 104px; /* um pouco mais no celular */
   }
 }
 
 .page{
   padding:22px 20px 28px;
-  /* ✅ reforça espaço na área do conteúdo */
-  padding-bottom: calc(28px + var(--fabapp-banner-space));
 }
 
 /* Hero */
@@ -364,6 +354,7 @@ body{
 
 <body>
 
+<!-- ✅ Carrossel (8s) -->
 <div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
   <div class="spacer">
     <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="" />
@@ -383,6 +374,7 @@ body{
 </div>
 
 <div class="page">
+
   <section class="hero">
     <h1>Consulta de tarot online</h1>
     <p>
@@ -392,6 +384,7 @@ body{
   </section>
 
   <div class="container" id="cards-container"></div>
+
 </div>
 
 <script>
@@ -406,6 +399,7 @@ body{
   if(slides.length <= 1) return;
 
   let i = 0;
+
   function show(index){
     slides.forEach((s, k) => s.classList.toggle('active', k === index));
   }
@@ -413,7 +407,7 @@ body{
   setInterval(() => {
     i = (i + 1) % slides.length;
     show(i);
-  }, 8000);
+  }, 8000); // ✅ 8 segundos
 })();
 
 /* ===========================
@@ -673,6 +667,7 @@ function aplicarStatusRealista(forceAll = false) {
   salvarEstado();
 }
 
+/* START */
 initEstado();
 aplicarStatusRealista(false);
 setInterval(() => aplicarStatusRealista(false), 45000);
@@ -683,3 +678,4 @@ document.addEventListener('visibilitychange', () => {
 
 </body>
 </html>
+
