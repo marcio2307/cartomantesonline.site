@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Consultores Disponíveis</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<style>
+:root{
+  --gold-1:#fff0a6;
+  --gold-2:#f6e27a;
+  --gold-3:#c7a008;
+  --gold-4:#b8860b;
+  --black:#000000;
+
+  /* botões sem cortar */
+  --btn-h:56px;
+  --btn-px:14px;
+}
+
+/* fundo preto/dourado */
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(900px 420px at 15% 10%, rgba(199,160,8,0.20), rgba(0,0,0,0) 60%),
+    radial-gradient(900px 420px at 85% 20%, rgba(199,160,8,0.16), rgba(0,0,0,0) 60%),
+    radial-gradient(1200px 520px at 50% 120%, rgba(199,160,8,0.10), rgba(0,0,0,0) 65%),
+    #000;
+  font-family:'Poppins',sans-serif;
+  color:#fff;
+}
+
+/* Banner sem corte */
+.banner{
+  width:100%;
+  margin:0;
+  border-bottom:2px solid var(--gold-3);
+  box-shadow:0 18px 60px rgba(0,0,0,0.55);
+  position:relative;
+  background:#000;
+}
+.banner img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+.banner::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(1200px 520px at 50% 15%, rgba(0,0,0,0.10), rgba(0,0,0,0.48) 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.35) 100%);
+  pointer-events:none;
+}
+
+@media (max-width:480px){
+  .banner{ border-bottom-width:1px; }
+  :root{
+    --btn-h:64px;
+    --btn-px:16px;
+  }
+}
+
+/* conteúdo */
+.page{
+  padding:22px 20px 24px;
+}
+
+/* ✅ IMAGEM ABAIXO DO BANNER (RESPONSIVA) */
+.como-consultar-img{
+  max-width:1100px;
+  margin:18px auto 18px;  /* espaço entre banner e título */
+  padding:0 10px;
+}
+.como-consultar-img img{
+  width:100%;
+  height:auto;
+  display:block;
+  border-radius:16px;
+  border:1px solid rgba(199,160,8,0.45);
+  box-shadow:0 16px 46px rgba(0,0,0,0.60);
+}
+@media (max-width:480px){
+  .como-consultar-img{
+    margin:14px auto 14px;
+    padding:0 6px;
+  }
+  .como-consultar-img img{
+    border-radius:14px;
+  }
+}
+
+/* Hero */
+.hero{
+  max-width:1200px;
+  margin:0 auto 22px;
+  text-align:center;
+  padding:0 10px;
+}
+.hero h1{
+  margin:0 0 10px;
+  font-size:36px;
+  font-weight:800;
+  letter-spacing:0.2px;
+  color:transparent;
+  background-image: linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 42%, var(--gold-1) 72%, var(--gold-4) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  text-shadow:0 0 22px rgba(199,160,8,0.15);
+}
+.hero p{
+  margin:0;
+  font-size:15px;
+  line-height:1.65;
+  color:rgba(255,255,255,0.88);
+  max-width:980px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* Grid */
+.container{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+  max-width:1200px;
+  margin:0 auto;
+}
+@media (max-width:1024px){ .container{ grid-template-columns:repeat(3,1fr); } }
+@media (max-width:768px){
+  .container{ grid-template-columns:repeat(2,1fr); gap:15px; }
+  .hero h1{ font-size:30px; }
+}
+@media (max-width:480px){
+  .container{ grid-template-columns:repeat(2,1fr); gap:12px; }
+  .hero h1{ font-size:26px; }
+}
+
+/* ✅ Cards (SEM “subir/descer”) */
+.card{
+  background:
+    radial-gradient(260px 120px at 50% 0%, rgba(199,160,8,0.20), rgba(0,0,0,0) 70%),
+    linear-gradient(180deg, rgba(18,18,18,0.95) 0%, rgba(5,5,5,0.98) 100%);
+  border:1px solid rgba(199,160,8,0.55);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:
+    0 14px 34px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(199,160,8,0.10) inset;
+  position:relative;
+  isolation:isolate;
+
+  /* ✅ remove animações de movimento */
+  transition:none;
+  transform:none !important;
+}
+.card::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:
+    radial-gradient(420px 220px at 50% -10%, rgba(199,160,8,0.40), rgba(0,0,0,0) 65%),
+    radial-gradient(140px 80px at 12% 18%, rgba(255,240,166,0.18), rgba(0,0,0,0) 70%),
+    radial-gradient(140px 80px at 88% 32%, rgba(255,240,166,0.14), rgba(0,0,0,0) 70%);
+  opacity:0.75;
+  pointer-events:none;
+  z-index:0;
+}
+.card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    radial-gradient(circle at 20% 25%, rgba(255,240,166,0.10) 0 1px, rgba(0,0,0,0) 2px),
+    radial-gradient(circle at 70% 18%, rgba(255,240,166,0.08) 0 1px, rgba(0,0,0,0) 2px),
+    radial-gradient(circle at 55% 72%, rgba(255,240,166,0.06) 0 1px, rgba(0,0,0,0) 2px),
+    radial-gradient(circle at 35% 80%, rgba(255,240,166,0.07) 0 1px, rgba(0,0,0,0) 2px);
+  opacity:0.55;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ✅ hover sem movimento (só muda brilho/borda) */
+.card:hover{
+  border-color:rgba(246,226,122,0.85);
+  box-shadow:
+    0 14px 34px rgba(0,0,0,0.55),
+    0 0 26px rgba(199,160,8,0.12),
+    0 0 0 1px rgba(199,160,8,0.10) inset;
+  transform:none !important;
+}
+
+.card .img-wrap{ position:relative; z-index:1; }
+.card .img-wrap::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:64px;
+  background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.72) 100%);
+  pointer-events:none;
+}
+.card img{
+  width:100%;
+  height:230px;
+  object-fit:cover;
+  display:block;
+  filter:saturate(1.05) contrast(1.05);
+}
+
+/* Badge */
+.badge{
+  position:absolute;
+  top:12px;
+  left:12px;
+  padding:6px 10px;
+  font-size:11px;
+  border-radius:999px;
+  text-transform:uppercase;
+  color:#fff;
+  font-weight:800;
+  letter-spacing:0.5px;
+  box-shadow:0 10px 18px rgba(0,0,0,0.45);
+  z-index:3;
+  border:1px solid rgba(255,255,255,0.18);
+  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
+}
+.badge.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
+.badge.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
+
+/* Conteúdo */
+.content{
+  padding:12px 12px 16px;
+  position:relative;
+  z-index:2;
+}
+.name{
+  font-size:15px;
+  font-weight:800;
+  text-align:center;
+  margin:4px 0 8px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  color:#fff;
+  text-shadow:0 0 12px rgba(199,160,8,0.10);
+}
+
+/* bolinha */
+.dot{
+  width:9px; height:9px;
+  border-radius:50%;
+  background:#2ecc71;
+  animation:blink 1s infinite;
+  box-shadow:0 0 10px rgba(46,204,113,0.40);
+}
+@keyframes blink{ 50%{ opacity:0; } }
+.dot.ocupado{ background:#e67e22; animation:none; box-shadow:none; }
+.dot.indisp{ background:#e74c3c; animation:none; box-shadow:none; }
+
+.stars{
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 55%, var(--gold-4) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  text-align:center;
+  margin-bottom:6px;
+  font-size:14px;
+  text-shadow:0 0 18px rgba(199,160,8,0.10);
+}
+.price{
+  text-align:center;
+  font-size:13px;
+  color:rgba(255,255,255,0.92);
+  margin-bottom:12px;
+}
+.price b{
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 45%, var(--gold-1) 80%);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+
+/* Botões */
+.btn{
+  width:100%;
+  height:var(--btn-h);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 var(--btn-px);
+  border-radius:16px;
+  text-decoration:none;
+  font-weight:900;
+  font-size:13px;
+  letter-spacing:0.6px;
+  line-height:1.15;
+  white-space:normal;
+  overflow:visible;
+  box-sizing:border-box;
+  box-shadow:0 14px 26px rgba(0,0,0,0.45);
+  border:1px solid rgba(255,255,255,0.10);
+
+  /* ✅ remove animação de “pular” */
+  transition:filter .2s ease;
+}
+@media (max-width:480px){
+  .btn{ font-size:12px; }
+}
+
+/* ONLINE = VERDE */
+.btn.disponivel{
+  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
+  color:#fff;
+  border-color:rgba(255,255,255,0.12);
+}
+.btn:hover{ filter:brightness(1.06); }
+
+.btn.ocupado{
+  background:linear-gradient(180deg, #f39c12 0%, #d35400 100%);
+  color:#111;
+  pointer-events:none;
+}
+.btn.indisp{
+  background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+  color:#fff;
+  pointer-events:none;
+}
+
+/* ✅ novos atendentes: sem subir/descer, só brilho */
+.card.novo{
+  border-color:rgba(246,226,122,0.95);
+}
+.card.novo:hover{
+  border-color:rgba(246,226,122,0.95);
+}
+</style>
+</head>
+
+<body>
+
+<div class="banner">
+  <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="Cartomantes Online - Banner" />
+</div>
+
+<div class="page">
+
+  <!-- ✅ imagem colocada abaixo do banner com espaço (responsiva/celular) -->
+  <div class="como-consultar-img">
+    <img src="https://i.ibb.co/bMmJcykt/Chat-GPT-Image-10-01-2026-22-08-33.png" alt="Como se consultar" />
+  </div>
+
+  <section class="hero">
+    <h1>Consulta de tarot online</h1>
+    <p>
+      Maior portal de Tarot Online por chat pré-pago. Profissionais selecionados em diversas áreas para ajudar e orientar
+      com carinho, respeito, segurança e sigilo. Suporte humanizado, conte conosco.
+    </p>
+  </section>
+
+  <div class="container" id="cards-container"></div>
+
+</div>
+
+<script>
+/* ===========================
+   LISTA DE CONSULTORES
+=========================== */
+const consultores = [
+  { nome: "Pai Márcio", valor: 3, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
+  { nome: "Bruxa do amor", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
+
+  { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
+  { nome: "Dalila", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/11//0b284c7b42-1-_3.webp", estrelas: 5, novo: true },
+  { nome: "Adria", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/07/25//d6152621b2-1-_3.webp", estrelas: 5, novo: true },
+  { nome: "Thabata", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/06/28//d5969655ef-1-_3.webp", estrelas: 5, novo: true },
+  { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
+  { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
+  { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
+
+  { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
+  { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
+  { nome: "Maria Padilha", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2025/01/27//699974ac8a-1-.jpg", estrelas: 4 },
+  { nome: "Sara", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/09/04//9a6f4cec30-1-.jpg", estrelas: 5 },
+  { nome: "7 Saias", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/02/29//e43513a707-1-.jpg", estrelas: 5 },
+  { nome: "Odara", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/01/15//91bb2a4455-1-.jpg", estrelas: 5 },
+  { nome: "Luara", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/08/24//dc4e2cb494-1-.jpg", estrelas: 5 }
+];
+
+const container = document.getElementById('cards-container');
+
+/* ===========================
+   RENDER DOS CARDS
+=========================== */
+consultores.forEach((c, idx) => {
+  const card = document.createElement('div');
+  card.className = 'card' + (c.novo ? ' novo' : '');
+  card.dataset.idx = String(idx);
+
+  card.innerHTML = `
+    <div class="img-wrap">
+      <img src="${c.imagem}" alt="${c.nome}">
+    </div>
+    <span class="badge">Online</span>
+    <div class="content">
+      <div class="name">${c.nome} <span class="dot"></span></div>
+      <div class="stars">${'★'.repeat(c.estrelas)}${'☆'.repeat(5 - c.estrelas)}</div>
+      <div class="price"><b>R$ ${Number(c.valor).toFixed(2)} por minuto</b></div>
+      <a href="#" class="btn disponivel">INICIAR CONSULTA</a>
+    </div>
+  `;
+
+  card.querySelector('.btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (card.dataset.status !== "online") return;
+
+    localStorage.clear();
+    localStorage.setItem('consultorNome', c.nome);
+    localStorage.setItem('consultorValor', c.valor);
+    localStorage.setItem('consultorImagem', c.imagem);
+    window.location.href = 'pix.html';
+  });
+
+  container.appendChild(card);
+});
+
+/* ===========================
+   ✅ COMPORTAMENTO REALISTA
+=========================== */
+function horarioIndisponivelGlobal() {
+  const h = new Date().getHours();
+  return h >= 2 && h < 10;
+}
+
+const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
+const chance = (p) => Math.random() < p;
+
+function gerarEscalaDescanso() {
+  const janelas = [];
+  const qtd = chance(0.45) ? 2 : 1;
+
+  for (let i = 0; i < qtd; i++) {
+    let inicio = randInt(10, 21);
+    let dur = chance(0.20) ? 3 : (chance(0.55) ? 2 : 1);
+    let fim = clamp(inicio + dur, 10, 23);
+
+    if (janelas.some(j => Math.abs(j.inicio - inicio) < 2)) {
+      inicio = clamp(inicio + 2, 10, 22);
+      fim = clamp(inicio + dur, 10, 23);
+    }
+
+    janelas.push({ inicio, fim });
+  }
+
+  if (chance(0.12)) {
+    const start = randInt(12, 18);
+    janelas.push({ inicio:start, fim: clamp(start + 1, 10, 23) });
+  }
+
+  return janelas;
+}
+
+const STORAGE_KEY = "status_realista_v1";
+let estado = null;
+
+function carregarEstado() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.consultores)) return null;
+    return parsed;
+  } catch { return null; }
+}
+
+function salvarEstado() {
+  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); } catch {}
+}
+
+function initEstado() {
+  const dia = new Date().toDateString();
+  const anterior = carregarEstado();
+
+  if (anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length) {
+    estado = anterior;
+    return;
+  }
+
+  estado = {
+    dia,
+    consultores: consultores.map(() => ({
+      descanso: gerarEscalaDescanso(),
+      status: "online",
+      holdUntil: 0
+    }))
+  };
+
+  aplicarStatusRealista(true);
+  salvarEstado();
+}
+
+function emDescansoPorEscala(idx, hora) {
+  return estado.consultores[idx].descanso.some(w => hora >= w.inicio && hora < w.fim);
+}
+
+function setStatusDOM(card, status) {
+  const badge = card.querySelector('.badge');
+  const dot = card.querySelector('.dot');
+  const btn = card.querySelector('.btn');
+
+  card.dataset.status = status;
+
+  badge.classList.remove('ocupado','indisp');
+  dot.classList.remove('ocupado','indisp');
+  btn.classList.remove('ocupado','indisp','disponivel');
+
+  dot.style.animation = '';
+
+  if (status === "online") {
+    badge.textContent = 'Online';
+    dot.style.animation = 'blink 1s infinite';
+    btn.textContent = 'INICIAR CONSULTA';
+    btn.classList.add('disponivel');
+    btn.style.pointerEvents = '';
+  } else if (status === "ocupado") {
+    badge.textContent = 'Ocupado';
+    badge.classList.add('ocupado');
+    dot.classList.add('ocupado');
+    dot.style.animation = 'none';
+    btn.textContent = 'OCUPADO';
+    btn.classList.add('ocupado');
+    btn.style.pointerEvents = 'none';
+  } else {
+    badge.textContent = 'Indisponível';
+    badge.classList.add('indisp');
+    dot.classList.add('indisp');
+    dot.style.animation = 'none';
+    btn.textContent = 'INDISPONÍVEL';
+    btn.classList.add('indisp');
+    btn.style.pointerEvents = 'none';
+  }
+}
+
+function aplicarStatusRealista(forceAll = false) {
+  const now = Date.now();
+  const hora = new Date().getHours();
+  const cards = Array.from(document.querySelectorAll('.card'));
+
+  if (horarioIndisponivelGlobal()) {
+    cards.forEach((card, i) => {
+      estado.consultores[i].status = "indisp";
+      estado.consultores[i].holdUntil = now + 10 * 60 * 1000;
+      setStatusDOM(card, "indisp");
+    });
+    salvarEstado();
+    return;
+  }
+
+  const indisponiveisFixos = [];
+  cards.forEach((_, i) => {
+    if (emDescansoPorEscala(i, hora)) indisponiveisFixos.push(i);
+  });
+
+  const alvoIndisp = chance(0.55) ? 1 : 2;
+  const indispSet = new Set(indisponiveisFixos);
+
+  if (indispSet.size < alvoIndisp) {
+    const candidatos = cards.map((_, i) => i).filter(i => !indispSet.has(i));
+    while (indispSet.size < alvoIndisp && candidatos.length) {
+      const pick = candidatos.splice(randInt(0, candidatos.length - 1), 1)[0];
+      indispSet.add(pick);
+      estado.consultores[pick].holdUntil = now + randInt(25, 60) * 60 * 1000;
+    }
+  }
+
+  let ocupProb = 0.40;
+  if (hora >= 10 && hora < 13) ocupProb = 0.35;
+  if (hora >= 13 && hora < 18) ocupProb = 0.42;
+  if (hora >= 18 && hora < 23) ocupProb = 0.52;
+  if (hora >= 23 || hora < 2) ocupProb = 0.33;
+
+  cards.forEach((card, i) => {
+    const st = estado.consultores[i];
+    const bloqueado = indispSet.has(i);
+    const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
+
+    if (bloqueado) {
+      st.status = "indisp";
+      if (!st.holdUntil || st.holdUntil < now) {
+        st.holdUntil = now + randInt(20, 55) * 60 * 1000;
+      }
+      setStatusDOM(card, "indisp");
+      return;
+    }
+
+    if (emHold) {
+      setStatusDOM(card, st.status);
+      return;
+    }
+
+    const podeMudar = chance(0.55);
+    if (!podeMudar) {
+      st.holdUntil = now + randInt(6, 14) * 60 * 1000;
+      setStatusDOM(card, st.status);
+      return;
+    }
+
+    const novoStatus = chance(ocupProb) ? "ocupado" : "online";
+    st.status = novoStatus;
+
+    st.holdUntil = (novoStatus === "ocupado")
+      ? now + randInt(8, 22) * 60 * 1000
+      : now + randInt(5, 16) * 60 * 1000;
+
+    setStatusDOM(card, novoStatus);
+  });
+
+  salvarEstado();
+}
+
+/* START */
+initEstado();
+aplicarStatusRealista(false);
+
+setInterval(() => aplicarStatusRealista(false), 45000);
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) aplicarStatusRealista(false);
+});
+</script>
+
+</body>
+</html>
+
