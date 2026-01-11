@@ -408,10 +408,7 @@ source[src*="fabapp-ads"]{
 
   <section class="hero">
     <h1>Consulta de tarot online</h1>
-    <p>
-      Maior portal de Tarot Online por chat pré-pago. Profissionais selecionados em diversas áreas para ajudar e orientar
-      com carinho, respeito, segurança e sigilo. Suporte humanizado, conte conosco.
-    </p>
+    <p>Você está em nosso aplicativo — aproveite e escolha seu consultor agora.</p>
   </section>
 
   <div class="container" id="cards-container"></div>
@@ -542,7 +539,6 @@ consultores.forEach((c, idx) => {
    - fora isso: 1 ou 2 indisponíveis, resto online/ocupado
    - troca mais rápida
 =========================== */
-const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
 
 const STORAGE_KEY = "status_realista_v3";
@@ -578,7 +574,7 @@ function setStatusDOM(card, status){
     badge.textContent = 'Online';
     dot.style.animation = 'blink 1s infinite';
     btn.textContent = 'INICIAR CONSULTA';
-    btn.classList.add('disponivel'); // ✅ verde
+    btn.classList.add('disponivel');
     btn.style.pointerEvents = '';
   }else if(status === "ocupado"){
     badge.textContent = 'Ocupado';
@@ -620,12 +616,11 @@ function initEstado(){
   salvarEstado();
 }
 
-/* 02:00 -> 07:35 (inclusive do período) */
 function janelaSonoGlobal(){
   const d = new Date();
   const minutos = d.getHours() * 60 + d.getMinutes();
-  const ini = 2 * 60;          // 02:00 => 120
-  const fim = 7 * 60 + 35;     // 07:35 => 455
+  const ini = 2 * 60;          // 02:00
+  const fim = 7 * 60 + 35;     // 07:35
   return minutos >= ini && minutos < fim;
 }
 
@@ -646,19 +641,16 @@ function aplicarStatusRealista(forceAll=false){
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  /* ✅ REGRA FIXA MADRUGADA: todos indisponíveis */
   if (janelaSonoGlobal()){
     cards.forEach((card, i) => {
       estado.consultores[i].status = "indisp";
-      // segura mais tempo durante a madrugada (evita ficar trocando)
-      estado.consultores[i].holdUntil = now + randInt(2, 6) * 60 * 1000;
+      estado.consultores[i].holdUntil = now + Math.floor((2 + Math.random()*4) * 60 * 1000);
       setStatusDOM(card, "indisp");
     });
     salvarEstado();
     return;
   }
 
-  // probabilidade de ocupado por hora
   let ocupProb = 0.40;
   if (hora >= 9 && hora < 12) ocupProb = 0.34;
   if (hora >= 12 && hora < 17) ocupProb = 0.44;
@@ -678,7 +670,7 @@ function aplicarStatusRealista(forceAll=false){
 
     if (indispSet.has(i)){
       st.status = "indisp";
-      st.holdUntil = now + randInt(2, 5) * 60 * 1000;
+      st.holdUntil = now + Math.floor((2 + Math.random()*3) * 60 * 1000);
       setStatusDOM(card, "indisp");
       return;
     }
@@ -687,8 +679,8 @@ function aplicarStatusRealista(forceAll=false){
     st.status = novoStatus;
 
     st.holdUntil = (novoStatus === "ocupado")
-      ? now + randInt(2, 6) * 60 * 1000
-      : now + randInt(1, 3) * 60 * 1000;
+      ? now + Math.floor((2 + Math.random()*4) * 60 * 1000)
+      : now + Math.floor((1 + Math.random()*2) * 60 * 1000);
 
     setStatusDOM(card, novoStatus);
   });
@@ -696,11 +688,8 @@ function aplicarStatusRealista(forceAll=false){
   salvarEstado();
 }
 
-/* START */
 initEstado();
 aplicarStatusRealista(false);
-
-// atualiza rápido (20s)
 setInterval(() => aplicarStatusRealista(false), 20000);
 
 document.addEventListener('visibilitychange', () => {
