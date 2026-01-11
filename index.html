@@ -117,11 +117,7 @@ body{
   background-clip:text;
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
-
-/* ✅ FRASE REMOVIDA: hero p (não tem mais texto) */
-.hero p{
-  display:none;
-}
+.hero p{ display:none; }
 
 /* Grid */
 .container{
@@ -147,16 +143,13 @@ body{
   border-radius:18px;
   overflow:hidden;
   isolation:isolate;
-
   background:
     radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
     linear-gradient(180deg, rgba(18,18,18,0.86) 0%, rgba(5,5,5,0.98) 100%);
-
   border:1px solid rgba(199,160,8,0.55);
   box-shadow:
     0 18px 44px rgba(0,0,0,0.60),
     0 0 0 1px rgba(255,240,166,0.08) inset;
-
   transform:none !important;
   transition:none;
 }
@@ -327,15 +320,12 @@ body{
 @media (max-width:480px){
   .btn{ font-size:12px; }
 }
-
-/* ✅ DISPONÍVEL = VERDE */
 .btn.disponivel{
   background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
   color:#fff;
   border-color:rgba(255,255,255,0.16);
 }
 .btn:hover{ filter:brightness(1.06); }
-
 .btn.ocupado{
   background:linear-gradient(180deg, #f39c12 0%, #d35400 100%);
   color:#111;
@@ -413,15 +403,11 @@ source[src*="fabapp-ads"]{
   box-shadow:0 30px 80px rgba(0,0,0,0.70);
   position:relative;
 }
-.app-popup .inner{
-  padding:18px 16px 16px;
-}
+.app-popup .inner{ padding:18px 16px 16px; }
 .app-popup .close{
   position:absolute;
-  top:10px;
-  right:10px;
-  width:42px;
-  height:42px;
+  top:10px; right:10px;
+  width:42px; height:42px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,0.10);
   background:rgba(0,0,0,0.35);
@@ -441,8 +427,7 @@ source[src*="fabapp-ads"]{
   margin-bottom:10px;
 }
 .app-popup .logo{
-  width:54px;
-  height:54px;
+  width:54px; height:54px;
   border-radius:14px;
   overflow:hidden;
   border:1px solid rgba(199,160,8,0.35);
@@ -451,8 +436,7 @@ source[src*="fabapp-ads"]{
   flex:0 0 auto;
 }
 .app-popup .logo img{
-  width:100%;
-  height:100%;
+  width:100%; height:100%;
   object-fit:cover;
   display:block;
 }
@@ -505,7 +489,7 @@ source[src*="fabapp-ads"]{
   color:rgba(255,255,255,0.70);
 }
 
-/* ✅ iOS: bloco com passo a passo */
+/* ✅ iOS passo a passo */
 .ios-steps{
   margin:10px 0 14px;
   padding:12px 12px;
@@ -516,7 +500,6 @@ source[src*="fabapp-ads"]{
   font-size:13px;
   line-height:1.55;
 }
-.ios-steps b{ color:#fff; }
 .ios-steps .row{
   display:flex;
   gap:10px;
@@ -534,10 +517,6 @@ source[src*="fabapp-ads"]{
   background:rgba(199,160,8,0.22);
   border:1px solid rgba(199,160,8,0.40);
   flex:0 0 auto;
-}
-.ios-steps .ico{
-  font-size:16px;
-  margin-right:6px;
 }
 </style>
 </head>
@@ -564,14 +543,11 @@ source[src*="fabapp-ads"]{
 </div>
 
 <div class="page">
-
   <section class="hero">
     <h1>Consulta de tarot online</h1>
-    <!-- ✅ FRASE REMOVIDA -->
   </section>
 
   <div class="container" id="cards-container"></div>
-
 </div>
 
 <!-- ✅ POPUP INSTALAR APP -->
@@ -589,28 +565,21 @@ source[src*="fabapp-ads"]{
 
       <p id="installText">Toque em <b>BAIXAR O APLICATIVO</b> para instalar o app na sua tela inicial.</p>
 
-      <!-- ✅ iOS passo a passo (mostra apenas no iPhone/iPad) -->
       <div class="ios-steps" id="iosSteps" style="display:none;">
         <div class="row">
           <div class="num">1</div>
-          <div>
-            Toque em <b>Compartilhar</b> <span class="ico">⤴️</span> (na barra do Safari).
-          </div>
+          <div>Toque em <b>Compartilhar</b> ⤴️ (no Safari).</div>
         </div>
         <div class="row">
           <div class="num">2</div>
-          <div>
-            Role e toque em <b>Adicionar à Tela de Início</b> <span class="ico">➕</span>.
-          </div>
+          <div>Toque em <b>Adicionar à Tela de Início</b> ➕.</div>
         </div>
         <div class="row">
           <div class="num">3</div>
-          <div>
-            Confirme em <b>Adicionar</b>. Pronto ✅
-          </div>
+          <div>Confirme em <b>Adicionar</b>. Pronto ✅</div>
         </div>
         <div class="small" style="margin-top:10px;">
-          Dica: se você estiver em outro navegador no iPhone, abra este site no <b>Safari</b>.
+          Se estiver no iPhone e não aparecer “Adicionar à Tela de Início”, abra este site no <b>Safari</b>.
         </div>
       </div>
 
@@ -627,7 +596,7 @@ source[src*="fabapp-ads"]{
 </div>
 
 <script>
-/* ✅ Registrar Service Worker (necessário para PWA) */
+/* ✅ Registrar Service Worker */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
@@ -635,9 +604,9 @@ if ("serviceWorker" in navigator) {
 }
 
 /* ===========================
-   ✅ POPUP + INSTALAR APP (PWA)
-   - Android: usa beforeinstallprompt (como já estava)
-   - iOS: mostra passo a passo "Adicionar à Tela Inicial"
+   ✅ POPUP iOS + Android
+   - iOS: sempre mostra tutorial (se não estiver standalone)
+   - Android: mantém beforeinstallprompt (como já estava)
 =========================== */
 (function initInstallPopup(){
   const popup = document.getElementById('appPopup');
@@ -655,12 +624,19 @@ if ("serviceWorker" in navigator) {
     (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
     window.navigator.standalone === true;
 
-  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+  // ✅ iOS + iPadOS (iPadOS às vezes vem como "Macintosh")
+  const isIOS = () => {
+    const ua = navigator.userAgent || "";
+    const iOSUA = /iphone|ipad|ipod/i.test(ua);
+    const iPadOS13Plus = (ua.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+    return iOSUA || iPadOS13Plus;
+  };
+
   const isSafari = () => {
-    const ua = navigator.userAgent.toLowerCase();
+    const ua = (navigator.userAgent || "").toLowerCase();
     const isAppleWebKit = ua.includes('applewebkit');
     const isNotOther = !ua.includes('crios') && !ua.includes('fxios') && !ua.includes('edgios') && !ua.includes('opios');
-    return isAppleWebKit && isNotOther; // Safari "de verdade"
+    return isAppleWebKit && isNotOther;
   };
 
   function openPopup(){
@@ -672,68 +648,42 @@ if ("serviceWorker" in navigator) {
     popup.setAttribute('aria-hidden','true');
   }
 
-  // ✅ iOS: controla frequência do popup para não encher
-  const IOS_DISMISS_KEY = "ios_a2hs_dismissed_v1";
-  function canShowIOSPopup(){
-    try{
-      const raw = localStorage.getItem(IOS_DISMISS_KEY);
-      if(!raw) return true;
-      const t = parseInt(raw, 10);
-      if(!t) return true;
-      // mostra de novo após 2 dias
-      return (Date.now() - t) > (2 * 24 * 60 * 60 * 1000);
-    }catch{
-      return true;
-    }
-  }
-  function markIOSDismiss(){
-    try{ localStorage.setItem(IOS_DISMISS_KEY, String(Date.now())); }catch{}
-  }
-
   function showPopupIfNotInstalled(){
     if (isStandalone()) return;
 
-    // ✅ iOS: mostrar o tutorial de Tela Inicial
     if (isIOS()){
-      if(!canShowIOSPopup()) return;
-
       iosHint.style.display = 'block';
       iosSteps.style.display = 'block';
 
-      // Ajusta textos para iOS
-      subtitleInstall.textContent = 'No iPhone, você adiciona pela Tela de Início.';
+      subtitleInstall.textContent = 'No iPhone/iPad você adiciona pela Tela de Início.';
       installText.innerHTML = isSafari()
         ? 'Siga o passo a passo abaixo para colocar o app na sua <b>Tela de Início</b>.'
-        : 'Abra este site no <b>Safari</b> e siga o passo a passo abaixo para colocar na <b>Tela de Início</b>.';
+        : 'Abra no <b>Safari</b> e siga o passo a passo abaixo para colocar na <b>Tela de Início</b>.';
 
-      // Botão vira "ENTENDI" no iOS (não tenta instalar)
       btnInstall.textContent = 'ENTENDI';
-
-      setTimeout(openPopup, 800);
+      setTimeout(openPopup, 900);
       return;
     }
 
-    // ✅ Android (mantém o comportamento que você já tinha)
-    setTimeout(openPopup, 800);
+    // Android (mantém seu padrão)
+    setTimeout(openPopup, 900);
   }
 
-  // ✅ Android: captura o evento de instalação
+  // Android
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
   });
 
-  window.addEventListener('load', showPopupIfNotInstalled);
+  // ✅ Rodar no DOM e também depois do load (iOS às vezes é chato com eventos)
+  document.addEventListener('DOMContentLoaded', showPopupIfNotInstalled);
+  window.addEventListener('load', () => setTimeout(showPopupIfNotInstalled, 300));
 
   btnInstall.addEventListener('click', async () => {
-    // ✅ iOS: apenas fecha (tutorial)
     if (isIOS()){
-      markIOSDismiss();
       closePopup();
       return;
     }
-
-    // ✅ Android: mantém igual
     if (!deferredPrompt){
       alert('Para instalar: use o Chrome no Android e abra o menu ⋮ > "Instalar app".');
       return;
@@ -744,18 +694,14 @@ if ("serviceWorker" in navigator) {
     deferredPrompt = null;
   });
 
-  function dismiss(){
-    if (isIOS()) markIOSDismiss();
-    closePopup();
-  }
-
+  function dismiss(){ closePopup(); }
   btnLater.addEventListener('click', dismiss);
   btnClose.addEventListener('click', dismiss);
   popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
 })();
 
 /* ==========================================================
-   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
+   ✅ REMOÇÃO FORÇADA (FabApp / similares)
 ========================================================== */
 (function bloquearPropagandasInjetadas(){
   const SELECTORS = [
@@ -835,9 +781,6 @@ const consultores = [
 
 const container = document.getElementById('cards-container');
 
-/* ===========================
-   RENDER DOS CARDS
-=========================== */
 consultores.forEach((c, idx) => {
   const card = document.createElement('div');
   card.className = 'card' + (c.novo ? ' novo' : '');
@@ -872,10 +815,7 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
-   - REGRA FIXA: 02:00 até 07:35 -> TODOS INDISPONÍVEIS
-   - fora isso: 1 ou 2 indisponíveis, resto online/ocupado
-   - troca mais rápida
+   STATUS REALISTA
 =========================== */
 const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
@@ -958,8 +898,8 @@ function initEstado(){
 function janelaSonoGlobal(){
   const d = new Date();
   const minutos = d.getHours() * 60 + d.getMinutes();
-  const ini = 2 * 60;          // 02:00
-  const fim = 7 * 60 + 35;     // 07:35
+  const ini = 2 * 60;
+  const fim = 7 * 60 + 35;
   return minutos >= ini && minutos < fim;
 }
 
