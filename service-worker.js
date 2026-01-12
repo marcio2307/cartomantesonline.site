@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1.0.5";
+const CACHE_VERSION = "v1.0.6";
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -36,7 +36,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
-  // HTML: network-first
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -52,7 +51,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Estáticos: cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
