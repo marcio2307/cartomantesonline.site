@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Banner + Chuva de Cartas</title>
+
+<style>
+*{ box-sizing:border-box; }
+
+:root{
+  /* ✅ cores do estilo do seu site (místico/dourado) */
+  --gold-1:#ffd36a;
+  --gold-2:#c7a008;
+  --gold-3:#8a6b00;
+
+  --panel-1:rgba(18,18,18,0.92);
+  --panel-2:rgba(5,5,5,0.98);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.78);
+}
+
+html, body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+
+  background-image:url("https://i.ibb.co/5hshpDVT/Chat-GPT-Image-12-01-2026-05-46-02.png");
+  background-size:cover;
+  background-position:center top;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.35);
+  z-index:0;
+}
+
+/* 🔮 Banner */
+.banner{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  padding:14px 0 10px;
+  position:relative;
+  z-index:10;
+}
+.banner img{
+  width:100%;
+  max-width:1150px;
+  max-height:280px;
+  object-fit:contain;
+  display:block;
+}
+
+/* brilho */
+.glow{
+  position:fixed;
+  inset:-20%;
+  pointer-events:none;
+  mix-blend-mode:screen;
+  opacity:.45;
+  z-index:1;
+  background:
+    radial-gradient(900px 520px at 20% 20%, rgba(199,160,8,.12), rgba(0,0,0,0) 60%),
+    radial-gradient(900px 520px at 80% 30%, rgba(199,160,8,.10), rgba(0,0,0,0) 65%);
+}
+
+/* 🌧️ chuva abaixo do banner */
+.rain{
+  position:fixed;
+  left:0;
+  right:0;
+  top:var(--bannerH);
+  bottom:0;
+  pointer-events:auto;
+  z-index:3;
+  overflow:hidden;
+}
+
+/* trilhas */
+.lane{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:calc(100% / var(--lanes));
+}
+
+/* 🃏 carta */
+.card{
+  position:absolute;
+  left:50%;
+  top:0;
+
+  width:var(--w);
+  height:auto;
+  object-fit:contain;
+
+  display:block;
+  opacity:1;
+
+  transform:translate3d(calc(-50% + var(--x)), var(--startY), 0) rotate(var(--rot));
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+
+  filter:drop-shadow(0 22px 36px rgba(0,0,0,.85));
+  will-change:transform;
+
+  animation:fall var(--dur) linear infinite;
+  animation-delay:0s !important;
+  animation-play-state:paused;
+
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes fall{
+  from{
+    transform:translate3d(calc(-50% + var(--x)), var(--startY), 0) rotate(var(--rot));
+  }
+  to{
+    transform:translate3d(calc(-50% + var(--x)), calc(var(--rainH) + 420px), 0)
+              rotate(calc(var(--rot) + 60deg));
+  }
+}
+
+/* 📱 Mobile */
+@media (max-width:600px){
+  .banner img{
+    max-width:96%;
+    max-height:230px;
+  }
+}
+
+/* ✅ MODAL (no estilo e cores do seu site) */
+.modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:9999;
+}
+.modal.open{ display:flex; }
+
+.modal .backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.74);
+  backdrop-filter: blur(4px);
+}
+
+.modal .box{
+  position:relative;
+  width:min(560px, 100%);
+  border-radius:18px;
+  overflow:hidden;
+  text-align:center;
+
+  background:
+    radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.22), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, var(--panel-1) 0%, var(--panel-2) 100%);
+
+  border:1px solid rgba(199,160,8,0.55);
+  box-shadow: 0 22px 60px rgba(0,0,0,0.78);
+  transform: translateY(6px) scale(.985);
+  opacity: 0;
+  animation: pop .18s ease-out forwards;
+}
+
+@keyframes pop{
+  to{ transform: translateY(0) scale(1); opacity:1; }
+}
+
+.modal .top{
+  padding:16px 18px 12px;
+  position:relative;
+  background:
+    linear-gradient(180deg, rgba(255,211,106,.10) 0%, rgba(0,0,0,0) 70%);
+}
+
+.modal .badge{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(199,160,8,0.35);
+  background:rgba(0,0,0,.28);
+  box-shadow: inset 0 0 0 1px rgba(255,211,106,.08);
+}
+
+.modal .emoji{
+  font-size:18px;
+  line-height:1;
+}
+
+.modal h2{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight:900;
+  font-size:18px;
+  color:#fff;
+  letter-spacing:.2px;
+}
+
+.modal .content{
+  padding: 0 18px 16px;
+}
+
+.modal p{
+  margin:12px 0 16px;
+  color:var(--muted);
+  line-height:1.55;
+  font-size:14px;
+}
+
+.modal .btn{
+  width:100%;
+  height:56px;
+  border:none;
+  border-radius:14px;
+  font-weight:900;
+  letter-spacing:.6px;
+  cursor:pointer;
+  color:#111;
+
+  background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 65%, var(--gold-3) 120%);
+  box-shadow:
+    0 18px 34px rgba(0,0,0,0.60),
+    0 0 0 1px rgba(255,211,106,.22) inset;
+}
+
+.modal .btn:active{ transform: translateY(1px); }
+.modal .hint{
+  margin:10px 0 0;
+  font-size:12px;
+  color:rgba(255,255,255,.55);
+}
+
+/* ✅ variações por tipo (ganhou / perdeu) */
+.modal.win .box{
+  border-color: rgba(65, 230, 160, .40);
+  background:
+    radial-gradient(560px 260px at 50% -10%, rgba(65,230,160,0.18), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, var(--panel-1) 0%, var(--panel-2) 100%);
+}
+.modal.win .badge{
+  border-color: rgba(65, 230, 160, .35);
+}
+.modal.win .btn{
+  color:#04160f;
+  background:linear-gradient(180deg, #7CFFCB 0%, #12D39A 60%, #0A7F5C 120%);
+}
+
+.modal.lose .box{
+  border-color: rgba(255, 211, 106, .55);
+}
+.modal.lose .badge{
+  border-color: rgba(255, 211, 106, .38);
+}
+</style>
+</head>
+
+<body>
+
+<div class="banner" id="banner">
+  <img src="https://i.ibb.co/YFHkPV41/Chat-GPT-Image-12-01-2026-05-35-42.png" alt="Banner" />
+</div>
+
+<div class="glow"></div>
+<div class="rain" id="rain"></div>
+
+<!-- ✅ Modal -->
+<div class="modal" id="modal">
+  <div class="backdrop"></div>
+  <div class="box" role="dialog" aria-modal="true" aria-live="polite">
+    <div class="top">
+      <div class="badge">
+        <span class="emoji" id="modalEmoji">😔</span>
+        <h2 id="modalTitle">Título</h2>
+      </div>
+    </div>
+
+    <div class="content">
+      <p id="modalText">Texto</p>
+      <button class="btn" id="modalBtn">OK</button>
+      <div class="hint">Toque em OK (ou fora) para voltar</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CARTA_URL = "https://i.ibb.co/sTW31yd/Chat-GPT-Image-12-01-2026-05-07-54-removebg-preview.png";
+
+const rain = document.getElementById("rain");
+const banner = document.getElementById("banner");
+
+const isMobile = window.matchMedia("(max-width:600px)").matches;
+
+/* ✅ espalhado */
+const LANES = isMobile ? 7 : 9;
+
+/* ✅ um pouco mais rápido */
+const DUR_MIN = isMobile ? 5.2 : 4.6;
+const DUR_MAX = isMobile ? 7.8 : 7.0;
+
+/* ✅ tamanho */
+const W_MIN = isMobile ? 190 : 230;
+const W_MAX = isMobile ? 250 : 300;
+
+/* ✅ offset maior (espalhado) */
+const X_MIN = isMobile ? -30 : -42;
+const X_MAX = isMobile ?  30 :  42;
+
+document.documentElement.style.setProperty("--lanes", LANES);
+
+function rand(min, max){ return Math.random() * (max - min) + min; }
+
+function atualizarAlturas(){
+  const bannerH = Math.round(banner.getBoundingClientRect().height);
+  const rainH = Math.max(0, window.innerHeight - bannerH);
+  document.documentElement.style.setProperty("--bannerH", bannerH + "px");
+  document.documentElement.style.setProperty("--rainH", rainH + "px");
+  return { bannerH, rainH };
+}
+
+/* ✅ pré-load sem fantasma */
+async function preload(url){
+  const img = new Image();
+  img.src = url;
+  try{
+    if(img.decode) await img.decode();
+    else await new Promise((res, rej)=>{ img.onload=res; img.onerror=rej; });
+  }catch{
+    await new Promise((res)=>{ img.onload=res; img.onerror=res; });
+  }
+  return img;
+}
+
+function setVars(el){
+  el.style.setProperty("--w", rand(W_MIN, W_MAX) + "px");
+  el.style.setProperty("--dur", rand(DUR_MIN, DUR_MAX) + "s");
+  el.style.setProperty("--rot", rand(-7, 7) + "deg");
+  el.style.setProperty("--x", rand(X_MIN, X_MAX) + "px");
+}
+
+/* ✅ sempre começa no topo da área (nunca no meio) */
+function configurarInicialTopo(el){
+  setVars(el);
+  el.style.setProperty("--startY", rand(-420, -160) + "px");
+}
+function configurarProximaTopo(el){
+  setVars(el);
+  el.style.setProperty("--startY", rand(-420, -160) + "px");
+}
+
+/* ✅ cria carta extra se precisar (também no topo) */
+function criarCartaExtra(lane){
+  const el = document.createElement("img");
+  el.className = "card";
+  el.src = CARTA_URL;
+  el.alt = "Carta de Tarot";
+  el.dataset.extra = "1";
+
+  configurarInicialTopo(el);
+
+  // ✅ clique funciona também nas extras
+  el.addEventListener("click", onCartaClick, { passive:true });
+  el.addEventListener("touchend", onCartaTouch, { passive:true });
+
+  el.addEventListener("animationiteration", () => el.remove());
+  lane.appendChild(el);
+
+  requestAnimationFrame(() => {
+    el.style.animationPlayState = "running";
+  });
+}
+
+let lanes = [];
+let started = false;
+
+/* ==========================================================
+   ✅ SORTEIO SEMANAL (REGRA NOVA DE HORÁRIO)
+   - SOMENTE SEXTA-FEIRA
+   - Janela: 18:00 até 18:30 (inclusive)
+   - 1 ganhador por semana
+   - Se ninguém ganhar até 18:30, fecha e só volta na próxima sexta
+========================================================== */
+const KEY_WEEK = "tarot_week_key";        // identifica a semana
+const KEY_WON  = "tarot_week_won";        // "1" quando já teve ganhador na semana
+const TARGET_WEEKDAY = 5;                // sexta
+const START_HOUR = 18, START_MIN = 0;    // 18:00
+const END_HOUR   = 18, END_MIN   = 30;   // 18:30
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+
+/* semana ISO simplificada (ano-semana) */
+function getWeekKey(d = new Date()){
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return `${date.getUTCFullYear()}-W${pad2(weekNo)}`;
+}
+
+function isWindowNow(now = new Date()){
+  if(now.getDay() !== TARGET_WEEKDAY) return false;
+
+  const h = now.getHours();
+  const m = now.getMinutes();
+
+  // antes das 18:00
+  if(h < START_HOUR) return false;
+  if(h === START_HOUR && m < START_MIN) return false;
+
+  // depois das 18:30
+  if(h > END_HOUR) return false;
+  if(h === END_HOUR && m > END_MIN) return false;
+
+  return true; // dentro de 18:00..18:30
+}
+
+function syncWeekly(){
+  const wk = getWeekKey(new Date());
+  const savedWk = localStorage.getItem(KEY_WEEK);
+  if(savedWk !== wk){
+    localStorage.setItem(KEY_WEEK, wk);
+    localStorage.removeItem(KEY_WON);
+  }
+}
+
+/* ==========================================================
+   ✅ MODAL + REDIRECIONAMENTO (com tema win/lose)
+========================================================== */
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modalTitle");
+const modalText = document.getElementById("modalText");
+const modalBtn = document.getElementById("modalBtn");
+const modalEmoji = document.getElementById("modalEmoji");
+
+let modalRedirect = null;
+
+function abrirModal(tipo, titulo, texto, redirectUrl){
+  modal.classList.remove("win","lose");
+  if(tipo) modal.classList.add(tipo);
+
+  modalTitle.textContent = titulo;
+  modalText.textContent = texto;
+  modalEmoji.textContent = (tipo === "win") ? "🎉" : "😔";
+
+  modalRedirect = redirectUrl || null;
+  modal.classList.add("open");
+}
+
+function fecharModal(){
+  modal.classList.remove("open");
+}
+
+function fecharERedirecionar(){
+  fecharModal();
+  if(modalRedirect){
+    window.location.href = modalRedirect;
+  }
+}
+
+modalBtn.addEventListener("click", fecharERedirecionar);
+modal.querySelector(".backdrop").addEventListener("click", fecharERedirecionar);
+
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape" && modal.classList.contains("open")){
+    fecharERedirecionar();
+  }
+});
+
+/* ==========================================================
+   ✅ CLIQUE 1X NA CARTA
+========================================================== */
+let clickLock = false;
+
+function tratarClique(){
+  if(clickLock) return;
+  clickLock = true;
+
+  syncWeekly();
+
+  const now = new Date();
+  const dentroDaJanela = isWindowNow(now);
+  const jaTeveGanhadorSemana = localStorage.getItem(KEY_WON) === "1";
+
+  if(dentroDaJanela && !jaTeveGanhadorSemana){
+    localStorage.setItem(KEY_WON, "1");
+
+    abrirModal(
+      "win",
+      "Parabéns!",
+      "Você ganhou uma leitura de Tarot de 2 minutos. Aguarde…",
+      "https://atendimento2.onrender.com/?role=cliente&room=main"
+    );
+  }else{
+    let msg = "Já tivemos um ganhador nesta semana. Volte na próxima sexta-feira entre 18:00 e 18:30.";
+    if(!dentroDaJanela){
+      msg = "O sorteio acontece somente na sexta-feira entre 18:00 e 18:30. Se ninguém ganhar até 18:30, só volta na próxima sexta.";
+    }
+
+    abrirModal(
+      "lose",
+      "Infelizmente não foi dessa vez",
+      msg,
+      "https://marcio2307.github.io/cartomantesonline.site/leituras.html"
+    );
+  }
+}
+
+function onCartaClick(){ tratarClique(); }
+function onCartaTouch(){ tratarClique(); }
+
+/* ==========================================================
+   ✅ INICIAR CHUVA
+========================================================== */
+async function iniciar(){
+  atualizarAlturas();
+  await preload(CARTA_URL);
+
+  // ✅ sincroniza semana ao carregar
+  syncWeekly();
+
+  for(let i=0;i<LANES;i++){
+    const lane = document.createElement("div");
+    lane.className = "lane";
+    lane.style.left = `calc(${i} * (100% / ${LANES}))`;
+    rain.appendChild(lane);
+    lanes.push(lane);
+
+    const carta = document.createElement("img");
+    carta.className = "card";
+    carta.src = CARTA_URL;
+    carta.alt = "Carta de Tarot";
+
+    configurarInicialTopo(carta);
+
+    carta.addEventListener("animationiteration", () => configurarProximaTopo(carta));
+
+    carta.addEventListener("click", onCartaClick, { passive:true });
+    carta.addEventListener("touchend", onCartaTouch, { passive:true });
+
+    lane.appendChild(carta);
+  }
+
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".card").forEach(c => {
+      c.style.animationPlayState = "running";
+    });
+    started = true;
+  });
+
+  /* ✅ garante que nunca fica sem carta */
+  setInterval(() => {
+    if(!started) return;
+    const count = rain.querySelectorAll(".card").length;
+    const minWanted = Math.max(5, Math.floor(LANES * 0.75));
+    if(count < minWanted){
+      for(let k=0;k<2;k++){
+        const lane = lanes[Math.floor(Math.random() * lanes.length)];
+        criarCartaExtra(lane);
+      }
+    }
+  }, 900);
+}
+
+iniciar();
+
+window.addEventListener("resize", atualizarAlturas);
+
+document.addEventListener("visibilitychange", () => {
+  rain.style.display = document.hidden ? "none" : "block";
+});
+</script>
+
+</body>
+</html>
