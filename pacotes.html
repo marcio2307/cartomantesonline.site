@@ -1,134 +1,321 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Pagar Consulta - Cartomantes Online</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
 <style>
-body{
-  background: radial-gradient(circle at top, #1a1a1a, #000);
-  color:#fff;
-  font-family:'Poppins', Arial, sans-serif;
-  margin:0;
-  padding:20px;
+:root{
+  --gold-1:#fff0a6;
+  --gold-2:#f6e27a;
+  --gold-3:#c7a008;
+  --gold-4:#b8860b;
+  --black:#000000;
+
+  --btn-h:56px;
+  --btn-px:14px;
 }
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(900px 420px at 15% 10%, rgba(199,160,8,0.20), rgba(0,0,0,0) 60%),
+    radial-gradient(900px 420px at 85% 20%, rgba(199,160,8,0.16), rgba(0,0,0,0) 60%),
+    radial-gradient(1200px 520px at 50% 120%, rgba(199,160,8,0.10), rgba(0,0,0,0) 65%),
+    #000;
+  font-family:'Poppins',sans-serif;
+  color:#fff;
+  padding:22px 16px 28px;
+}
+
+/* “Card” principal no mesmo estilo do site */
 .container{
-  max-width:420px;
-  margin:40px auto;
-  background: rgba(255,255,255,0.05);
-  border:2px solid gold;
-  border-radius:15px;
-  padding:25px;
-  box-shadow:0 0 20px rgba(255,215,0,0.2);
+  max-width:460px;
+  margin:18px auto;
+  border-radius:18px;
+  overflow:hidden;
+  isolation:isolate;
+
+  background:
+    radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(18,18,18,0.86) 0%, rgba(5,5,5,0.98) 100%);
+
+  border:1px solid rgba(199,160,8,0.55);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.60),
+    0 0 0 1px rgba(255,240,166,0.08) inset;
+  position:relative;
+  padding:18px 16px 18px;
   text-align:center;
 }
 
+.container::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:
+    radial-gradient(520px 220px at 50% 0%, rgba(246,226,122,0.22), rgba(0,0,0,0) 60%),
+    radial-gradient(180px 120px at 18% 18%, rgba(255,240,166,0.10), rgba(0,0,0,0) 70%),
+    radial-gradient(180px 120px at 82% 28%, rgba(255,240,166,0.08), rgba(0,0,0,0) 70%);
+  opacity:.9;
+  pointer-events:none;
+  z-index:0;
+}
+
+.container::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(120deg,
+      rgba(255,240,166,0.00) 0%,
+      rgba(255,240,166,0.04) 28%,
+      rgba(255,240,166,0.00) 55%,
+      rgba(255,240,166,0.00) 100%);
+  mix-blend-mode:screen;
+  opacity:.55;
+  pointer-events:none;
+  z-index:1;
+}
+
+.inner{
+  position:relative;
+  z-index:2;
+}
+
 .consultor-img{
-  width:150px;
-  border-radius:10px;
-  margin-bottom:10px;
+  width:170px;
+  height:170px;
+  object-fit:cover;
+  border-radius:16px;
+  border:1px solid rgba(199,160,8,0.35);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,240,166,0.06) inset;
+  filter:saturate(1.06) contrast(1.06);
+  margin:10px auto 10px;
+  display:block;
 }
+
 h1{
-  color:gold;
+  margin:10px 0 6px;
+  font-family:'Cinzel', serif;
   font-size:22px;
-  margin:10px 0;
+  font-weight:900;
+  letter-spacing:0.2px;
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 42%, var(--gold-1) 72%, var(--gold-4) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
-p{
+
+.sub{
+  margin:0 0 14px;
   font-size:14px;
-  color:#ccc;
-  margin-bottom:20px;
+  color:rgba(255,255,255,0.88);
+  line-height:1.6;
 }
+
+/* Opções iguais ao “peso” visual dos cards */
 .option{
-  background: rgba(255,255,255,0.08);
-  border: 1px solid #c7a008;
-  border-radius:10px;
-  padding:15px;
-  margin-bottom:10px;
+  background: rgba(255,255,255,0.06);
+  border:1px solid rgba(199,160,8,0.55);
+  border-radius:16px;
+  padding:14px 14px;
+  margin:10px 0;
   cursor:pointer;
-  transition: all 0.25s ease;
+  transition:filter .18s ease, transform .18s ease, background .18s ease, border-color .18s ease;
+  box-shadow:
+    0 14px 28px rgba(0,0,0,0.50),
+    0 0 0 1px rgba(255,240,166,0.06) inset;
 }
+
 .option:hover{
-  background: rgba(255,215,0,0.15);
-  transform: scale(1.02);
+  filter:brightness(1.06);
+  transform:translateY(-1px);
+  background: rgba(255,240,166,0.08);
+  border-color:rgba(246,226,122,0.95);
 }
+
 .option.selected{
-  background: rgba(255,215,0,0.3);
-  border: 2px solid gold;
+  background: rgba(199,160,8,0.18);
+  border-color:rgba(246,226,122,0.95);
+  box-shadow:
+    0 14px 28px rgba(0,0,0,0.50),
+    0 0 30px rgba(199,160,8,0.14),
+    0 0 0 1px rgba(255,240,166,0.10) inset;
 }
+
 .option h2{
-  margin:0 0 6px;
-  font-size:18px;
+  margin:0 0 4px;
+  font-size:16px;
+  font-weight:900;
+  letter-spacing:0.3px;
   color:#fff;
 }
+
 .option p{
   margin:0;
-  color:#ddd;
+  font-size:13px;
+  color:rgba(255,255,255,0.88);
 }
+
+/* Preço selecionado */
+.price-display{
+  margin:14px 0 12px;
+  font-weight:900;
+  font-size:14px;
+  line-height:1.45;
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 55%, var(--gold-4) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  text-shadow:0 0 18px rgba(199,160,8,0.12);
+}
+
+/* Pix */
 .pix-logo{
   width:150px;
-  margin:20px auto;
+  margin:10px auto 12px;
   display:block;
-  filter: drop-shadow(0 0 6px #0cdfb9);
+  filter: drop-shadow(0 0 10px rgba(13,223,185,0.35));
 }
+
+/* Botão com peso parecido com os botões do site */
 .pix-btn{
-  background: linear-gradient(90deg, #00bfa5, #00937b);
-  border:none;
-  color:white;
-  padding:12px 20px;
-  border-radius:8px;
-  font-size:16px;
-  cursor:pointer;
-  font-weight:bold;
-  transition: transform .2s ease, filter .2s ease, opacity .2s ease;
   width:100%;
-  max-width:250px;
+  height:var(--btn-h);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:0 var(--btn-px);
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 16px 30px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,240,166,0.06) inset;
+  font-weight:900;
+  font-size:13px;
+  letter-spacing:0.7px;
+  cursor:pointer;
+  transition:filter .18s ease, opacity .18s ease, transform .18s ease;
+  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
+  color:#fff;
 }
-.pix-btn:hover{ transform: scale(1.05); filter:brightness(1.05); }
+
+.pix-btn:hover{ filter:brightness(1.06); transform:translateY(-1px); }
 .pix-btn:disabled{
   opacity:0.55;
   cursor:not-allowed;
   transform:none;
   filter:none;
-}
-.price-display{
-  color:gold;
-  font-size:18px;
-  margin-top:18px;
-  font-weight:bold;
-  line-height:1.35;
+  background:linear-gradient(180deg, rgba(46,204,113,0.55) 0%, rgba(31,155,80,0.55) 100%);
 }
 
-/* mobile */
+/* Mobile fino */
 @media (max-width:420px){
-  body{ padding:14px; }
-  .container{ margin:18px auto; padding:18px; }
-  .consultor-img{ width:140px; }
+  body{ padding:18px 12px 24px; }
+  .consultor-img{ width:155px; height:155px; }
+  :root{ --btn-h:64px; --btn-px:16px; }
+}
+
+/* ==========================================================
+   ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
+========================================================== */
+fabapp-banner-footer,
+fabapp-banner-footer *{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  height:0 !important;
+  max-height:0 !important;
+  min-height:0 !important;
+  width:0 !important;
+  max-width:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
+
+#ads-container,
+[id="ads-container"],
+[id*="ads-container"],
+[class*="ads-container"],
+iframe[src*="fabapp-ads"],
+video[src*="fabapp-ads"],
+source[src*="fabapp-ads"]{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  height:0 !important;
+  max-height:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
 }
 </style>
 </head>
 
 <body>
-<div class="container">
-  <img id="consultorImagem" class="consultor-img" src="" alt="Consultor">
-  <h1 id="consultorNome">Consultor</h1>
-  <p>Escolha quantos minutos deseja na sua consulta.</p>
+  <div class="container" role="main" aria-label="Pagamento por PIX">
+    <div class="inner">
+      <img id="consultorImagem" class="consultor-img" src="" alt="Consultor">
+      <h1 id="consultorNome">Consultor</h1>
+      <p class="sub">Escolha quantos minutos deseja na sua consulta.</p>
 
-  <div id="opcoes"></div>
+      <div id="opcoes"></div>
 
-  <div class="price-display" id="precoSelecionado">Selecione uma opção</div>
+      <div class="price-display" id="precoSelecionado">Selecione uma opção</div>
 
-  <img class="pix-logo" src="https://artpoin.com/wp-content/uploads/2023/09/artpoin-logo-pix.png" alt="PIX Logo">
-  <button class="pix-btn" id="pixButton" disabled>Pagar com PIX</button>
-</div>
+      <img class="pix-logo" src="https://artpoin.com/wp-content/uploads/2023/09/artpoin-logo-pix.png" alt="PIX Logo">
+      <button class="pix-btn" id="pixButton" disabled>PAGAR COM PIX</button>
+    </div>
+  </div>
 
 <script>
+/* ==========================================================
+   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
+========================================================== */
+(function bloquearPropagandasInjetadas(){
+  const SELECTORS = [
+    'fabapp-banner-footer',
+    'fabapp-banner-footer video',
+    '#ads-container',
+    '[id="ads-container"]',
+    'iframe[src*="fabapp-ads"]',
+    'video[src*="fabapp-ads"]',
+    'source[src*="fabapp-ads"]',
+    'script[src*="fabapp-ads"]'
+  ];
+
+  function remover() {
+    for (const sel of SELECTORS) {
+      document.querySelectorAll(sel).forEach(el => {
+        try { el.remove(); } catch {}
+      });
+    }
+  }
+
+  remover();
+  const obs = new MutationObserver(() => remover());
+  obs.observe(document.documentElement, { childList:true, subtree:true });
+
+  let tries = 0;
+  const t = setInterval(() => {
+    remover();
+    tries++;
+    if (tries >= 30) clearInterval(t);
+  }, 500);
+})();
+
 /* ✅ SEM BOTÃO: ao apertar "voltar" (celular ou PC) vai para a página desejada */
 (function(){
   const target = "https://marcio2307.github.io/cartomantesonline.site/leituras.html";
-
-  // cria um estado extra pra capturar o "voltar"
   history.pushState({ page: "pix" }, "", location.href);
-
   window.addEventListener("popstate", () => {
     window.location.replace(target);
   });
@@ -137,7 +324,7 @@ p{
 // 🔮 Dados do consultor vindos do localStorage
 const nome = localStorage.getItem('consultorNome') || "Consultor";
 const valor = parseFloat(localStorage.getItem('consultorValor')) || 1.00;
-const imagem = localStorage.getItem('consultorImagem') || "https://via.placeholder.com/150";
+const imagem = localStorage.getItem('consultorImagem') || "https://via.placeholder.com/300";
 
 document.getElementById('consultorNome').textContent = nome;
 document.getElementById('consultorImagem').src = imagem;
@@ -151,12 +338,11 @@ const botaoPix = document.getElementById('pixButton');
 let minutosSelecionados = null;
 let precoFinal = null;
 
-// 🧭 Cria as opções dinamicamente
 minutos.forEach(m => {
   const preco = (m * valor).toFixed(2);
   const div = document.createElement('div');
   div.className = 'option';
-  div.innerHTML = `<h2>${m} Minutos</h2><p>R$ ${preco}</p>`;
+  div.innerHTML = `<h2>${m} MINUTOS</h2><p>R$ ${preco}</p>`;
   div.onclick = () => {
     document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
     div.classList.add('selected');
