@@ -3,14 +3,13 @@
    GitHub Pages / PWA
 ========================================================== */
 
-const CACHE_VERSION = "v1.0.9"; // 🔔 aumente para forçar update
+const CACHE_VERSION = "v1.0.9"; // ✅ aumente p/ forçar update
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./leituras.html",
-  "./notificacoes.html",
   "./manifest.json",
   "./logo.png",
   "./service-worker.js"
@@ -86,15 +85,21 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
-   🔔 PUSH NOTIFICATIONS
+   🔔 PUSH NOTIFICATIONS (mais compatível)
 ========================================================== */
 
-// Recebe a notificação
 self.addEventListener("push", (event) => {
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
-  } catch {}
+  } catch {
+    // fallback: tenta texto puro
+    try {
+      data = { body: event.data ? event.data.text() : "" };
+    } catch {
+      data = {};
+    }
+  }
 
   const title = data.title || "Cartomantes Online";
   const body = data.body || "Você tem uma nova notificação.";
@@ -107,36 +112,31 @@ self.addEventListener("push", (event) => {
     data: { url },
     icon: "./logo.png",
     badge: "./logo.png",
-    vibrate: [100, 50, 100],
+    vibrate: [120, 60, 120],
+    tag: "cartomantes-online",          // ✅ evita “sumir”
+    renotify: true,                    // ✅ reforça exibição
+    requireInteraction: true           // ✅ fica na tela até tocar (ajuda muito)
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Clique na notificação → abre a página
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const url = event.notification?.data?.url;
-  if (!url) return;
+  const fallback = "https://marcio2307.github.io/cartomantesonline.site/leituras.html";
+  const targetUrl = url || fallback;
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true })
       .then((clientList) => {
         for (const client of clientList) {
-          if (client.url === url && "focus" in client) {
+          if (client.url === targetUrl && "focus" in client) {
             return client.focus();
           }
         }
-        if (clients.openWindow) return clients.openWindow(url);
+        if (clients.openWindow) return clients.openWindow(targetUrl);
       })
   );
-});
-
-/* ✅ Ajuda quando o navegador troca a inscrição sozinho */
-self.addEventListener("pushsubscriptionchange", (event) => {
-  // Aqui você pode avisar seu backend para atualizar a subscription.
-  // Como o SW não tem a VAPID pública com segurança, deixamos só um log.
-  // O client (leituras.html) já tenta garantir inscrição ao abrir.
-  event.waitUntil(Promise.resolve());
 });
