@@ -330,7 +330,6 @@ document.getElementById('consultorNome').textContent = nome;
 document.getElementById('consultorImagem').src = imagem;
 
 // 🔢 Opções de minutos
-const minutos = [10, 20, 30, 60];
 const opcoesDiv = document.getElementById('opcoes');
 const precoSelecionado = document.getElementById('precoSelecionado');
 const botaoPix = document.getElementById('pixButton');
@@ -338,27 +337,49 @@ const botaoPix = document.getElementById('pixButton');
 let minutosSelecionados = null;
 let precoFinal = null;
 
-minutos.forEach(m => {
-  const preco = (m * valor).toFixed(2);
+function criarOpcao(minutos, preco){
   const div = document.createElement('div');
   div.className = 'option';
-  div.innerHTML = `<h2>${m} MINUTOS</h2><p>R$ ${preco}</p>`;
+  div.innerHTML = `<h2>${minutos} MINUTOS</h2><p>R$ ${preco}</p>`;
   div.onclick = () => {
     document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
     div.classList.add('selected');
-    minutosSelecionados = m;
+    minutosSelecionados = minutos;
     precoFinal = preco;
-    precoSelecionado.textContent = `Você selecionou ${m} minutos — R$ ${preco}`;
+    precoSelecionado.textContent = `Você selecionou ${minutos} minutos — R$ ${preco}`;
     botaoPix.disabled = false;
   };
   opcoesDiv.appendChild(div);
-});
+}
+
+// ✅ detectar Pai Márcio (aceita "P.Márcio", "Pai Marcio", etc.)
+const nomeNormalizado = (nome || "")
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '');
+const ehPaiMarcio = nomeNormalizado.includes('marcio');
+
+if(ehPaiMarcio){
+  // ✅ Pai Márcio: pacotes FIXOS
+  criarOpcao(10, "20.00");
+  criarOpcao(20, "40.00");
+  criarOpcao(30, "60.00");
+} else {
+  // ✅ Outros consultores: mantém como estava, mas SEM a palavra "PACOTE"
+  criarOpcao(5, "5.00");
+
+  const minutos = [10, 20, 30, 60];
+  minutos.forEach(m => {
+    const preco = (m * valor).toFixed(2);
+    criarOpcao(m, preco);
+  });
+}
 
 // 💰 Ao clicar em “Pagar com Pix”
 botaoPix.onclick = () => {
   if (minutosSelecionados && precoFinal) {
     const descricao = encodeURIComponent(`MINUTOS ${nome.toUpperCase()}`);
-    const valorFormatado = precoFinal.replace('.', ',');
+    const valorFormatado = String(precoFinal).replace('.', ',');
     const linkPix = `https://cartomantespagamento.com.br/index.php?valor=${valorFormatado}&descricao=${descricao}`;
     window.location.href = linkPix;
   }
