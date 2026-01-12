@@ -107,7 +107,7 @@ body{
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
 
-/* ✅ FRASE REMOVIDA */
+/* ✅ FRASE REMOVIDA (mantida oculta) */
 .hero p{
   display:none;
   margin:0;
@@ -391,11 +391,11 @@ source[src*="fabapp-ads"]{
 <!-- ✅ Carrossel (8s) -->
 <div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
   <div class="spacer">
-    <img src="https://i.ibb.co/SXKrM7KY/Chat-GPT-Image-12-01-2026-04-17-10.png" alt="" />
+    <img src="https://i.ibb.co/4Z8xDjcV/Chat-GPT-Image-12-01-2026-04-49-28.png" alt="" />
   </div>
 
   <div class="slide active">
-    <img src="https://i.ibb.co/SXKrM7KY/Chat-GPT-Image-12-01-2026-04-17-10.png" alt="Cartomantes Online - Banner" />
+    <img src="https://i.ibb.co/4Z8xDjcV/Chat-GPT-Image-12-01-2026-04-49-28.png" alt="Consultas de tarot para clientes VIP" />
   </div>
 
   <div class="slide">
@@ -410,8 +410,8 @@ source[src*="fabapp-ads"]{
 <div class="page">
 
   <section class="hero">
-    <h1>Consulta de tarot online</h1>
-    <!-- ✅ FRASE REMOVIDA -->
+    <h1>✨ Consultas de Tarot Exclusivas para Clientes VIP ✨</h1>
+    <!-- frase removida -->
   </section>
 
   <div class="container" id="cards-container"></div>
@@ -478,7 +478,9 @@ source[src*="fabapp-ads"]{
    LISTA DE CONSULTORES
 =========================== */
 const consultores = [
-  { nome: "P.Márcio", valor: 3, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
+  /* ✅ P.Márcio agora R$ 2,00 por minuto */
+  { nome: "P.Márcio", valor: 2, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
+
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
 
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
@@ -487,7 +489,7 @@ const consultores = [
   { nome: "Thabata", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/06/28//d5969655ef-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
-  { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4fB7-1-_3.webp".replace("fB7","f7"), estrelas: 5, novo: true },
+  { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
 
   { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
   { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
@@ -539,10 +541,6 @@ consultores.forEach((c, idx) => {
 
 /* ===========================
    ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
-   ✅ MANTIDAS COMPLETAS
-   ❌ REMOVIDO APENAS: regra fixa 02:00–07:35 (TODOS INDISPONÍVEIS)
-   - fora isso: 1 ou 2 indisponíveis, resto online/ocupado
-   - troca mais rápida
 =========================== */
 const chance = (p) => Math.random() < p;
 
@@ -620,8 +618,6 @@ function initEstado(){
   aplicarStatusRealista(true);
   salvarEstado();
 }
-
-/* ✅ regra global removida: agora SEM janelaSonoGlobal() */
 
 function escolherIndisponiveis(cards){
   const total = cards.length;
