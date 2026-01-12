@@ -530,7 +530,8 @@ consultores.forEach((c, idx) => {
     localStorage.setItem('consultorValor', c.valor);
     localStorage.setItem('consultorImagem', c.imagem);
 
-    window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pix.html';
+    // ✅ EM SINTONIA COM PACOTES.HTML
+    window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pacotes.html';
   });
 
   container.appendChild(card);
@@ -538,7 +539,8 @@ consultores.forEach((c, idx) => {
 
 /* ===========================
    ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
-   - REGRA FIXA: 02:00 até 07:35 -> TODOS INDISPONÍVEIS
+   ✅ MANTIDAS COMPLETAS
+   ❌ REMOVIDO APENAS: regra fixa 02:00–07:35 (TODOS INDISPONÍVEIS)
    - fora isso: 1 ou 2 indisponíveis, resto online/ocupado
    - troca mais rápida
 =========================== */
@@ -619,13 +621,7 @@ function initEstado(){
   salvarEstado();
 }
 
-function janelaSonoGlobal(){
-  const d = new Date();
-  const minutos = d.getHours() * 60 + d.getMinutes();
-  const ini = 2 * 60;          // 02:00
-  const fim = 7 * 60 + 35;     // 07:35
-  return minutos >= ini && minutos < fim;
-}
+/* ✅ regra global removida: agora SEM janelaSonoGlobal() */
 
 function escolherIndisponiveis(cards){
   const total = cards.length;
@@ -643,16 +639,6 @@ function aplicarStatusRealista(forceAll=false){
   const now = Date.now();
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
-
-  if (janelaSonoGlobal()){
-    cards.forEach((card, i) => {
-      estado.consultores[i].status = "indisp";
-      estado.consultores[i].holdUntil = now + Math.floor((2 + Math.random()*4) * 60 * 1000);
-      setStatusDOM(card, "indisp");
-    });
-    salvarEstado();
-    return;
-  }
 
   let ocupProb = 0.40;
   if (hora >= 9 && hora < 12) ocupProb = 0.34;
