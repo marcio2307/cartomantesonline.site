@@ -16,6 +16,24 @@
 <meta name="apple-mobile-web-app-title" content="Cartomantes" />
 <link rel="apple-touch-icon" href="logo.png" />
 
+<!-- ✅ NOVO: Redireciona APENAS quando abrir pelo ícone (APP instalado) -->
+<script>
+(function () {
+  const isStandalone =
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    window.navigator.standalone === true; // iOS
+
+  if (isStandalone) {
+    const path = (location.pathname || "").toLowerCase();
+
+    // Se abrir index.html (ou a raiz), manda para leituras.html
+    if (!path.endsWith("/leituras.html") && !path.endsWith("leituras.html")) {
+      location.replace("./leituras.html");
+    }
+  }
+})();
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -878,6 +896,3 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 </body>
 </html>
-
-
-
