@@ -2,7 +2,7 @@
   "name": "Cartomantes Online",
   "short_name": "Cartomantes",
   "description": "Consulta de tarot online por chat pré-pago. Escolha seu consultor e inicie sua consulta.",
-  "start_url": "./index.html",
+  "start_url": "./leituras.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#000000",
