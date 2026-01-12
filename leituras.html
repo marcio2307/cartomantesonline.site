@@ -76,11 +76,60 @@ body{
   visibility:hidden;
 }
 
+/* ✅ CTA do sorteio (aparece no lugar do banner na sexta 18:00-18:30) */
+.sorteio-cta{
+  position:absolute;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:5; /* acima da imagem */
+}
+.sorteio-cta a{
+  width:min(760px, 94%);
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  padding:16px 18px;
+  border-radius:18px;
+  text-decoration:none;
+
+  font-weight:900;
+  letter-spacing:.5px;
+  line-height:1.15;
+  color:#111;
+
+  background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:
+    0 22px 46px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(255,240,166,0.10) inset;
+
+  text-transform:uppercase;
+}
+.sorteio-cta a:active{ transform: translateY(1px); }
+.sorteio-cta small{
+  display:block;
+  margin-top:6px;
+  font-weight:700;
+  text-transform:none;
+  letter-spacing:0;
+  color:rgba(10,10,10,0.75);
+}
+
 @media (max-width:480px){
   .banner-carousel{ border-bottom-width:1px; }
   :root{
     --btn-h:64px;
     --btn-px:16px;
+  }
+  .sorteio-cta a{
+    min-height:78px;
+    font-size:13px;
   }
 }
 
@@ -405,6 +454,17 @@ source[src*="fabapp-ads"]{
   <div class="slide">
     <img src="https://i.ibb.co/rRvmn4Q7/56e5b5c7-3199-4b85-a6d8-22608f6c0402.png" alt="Banner adicional" />
   </div>
+
+  <!-- ✅ NOVO BANNER (ÚLTIMO) + CTA QUE SUBSTITUI NA SEXTA 18:00-18:30 -->
+  <div class="slide" id="slideVip">
+    <img id="vipBannerImg" src="https://i.ibb.co/cKPNwmMY/Chat-GPT-Image-12-01-2026-07-11-40.png" alt="Consultas de Tarot Exclusivas para Clientes VIP" />
+    <div class="sorteio-cta" id="sorteioCta" aria-label="Botão do sorteio">
+      <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
+        HOJE É DIA DE LEITURA SORTEADA — CLIQUE AQUI E PARTICIPE
+        <small>(Somente na sexta-feira, das 18:00 às 18:30)</small>
+      </a>
+    </div>
+  </div>
 </div>
 
 <div class="page">
@@ -474,6 +534,52 @@ source[src*="fabapp-ads"]{
   }, 8000);
 })();
 
+/* ==========================================================
+   ✅ BANNER DO SORTEIO: SEXTA 18:00 ATÉ 18:30
+   - Dentro da janela: some a imagem do banner VIP e aparece o botão amarelo
+   - Fora da janela: volta a imagem normal
+========================================================== */
+(function initSorteioCta(){
+  const img = document.getElementById('vipBannerImg');
+  const cta = document.getElementById('sorteioCta');
+  if(!img || !cta) return;
+
+  const TARGET_WEEKDAY = 5; // sexta
+  const START_H = 18, START_M = 0;
+  const END_H = 18, END_M = 30;
+
+  function inWindow(now = new Date()){
+    if(now.getDay() !== TARGET_WEEKDAY) return false;
+    const h = now.getHours();
+    const m = now.getMinutes();
+
+    if(h < START_H) return false;
+    if(h === START_H && m < START_M) return false;
+
+    if(h > END_H) return false;
+    if(h === END_H && m > END_M) return false;
+
+    return true;
+  }
+
+  function update(){
+    const ok = inWindow(new Date());
+    if(ok){
+      img.style.display = 'none';
+      cta.style.display = 'flex';
+    }else{
+      cta.style.display = 'none';
+      img.style.display = 'block';
+    }
+  }
+
+  update();
+  setInterval(update, 10000);
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden) update();
+  });
+})();
+
 /* ===========================
    LISTA DE CONSULTORES
 =========================== */
@@ -532,7 +638,6 @@ consultores.forEach((c, idx) => {
     localStorage.setItem('consultorValor', c.valor);
     localStorage.setItem('consultorImagem', c.imagem);
 
-    // ✅ EM SINTONIA COM PACOTES.HTML
     window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pacotes.html';
   });
 
@@ -541,6 +646,7 @@ consultores.forEach((c, idx) => {
 
 /* ===========================
    ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
+   + NOVA REGRA: 02:00 ATÉ 10:00 TODOS INDISPONÍVEIS
 =========================== */
 const chance = (p) => Math.random() < p;
 
@@ -598,6 +704,12 @@ function setStatusDOM(card, status){
   }
 }
 
+/* ✅ regra geral de indisponibilidade 02:00 -> 10:00 */
+function todosIndisponiveisAgora(){
+  const h = new Date().getHours();
+  return (h >= 2 && h < 10);
+}
+
 function initEstado(){
   const dia = new Date().toDateString();
   const anterior = carregarEstado();
@@ -635,6 +747,18 @@ function aplicarStatusRealista(forceAll=false){
   const now = Date.now();
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
+
+  /* ✅ NOVO: das 02:00 às 10:00 TODOS INDISPONÍVEIS */
+  if(todosIndisponiveisAgora()){
+    cards.forEach((card, i) => {
+      const st = estado.consultores[i];
+      st.status = "indisp";
+      st.holdUntil = now + 60 * 1000; // mantém “vivo” e atualiza sempre
+      setStatusDOM(card, "indisp");
+    });
+    salvarEstado();
+    return;
+  }
 
   let ocupProb = 0.40;
   if (hora >= 9 && hora < 12) ocupProb = 0.34;
@@ -684,3 +808,4 @@ document.addEventListener('visibilitychange', () => {
 
 </body>
 </html>
+
