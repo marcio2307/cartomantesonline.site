@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consultores Disponíveis</title>
 
+<!-- ✅ PWA -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -421,6 +426,73 @@ source[src*="fabapp-ads"]{
   overflow:hidden !important;
   pointer-events:none !important;
 }
+
+/* ==========================================================
+   ✅ UI DO POPUP DE NOTIFICAÇÃO (NOVO)
+========================================================== */
+#notifBar{
+  position:fixed;
+  left:12px;
+  right:12px;
+  bottom:12px;
+  z-index:99999;
+  display:none;
+}
+#notifBar .box{
+  border-radius:18px;
+  padding:14px 14px;
+  border:1px solid rgba(199,160,8,0.55);
+  background:
+    radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.20), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(18,18,18,0.92) 0%, rgba(5,5,5,0.98) 100%);
+  box-shadow:0 18px 44px rgba(0,0,0,0.65);
+}
+#notifBar .title{
+  font-weight:900;
+  letter-spacing:.3px;
+  margin:0 0 6px;
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-3) 55%, var(--gold-2) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+#notifBar .msg{
+  margin:0 0 10px;
+  font-size:13px;
+  opacity:.9;
+  line-height:1.25;
+}
+#notifBar .row{
+  display:flex;
+  gap:10px;
+}
+#notifBtn{
+  flex:1;
+  height:46px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.12);
+  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.6px;
+  cursor:pointer;
+}
+#notifClose{
+  width:56px;
+  height:46px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+#notifStatus{
+  margin-top:8px;
+  font-size:12px;
+  opacity:.85;
+  white-space:pre-wrap;
+}
 </style>
 </head>
 
@@ -465,6 +537,19 @@ source[src*="fabapp-ads"]{
 
   <div class="container" id="cards-container"></div>
 
+</div>
+
+<!-- ✅ POPUP/BARRA PARA ATIVAR NOTIFICAÇÕES (NOVO) -->
+<div id="notifBar" role="dialog" aria-live="polite" aria-label="Ativar notificações">
+  <div class="box">
+    <div class="title">🔔 Ative as notificações</div>
+    <p class="msg">Receba avisos no celular quando tiver novidades importantes.</p>
+    <div class="row">
+      <button id="notifBtn" type="button">ATIVAR NOTIFICAÇÕES</button>
+      <button id="notifClose" type="button" aria-label="Fechar">✕</button>
+    </div>
+    <div id="notifStatus"></div>
+  </div>
 </div>
 
 <script>
@@ -747,6 +832,150 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) aplicarStatusRealista(false);
 });
+
+/* ==========================================================
+   ✅ PUSH / NOTIFICAÇÕES (NOVO – COMPATÍVEL COM SEU RENDER)
+   - GET  /vapid-public-key
+   - POST /save-subscription
+========================================================== */
+
+const PUSH_SERVER = "https://envio-6.onrender.com";
+const NOTIF_DONE_KEY = "push_perm_granted_v1";
+
+// ✅ SUA PUBLIC KEY (fallback)
+let VAPID_PUBLIC_KEY =
+  "BFA6GY6T7di8FEqmp0-Zuiloqv-199NKM1_d0abosTQV-A9t6xbxE90ZTXntQn6KF3598vgp0hLdQLTMQGouPLQ";
+
+const notifBar = document.getElementById("notifBar");
+const notifBtn = document.getElementById("notifBtn");
+const notifClose = document.getElementById("notifClose");
+const notifStatus = document.getElementById("notifStatus");
+
+function showNotifBar(msg){
+  notifBar.style.display = "block";
+  notifStatus.textContent = msg || "";
+}
+function hideNotifBar(){
+  notifBar.style.display = "none";
+  notifStatus.textContent = "";
+}
+
+function urlBase64ToUint8Array(base64String){
+  const padding = "=".repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function ensureServiceWorker(){
+  if (!("serviceWorker" in navigator)) throw new Error("Service Worker não suportado.");
+  const reg = await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+  await navigator.serviceWorker.ready;
+  return reg;
+}
+
+async function getVapidFromServer(){
+  try{
+    const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key");
+    if (!res.ok) throw new Error("Falha ao pegar VAPID do servidor");
+    const data = await res.json();
+    if (data?.publicKey) VAPID_PUBLIC_KEY = data.publicKey;
+  }catch{
+    // se falhar, usa a key fixa (fallback)
+  }
+}
+
+async function saveSubscriptionToServer(subscription){
+  const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/save-subscription", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(subscription)
+  });
+
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Falha ao salvar inscrição (HTTP ${res.status}): ${text}`);
+}
+
+async function subscribeIfNeeded(){
+  const reg = await navigator.serviceWorker.ready;
+  const existing = await reg.pushManager.getSubscription();
+  if (existing) return existing;
+
+  if (!VAPID_PUBLIC_KEY) throw new Error("VAPID_PUBLIC_KEY vazia.");
+
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+  });
+
+  await saveSubscriptionToServer(sub);
+  return sub;
+}
+
+function shouldShowPrompt(){
+  if (!("Notification" in window)) return false;
+
+  const perm = Notification.permission;
+
+  if (perm === "granted") {
+    try { localStorage.setItem(NOTIF_DONE_KEY, "1"); } catch {}
+    return false;
+  }
+  return true;
+}
+
+async function initPushUI(){
+  // registra SW silenciosamente + pega key
+  try { await ensureServiceWorker(); } catch {}
+  await getVapidFromServer();
+
+  if (shouldShowPrompt()){
+    if (Notification.permission === "denied"){
+      showNotifBar("⚠️ Notificações bloqueadas.\nLibere nas configurações do navegador para este site.");
+    } else {
+      showNotifBar("");
+    }
+  } else {
+    hideNotifBar();
+    // se já está granted, garante inscrição silenciosamente
+    try { await subscribeIfNeeded(); } catch {}
+  }
+}
+
+notifClose.addEventListener("click", () => {
+  // só fecha visualmente; se não ativou, ao abrir de novo aparece
+  hideNotifBar();
+});
+
+notifBtn.addEventListener("click", async () => {
+  try{
+    notifStatus.textContent = "Processando...";
+
+    await ensureServiceWorker();
+    await getVapidFromServer();
+
+    if (!("Notification" in window)) throw new Error("Notificações não suportadas.");
+
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted"){
+      showNotifBar("⚠️ Permissão não concedida.\nSe bloqueou, libere nas configurações.");
+      return;
+    }
+
+    notifStatus.textContent = "Ativando inscrição...";
+    await subscribeIfNeeded();
+
+    try { localStorage.setItem(NOTIF_DONE_KEY, "1"); } catch {}
+    hideNotifBar();
+  }catch(e){
+    showNotifBar("❌ Erro ao ativar.\n" + (e?.message || e));
+  }
+});
+
+// inicia
+initPushUI();
 </script>
 
 </body>
