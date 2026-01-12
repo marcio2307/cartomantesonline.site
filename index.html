@@ -820,11 +820,12 @@ function initEstado(){
   salvarEstado();
 }
 
+/* ✅ ALTERADO: indisponível para TODOS das 02:00 até 10:00 */
 function janelaSonoGlobal(){
   const d = new Date();
   const minutos = d.getHours() * 60 + d.getMinutes();
-  const ini = 2 * 60;
-  const fim = 7 * 60 + 35;
+  const ini = 2 * 60;   // 02:00
+  const fim = 10 * 60;  // 10:00
   return minutos >= ini && minutos < fim;
 }
 
@@ -844,6 +845,7 @@ function aplicarStatusRealista(forceAll=false){
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
+  // ✅ de 02:00 até 10:00 → TODOS indisponíveis
   if (janelaSonoGlobal()){
     cards.forEach((card, i) => {
       estado.consultores[i].status = "indisp";
@@ -854,6 +856,7 @@ function aplicarStatusRealista(forceAll=false){
     return;
   }
 
+  // ✅ depois das 10:00 → volta ao normal (lógica realista)
   let ocupProb = 0.40;
   if (hora >= 9 && hora < 12) ocupProb = 0.34;
   if (hora >= 12 && hora < 17) ocupProb = 0.44;
