@@ -81,7 +81,6 @@ body{
   font-size:36px;
   font-weight:800;
   letter-spacing:0.2px;
-  color:transparent transparent;
   color:transparent;
   background-image: linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 42%, var(--gold-1) 72%, var(--gold-4) 100%);
   -webkit-background-clip:text;
@@ -380,14 +379,6 @@ iframe[src*="fabapp-ads"],video[src*="fabapp-ads"],source[src*="fabapp-ads"]{
   border:1px solid rgba(199,160,8,0.40);
   flex:0 0 auto;
 }
-.steps code{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size:12px;
-  background:rgba(0,0,0,0.35);
-  padding:2px 6px;
-  border-radius:8px;
-  border:1px solid rgba(255,255,255,0.10);
-}
 </style>
 </head>
 
@@ -456,11 +447,10 @@ if ("serviceWorker" in navigator) {
 }
 
 /* ===========================
-   ✅ POPUP REGRAS (Android)
-   - Direct install -> "BAIXAR O APLICATIVO"
-   - Se não tiver install prompt -> "ADICIONAR À TELA INICIAL"
-   - Se estiver em Instagram/Facebook -> "COPIAR LINK PARA O NAVEGADOR"
-   ✅ iOS não mexi: continua tutorial Safari compartilhar
+   ✅ POPUP REGRAS
+   - iOS: não mexi
+   - Instagram/Facebook: título mais visível + NÃO mostra URL
+   - Copiar link: copia link limpo (sem fbclid)
 =========================== */
 (function initInstallPopup(){
   const popup = document.getElementById('appPopup');
@@ -471,6 +461,7 @@ if ("serviceWorker" in navigator) {
   const installText = document.getElementById('installText');
   const subtitle = document.getElementById('subtitleInstall');
   const extraHint = document.getElementById('extraHint');
+  const popupTitle = document.getElementById('popupTitle');
 
   let deferredPrompt = null;
 
@@ -493,20 +484,17 @@ if ("serviceWorker" in navigator) {
       ua.includes("fban") ||
       ua.includes("fb_iab") ||
       ua.includes("messenger") ||
-      ua.includes("wv") // muitos webviews android
+      ua.includes("wv")
     );
   };
 
-  const getAndroidBrowserName = () => {
-    const ua = (navigator.userAgent || "").toLowerCase();
-    if (ua.includes("samsungbrowser")) return "Samsung Internet";
-    if (ua.includes("edg/")) return "Microsoft Edge";
-    if (ua.includes("brave")) return "Brave";
-    if (ua.includes("opr/") || ua.includes("opera")) return "Opera";
-    if (ua.includes("firefox")) return "Firefox";
-    if (ua.includes("chrome")) return "Chrome";
-    return "seu navegador";
-  };
+  // ✅ Link LIMPO (remove ?fbclid=... etc)
+  function getCleanUrl(){
+    const clean = new URL(location.href);
+    clean.search = ""; // remove query
+    clean.hash = location.hash || "";
+    return clean.toString();
+  }
 
   function openPopup(){
     popup.style.display = 'flex';
@@ -525,11 +513,9 @@ if ("serviceWorker" in navigator) {
     stepsBox.innerHTML = "";
   }
 
-  // Captura prompt (quando o navegador permitir instalação direta)
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    // Se o popup já está aberto, atualiza o botão na hora
     if (popup.style.display === "flex") prepararConteudo();
   });
 
@@ -537,10 +523,11 @@ if ("serviceWorker" in navigator) {
     hideSteps();
     extraHint.style.display = "none";
     extraHint.textContent = "";
+    popupTitle.style.fontSize = "18px"; // padrão
 
     if (isStandalone()) return;
 
-    // ✅ iOS (não mexi: sempre tutorial e botão ENTENDI)
+    // ✅ iOS (não mexi)
     if (isIOS()){
       btnInstall.textContent = "ENTENDI";
       subtitle.textContent = "No iPhone/iPad, você adiciona pela Tela de Início.";
@@ -557,41 +544,41 @@ if ("serviceWorker" in navigator) {
       return;
     }
 
-    // ✅ Instagram/Facebook webview (Android)
+    // ✅ Instagram/Facebook (MELHORADO: mais visível + sem URL na tela)
     if (isInAppBrowser()){
+      popupTitle.textContent = "BAIXE O APLICATIVO DO SITE";
+      popupTitle.style.fontSize = "20px";
+      popupTitle.style.letterSpacing = "0.6px";
+
       btnInstall.textContent = "COPIAR LINK PARA O NAVEGADOR";
       subtitle.textContent = "Você está no navegador do Instagram/Facebook.";
-      installText.innerHTML = "<b>Baixe nosso aplicativo:</b> copie o link e abra no seu navegador <b>Chrome</b>.";
-
-      const url = location.href;
+      installText.innerHTML = "<b>Baixe o aplicativo do site:</b> copie o link e abra no seu navegador <b>Chrome</b> ou <b>Safari</b>.";
 
       setSteps(`
         <div class="row"><div class="num">1</div><div>Toque em <b>COPIAR LINK PARA O NAVEGADOR</b>.</div></div>
-        <div class="row"><div class="num">2</div><div>Abra o <b>Chrome</b> no seu celular.</div></div>
-        <div class="row"><div class="num">3</div><div>Cole o link na barra de endereço e abra:</div></div>
-        <div class="row"><div class="num"></div><div><code>${url}</code></div></div>
-        <div class="row"><div class="num">4</div><div>Aí sim toque no menu <b>⋮</b> → <b>Adicionar à tela inicial</b> / <b>Instalar app</b>.</div></div>
+        <div class="row"><div class="num">2</div><div>Abra o <b>Chrome</b> (ou <b>Safari</b>) no seu celular.</div></div>
+        <div class="row"><div class="num">3</div><div>Cole o link na barra de endereço do navegador e <b>abra o site</b>.</div></div>
+        <div class="row"><div class="num">4</div><div>Depois toque no menu <b>⋮</b> → <b>Adicionar à tela inicial</b> / <b>Instalar app</b>.</div></div>
       `);
 
       extraHint.style.display = "block";
-      extraHint.textContent = "Depois de abrir no Chrome, a instalação aparece corretamente.";
+      extraHint.textContent = "✅ O Instagram/Facebook não permite instalar o app direto. No navegador normal permite.";
       return;
     }
 
-    // ✅ Navegador Android normal:
-    // 1) Se tiver prompt -> BAIXAR
+    // ✅ Android navegador normal
     if (deferredPrompt){
+      popupTitle.textContent = "Baixe o aplicativo do site";
       btnInstall.textContent = "BAIXAR O APLICATIVO";
       subtitle.textContent = "Instalação direta disponível.";
       installText.innerHTML = "Toque em <b>BAIXAR O APLICATIVO</b> para instalar agora.";
       return;
     }
 
-    // 2) Se não tiver prompt -> ADICIONAR À TELA INICIAL
+    popupTitle.textContent = "Baixe o aplicativo do site";
     btnInstall.textContent = "ADICIONAR À TELA INICIAL";
-    const browserName = getAndroidBrowserName();
-    subtitle.textContent = `Instale usando o menu do ${browserName}.`;
-    installText.innerHTML = "Seu navegador não liberou instalação direta. Mas você pode <b>Adicionar à tela inicial</b> pelo menu.";
+    subtitle.textContent = "Instalação manual pelo menu do navegador.";
+    installText.innerHTML = "Seu navegador não liberou instalação direta. Use <b>Adicionar à tela inicial</b> pelo menu.";
 
     setSteps(`
       <div class="row"><div class="num">1</div><div>Toque no menu do navegador (<b>⋮</b> ou <b>☰</b>).</div></div>
@@ -615,15 +602,18 @@ if ("serviceWorker" in navigator) {
       return;
     }
 
-    // Instagram/Facebook: copia link
+    // Instagram/Facebook: copia link limpo (sem fbclid)
     if (isInAppBrowser()){
+      const cleanUrl = getCleanUrl();
       try{
-        await navigator.clipboard.writeText(location.href);
+        await navigator.clipboard.writeText(cleanUrl);
         extraHint.style.display = "block";
-        extraHint.textContent = "✅ Link copiado! Agora abra o Chrome e cole na barra de endereço.";
+        extraHint.textContent = "✅ Link copiado! Agora abra o Chrome (ou Safari) e cole na barra de endereço.";
       }catch{
+        // fallback: seleciona e mostra em alert curto (sem expor no layout)
+        try { window.prompt("Copie o link abaixo e cole no Chrome/Safari:", cleanUrl); } catch {}
         extraHint.style.display = "block";
-        extraHint.textContent = "Não consegui copiar automaticamente. Segure no link e copie manualmente.";
+        extraHint.textContent = "Se não copiou automático, apareceu uma caixa para copiar manualmente.";
       }
       return;
     }
@@ -637,7 +627,7 @@ if ("serviceWorker" in navigator) {
       return;
     }
 
-    // Android sem prompt: apenas fecha (o tutorial já mostrou o caminho)
+    // Android sem prompt: fecha (tutorial já ensinou)
     closePopup();
   });
 
@@ -647,9 +637,7 @@ if ("serviceWorker" in navigator) {
   popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
 })();
 
-/* ===========================
-   ✅ REMOÇÃO FORÇADA (FabApp / similares)
-=========================== */
+/* ✅ Remoção forçada (FabApp / similares) */
 (function bloquearPropagandasInjetadas(){
   const SELECTORS = [
     'fabapp-banner-footer',
@@ -661,39 +649,27 @@ if ("serviceWorker" in navigator) {
     'source[src*="fabapp-ads"]',
     'script[src*="fabapp-ads"]'
   ];
-
   function remover() {
     for (const sel of SELECTORS) {
       document.querySelectorAll(sel).forEach(el => { try { el.remove(); } catch {} });
     }
   }
-
   remover();
   const obs = new MutationObserver(() => remover());
   obs.observe(document.documentElement, { childList:true, subtree:true });
-
   let tries = 0;
   const t = setInterval(() => { remover(); tries++; if (tries >= 30) clearInterval(t); }, 500);
 })();
 
-/* ===========================
-   ✅ CARROSSEL (8s)
-=========================== */
+/* ✅ Carrossel (8s) */
 (function initBannerCarousel(){
   const carousel = document.getElementById('bannerCarousel');
   if(!carousel) return;
-
   const slides = Array.from(carousel.querySelectorAll('.slide'));
   if(slides.length <= 1) return;
-
   let i = 0;
-  function show(index){
-    slides.forEach((s, k) => s.classList.toggle('active', k === index));
-  }
-  setInterval(() => {
-    i = (i + 1) % slides.length;
-    show(i);
-  }, 8000);
+  function show(index){ slides.forEach((s, k) => s.classList.toggle('active', k === index)); }
+  setInterval(() => { i = (i + 1) % slides.length; show(i); }, 8000);
 })();
 
 /* ===========================
@@ -722,7 +698,6 @@ const consultores = [
 
 const container = document.getElementById('cards-container');
 
-/* Render cards */
 consultores.forEach((c, idx) => {
   const card = document.createElement('div');
   card.className = 'card' + (c.novo ? ' novo' : '');
@@ -756,7 +731,9 @@ consultores.forEach((c, idx) => {
   container.appendChild(card);
 });
 
-/* Status realista (igual ao seu) */
+/* ===========================
+   ✅ STATUS REALISTA (seu original)
+=========================== */
 const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
 
@@ -830,8 +807,8 @@ function initEstado(){
 function janelaSonoGlobal(){
   const d = new Date();
   const minutos = d.getHours() * 60 + d.getMinutes();
-  const ini = 2 * 60;          // 02:00
-  const fim = 7 * 60 + 35;     // 07:35
+  const ini = 2 * 60;
+  const fim = 7 * 60 + 35;
   return minutos >= ini && minutos < fim;
 }
 
@@ -884,6 +861,7 @@ function aplicarStatusRealista(forceAll=false){
 
     const novoStatus = chance(ocupProb) ? "ocupado" : "online";
     st.status = novoStatus;
+
     st.holdUntil = (novoStatus === "ocupado")
       ? now + randInt(2, 6) * 60 * 1000
       : now + randInt(1, 3) * 60 * 1000;
