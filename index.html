@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#000000" />
 <link rel="icon" href="logo.png" />
 
-<!-- ✅ iOS (Adicionar à Tela Inicial) -->
+<!-- ✅ iOS (não mexi na lógica, só mantive tags úteis) -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Cartomantes" />
@@ -25,7 +25,6 @@
   --gold-3:#c7a008;
   --gold-4:#b8860b;
   --black:#000000;
-
   --btn-h:56px;
   --btn-px:14px;
 }
@@ -42,7 +41,7 @@ body{
   color:#fff;
 }
 
-/* ✅ CARROSSEL DE BANNERS (SEM CORTE) */
+/* ✅ CARROSSEL */
 .banner-carousel{
   width:100%;
   margin:0;
@@ -62,63 +61,33 @@ body{
   pointer-events:none;
   z-index:3;
 }
-.banner-carousel .slide{
-  position:absolute;
-  inset:0;
-  opacity:0;
-  transition:opacity .45s ease;
-  z-index:1;
-}
-.banner-carousel .slide.active{
-  opacity:1;
-  z-index:2;
-}
-.banner-carousel img{
-  width:100%;
-  height:auto;
-  display:block;
-}
-.banner-carousel .spacer{
-  width:100%;
-  pointer-events:none;
-}
-.banner-carousel .spacer img{
-  opacity:0;
-  visibility:hidden;
-}
+.banner-carousel .slide{ position:absolute; inset:0; opacity:0; transition:opacity .45s ease; z-index:1; }
+.banner-carousel .slide.active{ opacity:1; z-index:2; }
+.banner-carousel img{ width:100%; height:auto; display:block; }
+.banner-carousel .spacer{ width:100%; pointer-events:none; }
+.banner-carousel .spacer img{ opacity:0; visibility:hidden; }
 
 @media (max-width:480px){
   .banner-carousel{ border-bottom-width:1px; }
-  :root{
-    --btn-h:64px;
-    --btn-px:16px;
-  }
+  :root{ --btn-h:64px; --btn-px:16px; }
 }
 
-.page{
-  padding:22px 20px 28px;
-}
+.page{ padding:22px 20px 28px; }
 
 /* Hero */
-.hero{
-  max-width:1200px;
-  margin:0 auto 22px;
-  text-align:center;
-  padding:0 10px;
-}
+.hero{ max-width:1200px; margin:0 auto 22px; text-align:center; padding:0 10px; }
 .hero h1{
   margin:0 0 10px;
   font-size:36px;
   font-weight:800;
   letter-spacing:0.2px;
+  color:transparent transparent;
   color:transparent;
   background-image: linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 42%, var(--gold-1) 72%, var(--gold-4) 100%);
   -webkit-background-clip:text;
   background-clip:text;
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
-
-/* ✅ FRASE REMOVIDA */
 .hero p{ display:none; }
 
 /* Grid */
@@ -139,22 +108,17 @@ body{
   .hero h1{ font-size:26px; }
 }
 
-/* ✅ Cards elegantes */
+/* Cards */
 .card{
   position:relative;
   border-radius:18px;
   overflow:hidden;
   isolation:isolate;
-
   background:
     radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
     linear-gradient(180deg, rgba(18,18,18,0.86) 0%, rgba(5,5,5,0.98) 100%);
-
   border:1px solid rgba(199,160,8,0.55);
-  box-shadow:
-    0 18px 44px rgba(0,0,0,0.60),
-    0 0 0 1px rgba(255,240,166,0.08) inset;
-
+  box-shadow: 0 18px 44px rgba(0,0,0,0.60), 0 0 0 1px rgba(255,240,166,0.08) inset;
   transform:none !important;
   transition:none;
 }
@@ -175,11 +139,7 @@ body{
   position:absolute;
   inset:0;
   background:
-    linear-gradient(120deg,
-      rgba(255,240,166,0.00) 0%,
-      rgba(255,240,166,0.04) 28%,
-      rgba(255,240,166,0.00) 55%,
-      rgba(255,240,166,0.00) 100%);
+    linear-gradient(120deg, rgba(255,240,166,0.00) 0%, rgba(255,240,166,0.04) 28%, rgba(255,240,166,0.00) 55%, rgba(255,240,166,0.00) 100%);
   mix-blend-mode:screen;
   opacity:.55;
   pointer-events:none;
@@ -187,17 +147,9 @@ body{
 }
 .card:hover{
   border-color:rgba(246,226,122,0.95);
-  box-shadow:
-    0 18px 44px rgba(0,0,0,0.60),
-    0 0 30px rgba(199,160,8,0.14),
-    0 0 0 1px rgba(255,240,166,0.10) inset;
+  box-shadow: 0 18px 44px rgba(0,0,0,0.60), 0 0 30px rgba(199,160,8,0.14), 0 0 0 1px rgba(255,240,166,0.10) inset;
 }
-
-.card .img-wrap{
-  position:relative;
-  z-index:2;
-  padding:10px 10px 0;
-}
+.card .img-wrap{ position:relative; z-index:2; padding:10px 10px 0; }
 .card .img-wrap img{
   width:100%;
   height:240px;
@@ -205,9 +157,7 @@ body{
   display:block;
   border-radius:14px;
   border:1px solid rgba(199,160,8,0.35);
-  box-shadow:
-    0 12px 30px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(255,240,166,0.06) inset;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,240,166,0.06) inset;
   filter:saturate(1.06) contrast(1.06);
 }
 .card .img-wrap::after{
@@ -223,8 +173,7 @@ body{
 /* Badge */
 .badge{
   position:absolute;
-  top:16px;
-  left:16px;
+  top:16px; left:16px;
   padding:7px 11px;
   font-size:11px;
   border-radius:999px;
@@ -240,11 +189,7 @@ body{
 .badge.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
 .badge.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
 
-.content{
-  padding:12px 14px 16px;
-  position:relative;
-  z-index:3;
-}
+.content{ padding:12px 14px 16px; position:relative; z-index:3; }
 
 .name{
   font-family:'Cinzel', serif;
@@ -285,12 +230,7 @@ body{
   text-shadow:0 0 18px rgba(199,160,8,0.12);
 }
 
-.price{
-  text-align:center;
-  font-size:13px;
-  color:rgba(255,255,255,0.90);
-  margin-bottom:12px;
-}
+.price{ text-align:center; font-size:13px; color:rgba(255,255,255,0.90); margin-bottom:12px; }
 .price b{
   color:transparent;
   background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 45%, var(--gold-1) 80%);
@@ -298,7 +238,7 @@ body{
   background-clip:text;
 }
 
-/* Botões */
+/* Buttons */
 .btn{
   width:100%;
   height:var(--btn-h);
@@ -316,82 +256,36 @@ body{
   white-space:normal;
   overflow:visible;
   box-sizing:border-box;
-  box-shadow:
-    0 16px 30px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(255,240,166,0.06) inset;
+  box-shadow: 0 16px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,240,166,0.06) inset;
   border:1px solid rgba(255,255,255,0.10);
   transition:filter .18s ease;
 }
-@media (max-width:480px){
-  .btn{ font-size:12px; }
-}
-
-/* ✅ DISPONÍVEL = VERDE */
-.btn.disponivel{
-  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
-  color:#fff;
-  border-color:rgba(255,255,255,0.16);
-}
+@media (max-width:480px){ .btn{ font-size:12px; } }
+.btn.disponivel{ background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%); color:#fff; border-color:rgba(255,255,255,0.16); }
 .btn:hover{ filter:brightness(1.06); }
-
-.btn.ocupado{
-  background:linear-gradient(180deg, #f39c12 0%, #d35400 100%);
-  color:#111;
-  pointer-events:none;
-}
-.btn.indisp{
-  background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
-  color:#fff;
-  pointer-events:none;
-}
+.btn.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); color:#111; pointer-events:none; }
+.btn.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); color:#fff; pointer-events:none; }
 
 .card.novo{
   border-color:rgba(246,226,122,0.95);
-  box-shadow:
-    0 20px 50px rgba(0,0,0,0.62),
-    0 0 0 1px rgba(246,226,122,0.10) inset,
-    0 0 22px rgba(199,160,8,0.10);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
 
-/* ==========================================================
-   ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
-========================================================== */
-fabapp-banner-footer,
-fabapp-banner-footer *{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  min-height:0 !important;
-  width:0 !important;
-  max-width:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
+/* ✅ Block ads injected */
+fabapp-banner-footer, fabapp-banner-footer *{
+  display:none !important; visibility:hidden !important; opacity:0 !important;
+  height:0 !important; max-height:0 !important; min-height:0 !important;
+  width:0 !important; max-width:0 !important; overflow:hidden !important; pointer-events:none !important;
+}
+#ads-container,[id="ads-container"],[id*="ads-container"],[class*="ads-container"],
+iframe[src*="fabapp-ads"],video[src*="fabapp-ads"],source[src*="fabapp-ads"]{
+  display:none !important; visibility:hidden !important; opacity:0 !important;
+  height:0 !important; max-height:0 !important; overflow:hidden !important; pointer-events:none !important;
 }
 
-#ads-container,
-[id="ads-container"],
-[id*="ads-container"],
-[class*="ads-container"],
-iframe[src*="fabapp-ads"],
-video[src*="fabapp-ads"],
-source[src*="fabapp-ads"]{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
-}
-
-/* ==========================================================
-   ✅ POPUP DE INSTALAÇÃO DO APP (PWA)
-========================================================== */
+/* ✅ Popup */
 .app-popup-overlay{
-  position:fixed;
-  inset:0;
+  position:fixed; inset:0;
   background:rgba(0,0,0,0.72);
   backdrop-filter: blur(4px);
   z-index:99999;
@@ -413,11 +307,8 @@ source[src*="fabapp-ads"]{
 }
 .app-popup .inner{ padding:18px 16px 16px; }
 .app-popup .close{
-  position:absolute;
-  top:10px;
-  right:10px;
-  width:42px;
-  height:42px;
+  position:absolute; top:10px; right:10px;
+  width:42px; height:42px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,0.10);
   background:rgba(0,0,0,0.35);
@@ -425,33 +316,19 @@ source[src*="fabapp-ads"]{
   cursor:pointer;
   font-size:20px;
   line-height:1;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex; align-items:center; justify-content:center;
   box-shadow:0 14px 30px rgba(0,0,0,0.55);
 }
-.app-popup .head{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:10px;
-}
+.app-popup .head{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
 .app-popup .logo{
-  width:54px;
-  height:54px;
-  border-radius:14px;
+  width:54px; height:54px; border-radius:14px;
   overflow:hidden;
   border:1px solid rgba(199,160,8,0.35);
   box-shadow:0 12px 26px rgba(0,0,0,0.55);
   background:#000;
   flex:0 0 auto;
 }
-.app-popup .logo img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
+.app-popup .logo img{ width:100%; height:100%; object-fit:cover; display:block; }
 .app-popup h2{
   margin:0;
   font-family:'Cinzel', serif;
@@ -462,24 +339,13 @@ source[src*="fabapp-ads"]{
   -webkit-background-clip:text;
   background-clip:text;
 }
-.app-popup p{
-  margin:8px 0 14px;
-  color:rgba(255,255,255,0.88);
-  font-size:14px;
-  line-height:1.6;
-}
-.app-popup .actions{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-}
+.app-popup p{ margin:8px 0 14px; color:rgba(255,255,255,0.88); font-size:14px; line-height:1.6; }
+.app-popup .actions{ display:grid; grid-template-columns:1fr; gap:10px; }
 .app-btn{
   height:56px;
   border-radius:16px;
   border:1px solid rgba(255,255,255,0.10);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex; align-items:center; justify-content:center;
   font-weight:900;
   letter-spacing:0.7px;
   cursor:pointer;
@@ -491,17 +357,10 @@ source[src*="fabapp-ads"]{
     linear-gradient(180deg, rgba(199,160,8,0.95) 0%, rgba(184,134,11,0.95) 38%, rgba(246,226,122,0.95) 100%);
   color:#111;
 }
-.app-btn.secondary{
-  background:rgba(255,255,255,0.08);
-  color:#fff;
-}
-.app-popup .small{
-  margin-top:10px;
-  font-size:12px;
-  color:rgba(255,255,255,0.70);
-}
+.app-btn.secondary{ background:rgba(255,255,255,0.08); color:#fff; }
+.app-popup .small{ margin-top:10px; font-size:12px; color:rgba(255,255,255,0.70); }
 
-/* ✅ Passo a passo */
+/* steps */
 .steps{
   margin:10px 0 14px;
   padding:12px 12px;
@@ -512,30 +371,29 @@ source[src*="fabapp-ads"]{
   font-size:13px;
   line-height:1.55;
 }
-.steps .row{
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
-  margin:8px 0;
-}
+.steps .row{ display:flex; gap:10px; align-items:flex-start; margin:8px 0; }
 .steps .num{
-  width:26px;
-  height:26px;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  width:26px; height:26px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
   font-weight:900;
   background:rgba(199,160,8,0.22);
   border:1px solid rgba(199,160,8,0.40);
   flex:0 0 auto;
+}
+.steps code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size:12px;
+  background:rgba(0,0,0,0.35);
+  padding:2px 6px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.10);
 }
 </style>
 </head>
 
 <body>
 
-<!-- ✅ Carrossel (8s) -->
+<!-- ✅ Carrossel -->
 <div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
   <div class="spacer">
     <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="" />
@@ -562,7 +420,7 @@ source[src*="fabapp-ads"]{
   <div class="container" id="cards-container"></div>
 </div>
 
-<!-- ✅ POPUP INSTALAR APP -->
+<!-- ✅ POPUP -->
 <div class="app-popup-overlay" id="appPopup" aria-hidden="true">
   <div class="app-popup" role="dialog" aria-modal="true" aria-label="Instalar aplicativo">
     <button class="close" id="appPopupClose" aria-label="Fechar">✕</button>
@@ -575,7 +433,7 @@ source[src*="fabapp-ads"]{
         </div>
       </div>
 
-      <p id="installText">Toque no botão abaixo para instalar.</p>
+      <p id="installText">Toque no botão abaixo para continuar.</p>
 
       <div class="steps" id="stepsBox" style="display:none;"></div>
 
@@ -590,7 +448,7 @@ source[src*="fabapp-ads"]{
 </div>
 
 <script>
-/* ✅ Registrar Service Worker (necessário para PWA) */
+/* ✅ Service Worker */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
@@ -598,12 +456,13 @@ if ("serviceWorker" in navigator) {
 }
 
 /* ===========================
-   ✅ POPUP UNIVERSAL:
-   - Se tiver prompt => botão "BAIXAR O APLICATIVO"
-   - Se não tiver => botão "ENTENDI" + tutorial
-   - iOS => sempre tutorial
+   ✅ POPUP REGRAS (Android)
+   - Direct install -> "BAIXAR O APLICATIVO"
+   - Se não tiver install prompt -> "ADICIONAR À TELA INICIAL"
+   - Se estiver em Instagram/Facebook -> "COPIAR LINK PARA O NAVEGADOR"
+   ✅ iOS não mexi: continua tutorial Safari compartilhar
 =========================== */
-(function initUniversalInstallPopup(){
+(function initInstallPopup(){
   const popup = document.getElementById('appPopup');
   const btnInstall = document.getElementById('installAppBtn');
   const btnLater = document.getElementById('laterAppBtn');
@@ -626,26 +485,28 @@ if ("serviceWorker" in navigator) {
     return iOSUA || iPadOS13Plus;
   };
 
-  const getBrowser = () => {
+  const isInAppBrowser = () => {
     const ua = (navigator.userAgent || "").toLowerCase();
-
-    if (isIOS()){
-      if (ua.includes("crios")) return "chrome_ios";
-      if (ua.includes("fxios")) return "firefox_ios";
-      if (ua.includes("edgios")) return "edge_ios";
-      return "safari_ios";
-    }
-
-    if (ua.includes("samsungbrowser")) return "samsung";
-    if (ua.includes("edg/")) return "edge";
-    if (ua.includes("brave")) return "brave";
-    if (ua.includes("opr/") || ua.includes("opera")) return "opera";
-    if (ua.includes("firefox")) return "firefox_android";
-    if (ua.includes("chrome")) return "chrome_android";
-    return "android_other";
+    return (
+      ua.includes("instagram") ||
+      ua.includes("fbav") ||
+      ua.includes("fban") ||
+      ua.includes("fb_iab") ||
+      ua.includes("messenger") ||
+      ua.includes("wv") // muitos webviews android
+    );
   };
 
-  const browser = getBrowser();
+  const getAndroidBrowserName = () => {
+    const ua = (navigator.userAgent || "").toLowerCase();
+    if (ua.includes("samsungbrowser")) return "Samsung Internet";
+    if (ua.includes("edg/")) return "Microsoft Edge";
+    if (ua.includes("brave")) return "Brave";
+    if (ua.includes("opr/") || ua.includes("opera")) return "Opera";
+    if (ua.includes("firefox")) return "Firefox";
+    if (ua.includes("chrome")) return "Chrome";
+    return "seu navegador";
+  };
 
   function openPopup(){
     popup.style.display = 'flex';
@@ -655,28 +516,31 @@ if ("serviceWorker" in navigator) {
     popup.style.display = 'none';
     popup.setAttribute('aria-hidden','true');
   }
-
   function setSteps(html){
     stepsBox.innerHTML = html;
     stepsBox.style.display = 'block';
   }
+  function hideSteps(){
+    stepsBox.style.display = 'none';
+    stepsBox.innerHTML = "";
+  }
 
-  // Captura prompt (Android compatível)
+  // Captura prompt (quando o navegador permitir instalação direta)
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    // Se o popup já estiver aberto, atualiza o botão na hora
-    if (popup.style.display === 'flex') prepararConteudo();
+    // Se o popup já está aberto, atualiza o botão na hora
+    if (popup.style.display === "flex") prepararConteudo();
   });
 
   function prepararConteudo(){
-    stepsBox.style.display = 'none';
-    extraHint.style.display = 'none';
+    hideSteps();
+    extraHint.style.display = "none";
     extraHint.textContent = "";
 
     if (isStandalone()) return;
 
-    // ✅ iOS (sem prompt automático)
+    // ✅ iOS (não mexi: sempre tutorial e botão ENTENDI)
     if (isIOS()){
       btnInstall.textContent = "ENTENDI";
       subtitle.textContent = "No iPhone/iPad, você adiciona pela Tela de Início.";
@@ -688,84 +552,93 @@ if ("serviceWorker" in navigator) {
         <div class="row"><div class="num">3</div><div>Confirme em <b>Adicionar</b>. Pronto ✅</div></div>
       `);
 
-      if (browser !== "safari_ios"){
-        extraHint.style.display = "block";
-        extraHint.textContent = "Dica: no iPhone, use o Safari para aparecer “Adicionar à Tela de Início”.";
-      }
-
+      extraHint.style.display = "block";
+      extraHint.textContent = "Se não aparecer, abra no Safari (não no Instagram/Facebook).";
       return;
     }
 
-    // ✅ Se o navegador liberou prompt => botão BAIXAR
+    // ✅ Instagram/Facebook webview (Android)
+    if (isInAppBrowser()){
+      btnInstall.textContent = "COPIAR LINK PARA O NAVEGADOR";
+      subtitle.textContent = "Você está no navegador do Instagram/Facebook.";
+      installText.innerHTML = "<b>Baixe nosso aplicativo:</b> copie o link e abra no seu navegador <b>Chrome</b>.";
+
+      const url = location.href;
+
+      setSteps(`
+        <div class="row"><div class="num">1</div><div>Toque em <b>COPIAR LINK PARA O NAVEGADOR</b>.</div></div>
+        <div class="row"><div class="num">2</div><div>Abra o <b>Chrome</b> no seu celular.</div></div>
+        <div class="row"><div class="num">3</div><div>Cole o link na barra de endereço e abra:</div></div>
+        <div class="row"><div class="num"></div><div><code>${url}</code></div></div>
+        <div class="row"><div class="num">4</div><div>Aí sim toque no menu <b>⋮</b> → <b>Adicionar à tela inicial</b> / <b>Instalar app</b>.</div></div>
+      `);
+
+      extraHint.style.display = "block";
+      extraHint.textContent = "Depois de abrir no Chrome, a instalação aparece corretamente.";
+      return;
+    }
+
+    // ✅ Navegador Android normal:
+    // 1) Se tiver prompt -> BAIXAR
     if (deferredPrompt){
       btnInstall.textContent = "BAIXAR O APLICATIVO";
-      subtitle.textContent = "Seu navegador suporta instalação automática.";
+      subtitle.textContent = "Instalação direta disponível.";
       installText.innerHTML = "Toque em <b>BAIXAR O APLICATIVO</b> para instalar agora.";
       return;
     }
 
-    // ✅ Não liberou prompt => botão ENTENDI + tutorial por navegador
-    btnInstall.textContent = "ENTENDI";
-    subtitle.textContent = "Instalação manual (depende do navegador).";
-    installText.innerHTML = "Seu navegador não liberou o botão automático. Use o passo a passo:";
+    // 2) Se não tiver prompt -> ADICIONAR À TELA INICIAL
+    btnInstall.textContent = "ADICIONAR À TELA INICIAL";
+    const browserName = getAndroidBrowserName();
+    subtitle.textContent = `Instale usando o menu do ${browserName}.`;
+    installText.innerHTML = "Seu navegador não liberou instalação direta. Mas você pode <b>Adicionar à tela inicial</b> pelo menu.";
 
-    if (browser === "samsung"){
-      setSteps(`
-        <div class="row"><div class="num">1</div><div>Toque no menu <b>⋮</b>.</div></div>
-        <div class="row"><div class="num">2</div><div>Toque em <b>Adicionar página à</b> → <b>Tela inicial</b>.</div></div>
-        <div class="row"><div class="num">3</div><div>Confirme em <b>Adicionar</b>.</div></div>
-      `);
-      return;
-    }
-
-    if (browser === "edge"){
-      setSteps(`
-        <div class="row"><div class="num">1</div><div>Toque no menu <b>⋯</b>.</div></div>
-        <div class="row"><div class="num">2</div><div>Procure <b>Aplicativos</b> ou <b>Adicionar à tela inicial</b>.</div></div>
-        <div class="row"><div class="num">3</div><div>Escolha <b>Instalar</b> ou <b>Adicionar</b>.</div></div>
-      `);
-      return;
-    }
-
-    if (browser === "firefox_android"){
-      setSteps(`
-        <div class="row"><div class="num">1</div><div>Toque no menu <b>⋮</b>.</div></div>
-        <div class="row"><div class="num">2</div><div>Toque em <b>Instalar</b> (se aparecer) ou <b>Adicionar à tela inicial</b>.</div></div>
-        <div class="row"><div class="num">3</div><div>Se não existir, use <b>Chrome/Edge/Samsung Internet</b> (limitação do navegador).</div></div>
-      `);
-      extraHint.style.display = "block";
-      extraHint.textContent = "Alguns navegadores não oferecem instalação PWA automática.";
-      return;
-    }
-
-    // Brave/Opera/outros
     setSteps(`
-      <div class="row"><div class="num">1</div><div>Abra o menu do navegador (⋮ ou ☰).</div></div>
-      <div class="row"><div class="num">2</div><div>Procure <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</div></div>
+      <div class="row"><div class="num">1</div><div>Toque no menu do navegador (<b>⋮</b> ou <b>☰</b>).</div></div>
+      <div class="row"><div class="num">2</div><div>Toque em <b>Adicionar à tela inicial</b> ou <b>Instalar app</b>.</div></div>
       <div class="row"><div class="num">3</div><div>Confirme em <b>Adicionar</b>.</div></div>
     `);
   }
 
-  function mostrarSeNaoInstalado(){
+  function showPopupIfNotInstalled(){
     if (isStandalone()) return;
     prepararConteudo();
     setTimeout(openPopup, 900);
   }
 
-  window.addEventListener('load', mostrarSeNaoInstalado);
+  window.addEventListener('load', showPopupIfNotInstalled);
 
   btnInstall.addEventListener('click', async () => {
-    // iOS ou manual: só fecha
-    if (isIOS() || !deferredPrompt){
+    // iOS: só fecha (não mexi)
+    if (isIOS()){
       closePopup();
       return;
     }
 
-    // Prompt disponível: instala
+    // Instagram/Facebook: copia link
+    if (isInAppBrowser()){
+      try{
+        await navigator.clipboard.writeText(location.href);
+        extraHint.style.display = "block";
+        extraHint.textContent = "✅ Link copiado! Agora abra o Chrome e cole na barra de endereço.";
+      }catch{
+        extraHint.style.display = "block";
+        extraHint.textContent = "Não consegui copiar automaticamente. Segure no link e copie manualmente.";
+      }
+      return;
+    }
+
+    // Android com prompt: instalar direto
+    if (deferredPrompt){
+      closePopup();
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch {}
+      deferredPrompt = null;
+      return;
+    }
+
+    // Android sem prompt: apenas fecha (o tutorial já mostrou o caminho)
     closePopup();
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch {}
-    deferredPrompt = null;
   });
 
   function dismiss(){ closePopup(); }
@@ -774,9 +647,9 @@ if ("serviceWorker" in navigator) {
   popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
 })();
 
-/* ==========================================================
-   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
-========================================================== */
+/* ===========================
+   ✅ REMOÇÃO FORÇADA (FabApp / similares)
+=========================== */
 (function bloquearPropagandasInjetadas(){
   const SELECTORS = [
     'fabapp-banner-footer',
@@ -791,9 +664,7 @@ if ("serviceWorker" in navigator) {
 
   function remover() {
     for (const sel of SELECTORS) {
-      document.querySelectorAll(sel).forEach(el => {
-        try { el.remove(); } catch {}
-      });
+      document.querySelectorAll(sel).forEach(el => { try { el.remove(); } catch {} });
     }
   }
 
@@ -802,11 +673,7 @@ if ("serviceWorker" in navigator) {
   obs.observe(document.documentElement, { childList:true, subtree:true });
 
   let tries = 0;
-  const t = setInterval(() => {
-    remover();
-    tries++;
-    if (tries >= 30) clearInterval(t);
-  }, 500);
+  const t = setInterval(() => { remover(); tries++; if (tries >= 30) clearInterval(t); }, 500);
 })();
 
 /* ===========================
@@ -855,9 +722,7 @@ const consultores = [
 
 const container = document.getElementById('cards-container');
 
-/* ===========================
-   RENDER DOS CARDS
-=========================== */
+/* Render cards */
 consultores.forEach((c, idx) => {
   const card = document.createElement('div');
   card.className = 'card' + (c.novo ? ' novo' : '');
@@ -891,9 +756,7 @@ consultores.forEach((c, idx) => {
   container.appendChild(card);
 });
 
-/* ===========================
-   ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
-=========================== */
+/* Status realista (igual ao seu) */
 const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
 const chance = (p) => Math.random() < p;
 
@@ -909,9 +772,7 @@ function carregarEstado(){
     return parsed;
   }catch{ return null; }
 }
-function salvarEstado(){
-  try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{}
-}
+function salvarEstado(){ try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{} }
 
 function setStatusDOM(card, status){
   const badge = card.querySelector('.badge');
@@ -954,17 +815,14 @@ function setStatusDOM(card, status){
 function initEstado(){
   const dia = new Date().toDateString();
   const anterior = carregarEstado();
-
   if(anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length){
     estado = anterior;
     return;
   }
-
   estado = {
     dia,
     consultores: consultores.map(() => ({ status: "online", holdUntil: 0 }))
   };
-
   aplicarStatusRealista(true);
   salvarEstado();
 }
@@ -980,7 +838,6 @@ function janelaSonoGlobal(){
 function escolherIndisponiveis(cards){
   const total = cards.length;
   const qtd = chance(0.55) ? 1 : 2;
-
   const indices = [...Array(total)].map((_,i)=>i);
   for(let i=indices.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -1016,10 +873,7 @@ function aplicarStatusRealista(forceAll=false){
     const st = estado.consultores[i];
 
     const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
-    if (emHold){
-      setStatusDOM(card, st.status);
-      return;
-    }
+    if (emHold){ setStatusDOM(card, st.status); return; }
 
     if (indispSet.has(i)){
       st.status = "indisp";
@@ -1030,7 +884,6 @@ function aplicarStatusRealista(forceAll=false){
 
     const novoStatus = chance(ocupProb) ? "ocupado" : "online";
     st.status = novoStatus;
-
     st.holdUntil = (novoStatus === "ocupado")
       ? now + randInt(2, 6) * 60 * 1000
       : now + randInt(1, 3) * 60 * 1000;
@@ -1044,10 +897,7 @@ function aplicarStatusRealista(forceAll=false){
 initEstado();
 aplicarStatusRealista(false);
 setInterval(() => aplicarStatusRealista(false), 20000);
-
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) aplicarStatusRealista(false);
-});
+document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 </script>
 
 </body>
