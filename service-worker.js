@@ -1,4 +1,9 @@
-const CACHE_VERSION = "v1.0.7";
+/* ==========================================================
+   CARTOMANTES ONLINE – SERVICE WORKER (CACHE + PUSH)
+   GitHub Pages / PWA
+========================================================== */
+
+const CACHE_VERSION = "v1.0.8"; // 🔔 aumentei a versão p/ forçar update
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -10,6 +15,9 @@ const APP_SHELL = [
   "./service-worker.js"
 ];
 
+/* ===========================
+   INSTALL
+=========================== */
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
@@ -17,6 +25,9 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
+/* ===========================
+   ACTIVATE
+=========================== */
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -30,6 +41,9 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+/* ===========================
+   FETCH (CACHE)
+=========================== */
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -37,7 +51,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
-  // ✅ Navegação (abrir o app / trocar página)
+  // Navegação (HTML)
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -53,7 +67,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // ✅ Arquivos comuns (cache-first)
+  // Cache-first para arquivos
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -67,5 +81,57 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
     })
+  );
+});
+
+/* ==========================================================
+   🔔 PUSH NOTIFICATIONS
+========================================================== */
+
+// Recebe a notificação
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {}
+
+  const title = data.title || "Cartomantes Online";
+  const body = data.body || "Você tem uma nova notificação.";
+  const url =
+    data.url ||
+    "https://marcio2307.github.io/cartomantesonline.site/leituras.html";
+
+  const options = {
+    body,
+    data: { url },
+    icon: "./logo.png",
+    badge: "./logo.png",
+    vibrate: [100, 50, 100],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// Clique na notificação → abre a página
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const url = event.notification?.data?.url;
+  if (!url) return;
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        for (const client of clientList) {
+          if (client.url === url && "focus" in client) {
+            return client.focus();
+          }
+        }
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
   );
 });
