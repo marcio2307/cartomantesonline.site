@@ -107,27 +107,29 @@ body{
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
 
-/* ✅ BOTÃO AMARELO DO AVISO (SUBSTITUI A FRASE) */
+/* ✅ OPÇÃO A (AVISO) — MAIS CENTRALIZADO E BONITO NO CELULAR */
 .hero .vip-aviso{
-  display:block;
-  width:min(820px, 100%);
-  margin:10px auto 0;
+  display:flex;
+  justify-content:center;
+  width:100%;
+  margin:14px auto 0;
 }
 .hero .vip-aviso a{
-  width:100%;
-  min-height:62px;
+  width:min(760px, 100%);
+  min-height:66px;
+
   display:flex;
   align-items:center;
   justify-content:center;
   text-align:center;
 
-  padding:14px 16px;
-  border-radius:18px;
+  padding:16px 16px;
+  border-radius:20px;
   text-decoration:none;
 
   font-weight:900;
-  letter-spacing:.5px;
-  line-height:1.15;
+  letter-spacing:.4px;
+  line-height:1.25;
   color:#111;
 
   background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
@@ -137,61 +139,21 @@ body{
     0 0 0 1px rgba(255,240,166,0.10) inset;
 
   text-transform:uppercase;
+  /* melhora o toque no celular */
+  -webkit-tap-highlight-color: transparent;
 }
+.hero .vip-aviso a:hover{ filter:brightness(1.05); }
 .hero .vip-aviso a:active{ transform: translateY(1px); }
 
 @media (max-width:480px){
+  .hero .vip-aviso{ margin-top:12px; }
   .hero .vip-aviso a{
-    min-height:70px;
+    width:100%;
+    min-height:74px;
+    padding:16px 14px;
     font-size:13px;
-  }
-}
-
-/* ✅ BOTÃO AMARELO DO SORTEIO */
-.hero .sorteio-hero{
-  display:block;
-  width:min(820px, 100%);
-  margin:10px auto 0;
-}
-.hero .sorteio-hero a{
-  width:100%;
-  min-height:62px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-
-  padding:14px 16px;
-  border-radius:18px;
-  text-decoration:none;
-
-  font-weight:900;
-  letter-spacing:.5px;
-  line-height:1.15;
-  color:#111;
-
-  background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
-  border:1px solid rgba(255,255,255,0.18);
-  box-shadow:
-    0 22px 46px rgba(0,0,0,0.65),
-    0 0 0 1px rgba(255,240,166,0.10) inset;
-
-  text-transform:uppercase;
-}
-.hero .sorteio-hero a:active{ transform: translateY(1px); }
-.hero .sorteio-hero small{
-  display:block;
-  margin-top:6px;
-  font-weight:700;
-  text-transform:none;
-  letter-spacing:0;
-  color:rgba(10,10,10,0.75);
-}
-
-@media (max-width:480px){
-  .hero .sorteio-hero a{
-    min-height:70px;
-    font-size:13px;
+    letter-spacing:.35px;
+    border-radius:18px;
   }
 }
 
@@ -493,18 +455,10 @@ source[src*="fabapp-ads"]{
   <section class="hero">
     <h1>✨ Consultas de Tarot Exclusivas para Clientes VIP ✨</h1>
 
-    <!-- ✅ BOTÃO (NO LUGAR DA FRASE) -->
+    <!-- ✅ OPÇÃO A (ÚNICA) — CENTRALIZADA E RESPONSIVA -->
     <div class="vip-aviso" aria-label="Aviso Leitura Sorteada VIP">
       <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
         TODA SEXTA-FEIRA, A PARTIR DAS 18H, ROLA A LEITURA SORTEADA VIP!
-      </a>
-    </div>
-
-    <!-- ✅ BOTÃO DO SORTEIO (SEXTA 18:00-18:30) -->
-    <div class="sorteio-hero" id="sorteioHero" aria-label="Botão do sorteio">
-      <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
-        HOJE É DIA DE LEITURA SORTEADA — CLIQUE AQUI E PARTICIPE
-        <small>(Somente na sexta-feira, das 18:00 às 18:30)</small>
       </a>
     </div>
   </section>
@@ -567,47 +521,6 @@ source[src*="fabapp-ads"]{
     i = (i + 1) % slides.length;
     show(i);
   }, 8000);
-})();
-
-/* ==========================================================
-   ✅ BOTÃO DO SORTEIO (SEXTA 18:00 ATÉ 18:30)
-   - Dentro da janela: mostra o botão "HOJE É DIA..." (sorteioHero)
-   - Fora da janela: esconde o botão "HOJE É DIA..."
-========================================================== */
-(function initSorteioHeroHorario(){
-  const heroBtn = document.getElementById('sorteioHero');
-  if(!heroBtn) return;
-
-  const TARGET_WEEKDAY = 5; // sexta
-  const START_H = 18, START_M = 0;
-  const END_H = 18, END_M = 30;
-
-  function inWindow(now = new Date()){
-    if(now.getDay() !== TARGET_WEEKDAY) return false;
-
-    const h = now.getHours();
-    const m = now.getMinutes();
-
-    // >= 18:00
-    if(h < START_H) return false;
-    if(h === START_H && m < START_M) return false;
-
-    // <= 18:30
-    if(h > END_H) return false;
-    if(h === END_H && m > END_M) return false;
-
-    return true;
-  }
-
-  function update(){
-    heroBtn.style.display = inWindow(new Date()) ? 'block' : 'none';
-  }
-
-  update();
-  setInterval(update, 10000);
-  document.addEventListener('visibilitychange', () => {
-    if(!document.hidden) update();
-  });
 })();
 
 /* ===========================
