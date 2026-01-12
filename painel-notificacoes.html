@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Painel de Notificações - Cartomantes Online</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#0b0b0b;color:#fff;margin:0;padding:18px}
+    .wrap{max-width:780px;margin:0 auto}
+    .card{background:#151515;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:14px}
+    h1{margin:0 0 10px;font-size:22px}
+    label{display:block;margin:10px 0 6px;font-size:13px;opacity:.9}
+    input,textarea,button{width:100%;box-sizing:border-box;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#fff;padding:12px}
+    textarea{min-height:90px;resize:vertical}
+    button{cursor:pointer;border:none;background:#2ecc71;font-weight:800;margin-top:12px}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .small{font-size:12px;opacity:.75}
+    .ok{color:#2ecc71}
+    .err{color:#ff6b6b;white-space:pre-wrap}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>📣 Painel de envio de notificações</h1>
+      <div class="small">Servidor: <span class="mono" id="serverUrl"></span></div>
+      <div class="small">Dica: primeiro ative as notificações no arquivo <b>notificacoes.html</b> (no celular).</div>
+    </div>
+
+    <div class="card">
+      <label>URL do servidor (Render)</label>
+      <input id="apiBase" value="https://envio-6.onrender.com" />
+
+      <label>Token (opcional)</label>
+      <input id="token" placeholder="Se você tiver ADMIN_TOKEN no Render, coloque aqui (opcional)" />
+
+      <div class="row">
+        <div>
+          <label>Título</label>
+          <input id="title" placeholder="Cartomantes Online" />
+        </div>
+        <div>
+          <label>Link para abrir</label>
+          <input id="url" value="https://marcio2307.github.io/cartomantesonline.site/leituras.html" />
+        </div>
+      </div>
+
+      <label>Descrição / mensagem</label>
+      <textarea id="body" placeholder="Digite a mensagem da notificação..."></textarea>
+
+      <button id="sendBtn">ENVIAR NOTIFICAÇÃO</button>
+
+      <div id="result" class="small" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="small">
+        ✅ Se der erro 401 (Não autorizado), é porque seu <b>server.js</b> ainda exige <b>ADMIN_TOKEN</b>.
+        Aí você tem 2 opções:
+        <br>• colocar um <b>ADMIN_TOKEN</b> no Render e preencher aqui; ou
+        <br>• eu te passo o ajuste para “sem senha”.
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const serverUrlEl = $("serverUrl");
+  const apiBaseEl = $("apiBase");
+  const tokenEl = $("token");
+  const titleEl = $("title");
+  const bodyEl = $("body");
+  const urlEl = $("url");
+  const sendBtn = $("sendBtn");
+  const resultEl = $("result");
+
+  serverUrlEl.textContent = apiBaseEl.value;
+
+  apiBaseEl.addEventListener("input", () => {
+    serverUrlEl.textContent = apiBaseEl.value.trim();
+  });
+
+  function showOk(msg){
+    resultEl.className = "small ok";
+    resultEl.textContent = msg;
+  }
+  function showErr(msg){
+    resultEl.className = "small err";
+    resultEl.textContent = msg;
+  }
+
+  sendBtn.addEventListener("click", async () => {
+    const apiBase = apiBaseEl.value.trim().replace(/\/+$/,"");
+    const token = tokenEl.value.trim();
+    const payload = {
+      title: titleEl.value.trim() || "Cartomantes Online",
+      body: bodyEl.value.trim() || "Você tem uma nova notificação.",
+      url: urlEl.value.trim() || "https://marcio2307.github.io/cartomantesonline.site/leituras.html",
+    };
+
+    sendBtn.disabled = true;
+    showOk("Enviando...");
+
+    try{
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["x-admin-token"] = token; // só envia se você preencher
+
+      const res = await fetch(apiBase + "/send", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
+      });
+
+      const text = await res.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch {}
+
+      if (!res.ok){
+        const msg = data?.error ? data.error : text;
+        throw new Error(`HTTP ${res.status}: ${msg}`);
+      }
+
+      const sent = data?.sent ?? "(?)";
+      const alive = data?.alive ?? "(?)";
+      showOk(`✅ Enviado! Tentativas: ${sent} | Inscrições ativas agora: ${alive}`);
+    }catch(e){
+      showErr("❌ Erro ao enviar:\n" + (e?.message || e));
+    }finally{
+      sendBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

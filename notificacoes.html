@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Ativar Notificações</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff;margin:0;padding:18px}
+    .wrap{max-width:760px;margin:0 auto}
+    .card{background:#121212;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:14px}
+    h1{margin:0 0 10px;font-size:22px}
+    button{width:100%;padding:14px;border-radius:12px;border:none;font-weight:900;cursor:pointer}
+    .on{background:#2ecc71;color:#111}
+    .off{background:#ff6b6b;color:#111}
+    .small{font-size:12px;opacity:.8;white-space:pre-wrap}
+    input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#fff;box-sizing:border-box}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>🔔 Ativar notificações</h1>
+    <div class="small">Servidor: <span class="mono" id="serverUrl"></span></div>
+    <div class="small">Abra esta página no celular e toque em “Permitir”.</div>
+  </div>
+
+  <div class="card">
+    <label class="small">URL do servidor (Render)</label>
+    <input id="apiBase" value="https://envio-6.onrender.com" />
+    <button id="enableBtn" class="on" style="margin-top:12px">ATIVAR NOTIFICAÇÕES</button>
+    <button id="disableBtn" class="off" style="margin-top:10px">DESATIVAR (remover inscrição)</button>
+    <div id="status" class="small" style="margin-top:12px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="small">
+      ✅ Importante: seu site já tem um <b>service-worker.js</b> (cache).  
+      Você precisa adicionar nele o suporte a <b>push</b> (eu deixei abaixo).
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="small" id="swHint"></div>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const apiBaseEl = $("apiBase");
+  const serverUrlEl = $("serverUrl");
+  const statusEl = $("status");
+  const enableBtn = $("enableBtn");
+  const disableBtn = $("disableBtn");
+  const swHint = $("swHint");
+
+  serverUrlEl.textContent = apiBaseEl.value;
+
+  apiBaseEl.addEventListener("input", () => {
+    serverUrlEl.textContent = apiBaseEl.value.trim();
+  });
+
+  function log(msg){ statusEl.textContent = msg; }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const outputArray = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; ++i) outputArray[i] = raw.charCodeAt(i);
+    return outputArray;
+  }
+
+  async function getPublicKey(apiBase){
+    const res = await fetch(apiBase + "/vapid-public-key");
+    if(!res.ok) throw new Error("Não consegui pegar a publicKey do servidor.");
+    const data = await res.json();
+    return data.publicKey;
+  }
+
+  async function saveSubscription(apiBase, sub){
+    const res = await fetch(apiBase + "/save-subscription", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(sub)
+    });
+    const text = await res.text();
+    if(!res.ok) throw new Error(text);
+    return JSON.parse(text);
+  }
+
+  async function removeSubscription(apiBase, endpoint){
+    const res = await fetch(apiBase + "/remove-subscription", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ endpoint })
+    });
+    const text = await res.text();
+    if(!res.ok) throw new Error(text);
+    return JSON.parse(text);
+  }
+
+  async function ensureSW(){
+    if(!("serviceWorker" in navigator)) throw new Error("Seu navegador não suporta Service Worker.");
+    // Usa o seu service-worker.js existente (cache) — só precisa ter o handler de push adicionado.
+    return navigator.serviceWorker.register("./service-worker.js");
+  }
+
+  async function enable(){
+    const apiBase = apiBaseEl.value.trim().replace(/\/+$/,"");
+
+    if(!("Notification" in window)) throw new Error("Seu navegador não suporta notificações.");
+    const perm = await Notification.requestPermission();
+    if(perm !== "granted") throw new Error("Permissão negada. Você precisa permitir notificações.");
+
+    const reg = await ensureSW();
+    const publicKey = await getPublicKey(apiBase);
+
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
+    });
+
+    const r = await saveSubscription(apiBase, sub);
+    log("✅ Notificações ATIVADAS!\nInscrições salvas no servidor: " + r.total);
+  }
+
+  async function disable(){
+    const apiBase = apiBaseEl.value.trim().replace(/\/+$/,"");
+    const reg = await navigator.serviceWorker.getRegistration("./");
+    if(!reg) return log("Nenhum service worker encontrado.");
+    const sub = await reg.pushManager.getSubscription();
+    if(!sub) return log("Você não tem inscrição ativa.");
+
+    await sub.unsubscribe();
+    await removeSubscription(apiBase, sub.endpoint);
+    log("✅ Inscrição removida e notificações desativadas.");
+  }
+
+  enableBtn.addEventListener("click", async () => {
+    enableBtn.disabled = true;
+    try{ log("Ativando..."); await enable(); }
+    catch(e){ log("❌ " + (e.message || e)); }
+    finally{ enableBtn.disabled = false; }
+  });
+
+  disableBtn.addEventListener("click", async () => {
+    disableBtn.disabled = true;
+    try{ log("Removendo..."); await disable(); }
+    catch(e){ log("❌ " + (e.message || e)); }
+    finally{ disableBtn.disabled = false; }
+  });
+
+  swHint.textContent =
+`⚠️ Se der erro de CORS (bloqueio do navegador), você precisa liberar CORS no server.js do Render.
+Se aparecer erro, me mande o print que eu te passo o patch certinho.`;
+</script>
+</body>
+</html>
