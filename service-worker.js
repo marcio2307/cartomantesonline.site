@@ -1,9 +1,10 @@
-const CACHE_VERSION = "v1.0.6";
+const CACHE_VERSION = "v1.0.7";
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./leituras.html",
   "./manifest.json",
   "./logo.png",
   "./service-worker.js"
@@ -36,6 +37,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
 
+  // ✅ Navegação (abrir o app / trocar página)
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -45,12 +47,13 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() =>
-          caches.match(req).then((r) => r || caches.match("./index.html"))
+          caches.match(req).then((r) => r || caches.match("./leituras.html"))
         )
     );
     return;
   }
 
+  // ✅ Arquivos comuns (cache-first)
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
