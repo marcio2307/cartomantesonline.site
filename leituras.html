@@ -76,60 +76,11 @@ body{
   visibility:hidden;
 }
 
-/* ✅ CTA do sorteio (aparece no lugar do banner na sexta 18:00-18:30) */
-.sorteio-cta{
-  position:absolute;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:16px;
-  z-index:5; /* acima da imagem */
-}
-.sorteio-cta a{
-  width:min(760px, 94%);
-  min-height:72px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-
-  padding:16px 18px;
-  border-radius:18px;
-  text-decoration:none;
-
-  font-weight:900;
-  letter-spacing:.5px;
-  line-height:1.15;
-  color:#111;
-
-  background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
-  border:1px solid rgba(255,255,255,0.18);
-  box-shadow:
-    0 22px 46px rgba(0,0,0,0.65),
-    0 0 0 1px rgba(255,240,166,0.10) inset;
-
-  text-transform:uppercase;
-}
-.sorteio-cta a:active{ transform: translateY(1px); }
-.sorteio-cta small{
-  display:block;
-  margin-top:6px;
-  font-weight:700;
-  text-transform:none;
-  letter-spacing:0;
-  color:rgba(10,10,10,0.75);
-}
-
 @media (max-width:480px){
   .banner-carousel{ border-bottom-width:1px; }
   :root{
     --btn-h:64px;
     --btn-px:16px;
-  }
-  .sorteio-cta a{
-    min-height:78px;
-    font-size:13px;
   }
 }
 
@@ -156,16 +107,92 @@ body{
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
 
-/* ✅ FRASE REMOVIDA (mantida oculta) */
-.hero p{
-  display:none;
-  margin:0;
-  font-size:15px;
-  line-height:1.65;
-  color:rgba(255,255,255,0.88);
-  max-width:980px;
-  margin-left:auto;
-  margin-right:auto;
+/* ✅ BOTÃO AMARELO DO AVISO (SUBSTITUI A FRASE) */
+.hero .vip-aviso{
+  display:block;
+  width:min(820px, 100%);
+  margin:10px auto 0;
+}
+.hero .vip-aviso a{
+  width:100%;
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  padding:14px 16px;
+  border-radius:18px;
+  text-decoration:none;
+
+  font-weight:900;
+  letter-spacing:.5px;
+  line-height:1.15;
+  color:#111;
+
+  background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:
+    0 22px 46px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(255,240,166,0.10) inset;
+
+  text-transform:uppercase;
+}
+.hero .vip-aviso a:active{ transform: translateY(1px); }
+
+@media (max-width:480px){
+  .hero .vip-aviso a{
+    min-height:70px;
+    font-size:13px;
+  }
+}
+
+/* ✅ BOTÃO AMARELO DO SORTEIO */
+.hero .sorteio-hero{
+  display:block;
+  width:min(820px, 100%);
+  margin:10px auto 0;
+}
+.hero .sorteio-hero a{
+  width:100%;
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+
+  padding:14px 16px;
+  border-radius:18px;
+  text-decoration:none;
+
+  font-weight:900;
+  letter-spacing:.5px;
+  line-height:1.15;
+  color:#111;
+
+  background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
+  border:1px solid rgba(255,255,255,0.18);
+  box-shadow:
+    0 22px 46px rgba(0,0,0,0.65),
+    0 0 0 1px rgba(255,240,166,0.10) inset;
+
+  text-transform:uppercase;
+}
+.hero .sorteio-hero a:active{ transform: translateY(1px); }
+.hero .sorteio-hero small{
+  display:block;
+  margin-top:6px;
+  font-weight:700;
+  text-transform:none;
+  letter-spacing:0;
+  color:rgba(10,10,10,0.75);
+}
+
+@media (max-width:480px){
+  .hero .sorteio-hero a{
+    min-height:70px;
+    font-size:13px;
+  }
 }
 
 /* Grid */
@@ -455,15 +482,9 @@ source[src*="fabapp-ads"]{
     <img src="https://i.ibb.co/rRvmn4Q7/56e5b5c7-3199-4b85-a6d8-22608f6c0402.png" alt="Banner adicional" />
   </div>
 
-  <!-- ✅ NOVO BANNER (ÚLTIMO) + CTA QUE SUBSTITUI NA SEXTA 18:00-18:30 -->
+  <!-- ✅ NOVO BANNER (ÚLTIMO) -->
   <div class="slide" id="slideVip">
-    <img id="vipBannerImg" src="https://i.ibb.co/cKPNwmMY/Chat-GPT-Image-12-01-2026-07-11-40.png" alt="Consultas de Tarot Exclusivas para Clientes VIP" />
-    <div class="sorteio-cta" id="sorteioCta" aria-label="Botão do sorteio">
-      <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
-        HOJE É DIA DE LEITURA SORTEADA — CLIQUE AQUI E PARTICIPE
-        <small>(Somente na sexta-feira, das 18:00 às 18:30)</small>
-      </a>
-    </div>
+    <img src="https://i.ibb.co/cKPNwmMY/Chat-GPT-Image-12-01-2026-07-11-40.png" alt="Consultas de Tarot Exclusivas para Clientes VIP" />
   </div>
 </div>
 
@@ -471,7 +492,21 @@ source[src*="fabapp-ads"]{
 
   <section class="hero">
     <h1>✨ Consultas de Tarot Exclusivas para Clientes VIP ✨</h1>
-    <!-- frase removida -->
+
+    <!-- ✅ BOTÃO (NO LUGAR DA FRASE) -->
+    <div class="vip-aviso" aria-label="Aviso Leitura Sorteada VIP">
+      <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
+        TODA SEXTA-FEIRA, A PARTIR DAS 18H, ROLA A LEITURA SORTEADA VIP!
+      </a>
+    </div>
+
+    <!-- ✅ BOTÃO DO SORTEIO (SEXTA 18:00-18:30) -->
+    <div class="sorteio-hero" id="sorteioHero" aria-label="Botão do sorteio">
+      <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
+        HOJE É DIA DE LEITURA SORTEADA — CLIQUE AQUI E PARTICIPE
+        <small>(Somente na sexta-feira, das 18:00 às 18:30)</small>
+      </a>
+    </div>
   </section>
 
   <div class="container" id="cards-container"></div>
@@ -535,14 +570,13 @@ source[src*="fabapp-ads"]{
 })();
 
 /* ==========================================================
-   ✅ BANNER DO SORTEIO: SEXTA 18:00 ATÉ 18:30
-   - Dentro da janela: some a imagem do banner VIP e aparece o botão amarelo
-   - Fora da janela: volta a imagem normal
+   ✅ BOTÃO DO SORTEIO (SEXTA 18:00 ATÉ 18:30)
+   - Dentro da janela: mostra o botão "HOJE É DIA..." (sorteioHero)
+   - Fora da janela: esconde o botão "HOJE É DIA..."
 ========================================================== */
-(function initSorteioCta(){
-  const img = document.getElementById('vipBannerImg');
-  const cta = document.getElementById('sorteioCta');
-  if(!img || !cta) return;
+(function initSorteioHeroHorario(){
+  const heroBtn = document.getElementById('sorteioHero');
+  if(!heroBtn) return;
 
   const TARGET_WEEKDAY = 5; // sexta
   const START_H = 18, START_M = 0;
@@ -550,12 +584,15 @@ source[src*="fabapp-ads"]{
 
   function inWindow(now = new Date()){
     if(now.getDay() !== TARGET_WEEKDAY) return false;
+
     const h = now.getHours();
     const m = now.getMinutes();
 
+    // >= 18:00
     if(h < START_H) return false;
     if(h === START_H && m < START_M) return false;
 
+    // <= 18:30
     if(h > END_H) return false;
     if(h === END_H && m > END_M) return false;
 
@@ -563,14 +600,7 @@ source[src*="fabapp-ads"]{
   }
 
   function update(){
-    const ok = inWindow(new Date());
-    if(ok){
-      img.style.display = 'none';
-      cta.style.display = 'flex';
-    }else{
-      cta.style.display = 'none';
-      img.style.display = 'block';
-    }
+    heroBtn.style.display = inWindow(new Date()) ? 'block' : 'none';
   }
 
   update();
@@ -808,4 +838,3 @@ document.addEventListener('visibilitychange', () => {
 
 </body>
 </html>
-
