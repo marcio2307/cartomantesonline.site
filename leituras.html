@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consultores Disponíveis</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 
 <style>
 :root{
@@ -339,7 +339,7 @@ body{
   box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
 
-/* ✅ Popup/Toast permissão notificações (estilo app) */
+/* ✅ Popup permissão notificações (estilo app) */
 #notifPopupWrap{
   position:fixed;
   inset:0;
@@ -362,7 +362,7 @@ body{
 }
 #notifPopup .t{ font-weight:900; margin-bottom:6px; }
 #notifPopup .d{ opacity:.9; font-size:13px; line-height:1.4; margin-bottom:12px; }
-#notifPopup .row{ display:flex; gap:10px; }
+#notifPopup .row{ display:flex; gap:10px; flex-wrap:wrap; }
 #notifPopup button{
   height:48px;
   border:0;
@@ -371,9 +371,45 @@ body{
   cursor:pointer;
   letter-spacing:.5px;
 }
-#notifEnable{ flex:1; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
+#notifEnable{ flex:1; min-width:160px; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
 #notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
-#notifOk{ flex:1; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
+#notifOk{ flex:1; min-width:160px; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
+
+/* ✅ Mini botão fixo (se popup não aparecer, o usuário consegue ativar) */
+#notifFab{
+  position:fixed;
+  right:14px;
+  bottom:14px;
+  z-index:999998;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  height:52px;
+  padding:0 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.78);
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.4px;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#notifFab .p{
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-2), var(--gold-3));
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+#notifFab .dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#f39c12;
+  box-shadow:0 0 10px rgba(243,156,18,.35);
+  margin-right:8px;
+}
+#notifFab.enabled .dot{ background:#2ecc71; box-shadow:0 0 12px rgba(46,204,113,.35); }
 
 /* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares) */
 fabapp-banner-footer,
@@ -456,6 +492,12 @@ source[src*="fabapp-ads"]{
     </div>
   </div>
 </div>
+
+<!-- ✅ Botão flutuante (backup) -->
+<button id="notifFab" type="button" aria-label="Ativar notificações">
+  <span class="dot"></span>
+  <span class="p">Notificações</span>
+</button>
 
 <!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -587,7 +629,6 @@ consultores.forEach((c, idx) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
 
-    // ⚠️ não usar clear() (pode apagar configs do seu site)
     localStorage.removeItem('consultorNome');
     localStorage.removeItem('consultorValor');
     localStorage.removeItem('consultorImagem');
@@ -736,6 +777,11 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 /* ==========================================================
    ✅ COMUNHÃO COM PAINEL: /devices + /notifications
+   CORREÇÕES IMPORTANTES:
+   ✅ Agora o painel manda recipients como MAPA {id:true}
+   ✅ Aqui a leitura entende MAPA e também broadcast {"*":true}
+   ✅ Popup de permissão: se for app instalado, tenta mostrar; se falhar, FAB aparece
+   ✅ Sempre abre ./leituras.html ao clicar na notificação
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -786,7 +832,7 @@ async function enviarNotificacaoLocal(title, body, url){
       type: "LOCAL_NOTIFY",
       title: title || "Cartomantes Online",
       body: body || "Nova atualização.",
-      url: url || "./leituras.html"
+      url: "./leituras.html" // ✅ SEMPRE
     });
   }
 }
@@ -801,47 +847,47 @@ async function enviarNotificacaoLocal(title, body, url){
   document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
 })();
 
-/* ✅ popup 1x no app instalado */
-(function initNotifPopup(){
-  const KEY_DONE  = "notif_activated_done_v1";
-  const KEY_SHOWN = "notif_popup_shown_v1";
-
+/* ==========================================================
+   ✅ PERMISSÃO DE NOTIFICAÇÕES (MELHORADO)
+   - No app instalado: tenta mostrar popup automaticamente
+   - Se o navegador não permitir popup automático, mostra botão flutuante (FAB)
+========================================================== */
+(function initNotifPermissionUX(){
+  const KEY_DONE  = "notif_activated_done_v2";
   const wrap = document.getElementById("notifPopupWrap");
   const btnEnable = document.getElementById("notifEnable");
   const btnLater  = document.getElementById("notifLater");
   const btnOk     = document.getElementById("notifOk");
+  const fab       = document.getElementById("notifFab");
 
-  if(!wrap) return;
   if(!("Notification" in window)) return;
 
-  if(!isStandalone()) return;
-
-  if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
-    localStorage.setItem(KEY_DONE,"1");
-    wrap.style.display = "none";
-    return;
+  function fechar(){ if(wrap) wrap.style.display = "none"; }
+  function showWrap(){
+    if(!wrap) return;
+    wrap.style.display = "flex";
   }
 
-  if(localStorage.getItem(KEY_SHOWN) === "1"){
-    wrap.style.display = "none";
-    return;
+  function setFabState(){
+    if(!fab) return;
+    const granted = (Notification.permission === "granted");
+    fab.classList.toggle("enabled", granted);
+    fab.style.display = granted ? "none" : "flex";
   }
 
-  localStorage.setItem(KEY_SHOWN,"1");
-  wrap.style.display = "flex";
-
-  function fechar(){ wrap.style.display = "none"; }
-
-  btnLater.onclick = () => fechar();
-
-  btnEnable.onclick = async () => {
+  async function pedirPermissao(){
     if(Notification.permission === "denied"){
-      const desc = wrap.querySelector(".d");
-      desc.textContent = "Notificações BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
-      btnEnable.style.display = "none";
-      btnLater.style.display = "none";
-      btnOk.style.display = "block";
-      btnOk.onclick = () => fechar();
+      if(wrap){
+        const desc = wrap.querySelector(".d");
+        desc.textContent = "Notificações BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
+        if(btnEnable) btnEnable.style.display = "none";
+        if(btnLater) btnLater.style.display = "none";
+        if(btnOk){
+          btnOk.style.display = "block";
+          btnOk.onclick = () => fechar();
+        }
+      }
+      setFabState();
       return;
     }
 
@@ -851,20 +897,60 @@ async function enviarNotificacaoLocal(title, body, url){
       localStorage.setItem(KEY_DONE,"1");
       fechar();
       await upsertDevice();
+      setFabState();
       enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
       return;
     }
 
-    const desc = wrap.querySelector(".d");
-    desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
-    btnEnable.style.display = "none";
-    btnLater.style.display = "none";
-    btnOk.style.display = "block";
-    btnOk.onclick = () => fechar();
-  };
+    if(wrap){
+      const desc = wrap.querySelector(".d");
+      desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
+      if(btnEnable) btnEnable.style.display = "none";
+      if(btnLater) btnLater.style.display = "none";
+      if(btnOk){
+        btnOk.style.display = "block";
+        btnOk.onclick = () => fechar();
+      }
+    }
+    setFabState();
+  }
+
+  // handlers
+  if(btnLater) btnLater.onclick = () => { fechar(); setFabState(); };
+  if(btnEnable) btnEnable.onclick = () => pedirPermissao();
+  if(fab) fab.onclick = () => { showWrap(); };
+
+  // lógica para aparecer no app instalado:
+  // IMPORTANTE: navegadores só deixam pedir permissão após gesto do usuário.
+  // Então: mostramos popup automaticamente (visível), mas o request só acontece ao clicar "ATIVAR".
+  const done = (localStorage.getItem(KEY_DONE) === "1");
+  const granted = (Notification.permission === "granted");
+  if(done || granted){
+    localStorage.setItem(KEY_DONE,"1");
+    fechar();
+    setFabState();
+    return;
+  }
+
+  // Se for app instalado, tenta mostrar popup. Se não, mostra o FAB como fallback.
+  if(isStandalone()){
+    // mostra popup SEM pedir permissão automaticamente (evita bloqueio)
+    showWrap();
+
+    // se por algum motivo o popup ficar invisível, o FAB aparece
+    setTimeout(() => setFabState(), 1200);
+  }else{
+    // fora do modo app: não atrapalha, mas mostra FAB para o usuário ativar quando quiser
+    setFabState();
+  }
 })();
 
-/* ✅ escuta painel (/notifications) */
+/* ==========================================================
+   ✅ ESCUTA PAINEL (/notifications)
+   CORREÇÃO: recipients agora pode vir como:
+   - MAPA: { "dev_x": true, ... }
+   - Broadcast: { "*": true }
+========================================================== */
 (function listenPanelNotifications(){
   if(!db) return;
   if(!("Notification" in window)) return;
@@ -878,18 +964,18 @@ async function enviarNotificacaoLocal(title, body, url){
 
     if(Notification.permission !== "granted") return;
 
-    const rec = Array.isArray(d.recipients) ? d.recipients : [];
-    const ok = rec.includes("*") || rec.includes(deviceId);
+    // ✅ aceita MAPA
+    const recMap = (d.recipients && typeof d.recipients === "object") ? d.recipients : {};
+    const ok = (recMap["*"] === true) || (recMap[deviceId] === true);
     if(!ok) return;
 
     localStorage.setItem("co_last_notif_ts", String(ts));
     lastTs = ts;
 
-    await enviarNotificacaoLocal(d.title, d.body, d.url);
+    await enviarNotificacaoLocal(d.title, d.body, "./leituras.html");
   });
 })();
 </script>
 
 </body>
 </html>
-
