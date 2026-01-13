@@ -5,11 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consultores Disponíveis</title>
 
-<!-- ✅ PWA -->
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -144,6 +139,7 @@ body{
     0 0 0 1px rgba(255,240,166,0.10) inset;
 
   text-transform:uppercase;
+  /* melhora o toque no celular */
   -webkit-tap-highlight-color: transparent;
 }
 .hero .vip-aviso a:hover{ filter:brightness(1.05); }
@@ -425,70 +421,6 @@ source[src*="fabapp-ads"]{
   overflow:hidden !important;
   pointer-events:none !important;
 }
-
-/* ==========================================================
-   ✅ UI DO POPUP DE NOTIFICAÇÃO
-========================================================== */
-#notifBar{
-  position:fixed;
-  left:12px;
-  right:12px;
-  bottom:12px;
-  z-index:99999;
-  display:none;
-}
-#notifBar .box{
-  border-radius:18px;
-  padding:14px 14px;
-  border:1px solid rgba(199,160,8,0.55);
-  background:
-    radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.20), rgba(0,0,0,0) 60%),
-    linear-gradient(180deg, rgba(18,18,18,0.92) 0%, rgba(5,5,5,0.98) 100%);
-  box-shadow:0 18px 44px rgba(0,0,0,0.65);
-}
-#notifBar .title{
-  font-weight:900;
-  letter-spacing:.3px;
-  margin:0 0 6px;
-  color:transparent;
-  background-image:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-3) 55%, var(--gold-2) 100%);
-  -webkit-background-clip:text;
-  background-clip:text;
-}
-#notifBar .msg{
-  margin:0 0 10px;
-  font-size:13px;
-  opacity:.9;
-  line-height:1.25;
-}
-#notifBar .row{ display:flex; gap:10px; }
-#notifBtn{
-  flex:1;
-  height:46px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.12);
-  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
-  color:#fff;
-  font-weight:900;
-  letter-spacing:.6px;
-  cursor:pointer;
-}
-#notifClose{
-  width:56px;
-  height:46px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,0.10);
-  background:rgba(255,255,255,0.06);
-  color:#fff;
-  font-weight:900;
-  cursor:pointer;
-}
-#notifStatus{
-  margin-top:8px;
-  font-size:12px;
-  opacity:.85;
-  white-space:pre-wrap;
-}
 </style>
 </head>
 
@@ -512,14 +444,18 @@ source[src*="fabapp-ads"]{
     <img src="https://i.ibb.co/rRvmn4Q7/56e5b5c7-3199-4b85-a6d8-22608f6c0402.png" alt="Banner adicional" />
   </div>
 
+  <!-- ✅ NOVO BANNER (ÚLTIMO) -->
   <div class="slide" id="slideVip">
     <img src="https://i.ibb.co/cKPNwmMY/Chat-GPT-Image-12-01-2026-07-11-40.png" alt="Consultas de Tarot Exclusivas para Clientes VIP" />
   </div>
 </div>
 
 <div class="page">
+
   <section class="hero">
     <h1>✨ Consultas de Tarot Exclusivas para Clientes VIP ✨</h1>
+
+    <!-- ✅ OPÇÃO A (ÚNICA) — CENTRALIZADA E RESPONSIVA -->
     <div class="vip-aviso" aria-label="Aviso Leitura Sorteada VIP">
       <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
         TODA SEXTA-FEIRA, A PARTIR DAS 18H, ROLA A LEITURA SORTEADA VIP!
@@ -528,18 +464,7 @@ source[src*="fabapp-ads"]{
   </section>
 
   <div class="container" id="cards-container"></div>
-</div>
 
-<div id="notifBar" role="dialog" aria-live="polite" aria-label="Ativar notificações">
-  <div class="box">
-    <div class="title">🔔 Ative as notificações</div>
-    <p class="msg">Receba avisos no celular quando tiver novidades importantes.</p>
-    <div class="row">
-      <button id="notifBtn" type="button">ATIVAR NOTIFICAÇÕES</button>
-      <button id="notifClose" type="button" aria-label="Fechar">✕</button>
-    </div>
-    <div id="notifStatus"></div>
-  </div>
 </div>
 
 <script>
@@ -602,8 +527,11 @@ source[src*="fabapp-ads"]{
    LISTA DE CONSULTORES
 =========================== */
 const consultores = [
+  /* ✅ P.Márcio agora R$ 2,00 por minuto */
   { nome: "P.Márcio", valor: 2, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
+
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
+
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Dalila", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/11//0b284c7b42-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Adria", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/07/25//d6152621b2-1-_3.webp", estrelas: 5, novo: true },
@@ -611,6 +539,7 @@ const consultores = [
   { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
+
   { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
   { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
   { nome: "M.Padilha", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2025/01/27//699974ac8a-1-.jpg", estrelas: 4 },
@@ -622,6 +551,9 @@ const consultores = [
 
 const container = document.getElementById('cards-container');
 
+/* ===========================
+   RENDER DOS CARDS
+=========================== */
 consultores.forEach((c, idx) => {
   const card = document.createElement('div');
   card.className = 'card' + (c.novo ? ' novo' : '');
@@ -657,6 +589,7 @@ consultores.forEach((c, idx) => {
 
 /* ===========================
    ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
+   + NOVA REGRA: 02:00 ATÉ 10:00 TODOS INDISPONÍVEIS
 =========================== */
 const chance = (p) => Math.random() < p;
 
@@ -714,6 +647,7 @@ function setStatusDOM(card, status){
   }
 }
 
+/* ✅ regra geral de indisponibilidade 02:00 -> 10:00 */
 function todosIndisponiveisAgora(){
   const h = new Date().getHours();
   return (h >= 2 && h < 10);
@@ -757,11 +691,12 @@ function aplicarStatusRealista(forceAll=false){
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
+  /* ✅ NOVO: das 02:00 às 10:00 TODOS INDISPONÍVEIS */
   if(todosIndisponiveisAgora()){
     cards.forEach((card, i) => {
       const st = estado.consultores[i];
       st.status = "indisp";
-      st.holdUntil = now + 60 * 1000;
+      st.holdUntil = now + 60 * 1000; // mantém “vivo” e atualiza sempre
       setStatusDOM(card, "indisp");
     });
     salvarEstado();
@@ -812,148 +747,6 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) aplicarStatusRealista(false);
 });
-
-/* ==========================================================
-   ✅ PUSH / NOTIFICAÇÕES (AJUSTE IMPORTANTE PARA GITHUB PAGES)
-========================================================== */
-
-const PUSH_SERVER = "https://envio-7.onrender.com";
-
-// fallback (se o /vapid-public-key falhar)
-let VAPID_PUBLIC_KEY =
-  "BEL4FtGCVPRNJsDWokgdWnBmIUOWvKBPMDT_ega_uFwQEJUPNQ13tasi39b_gAHILf_EPB4e24LOp0P3bjU725o";
-
-function detectScopeBase(){
-  const parts = location.pathname.split("/").filter(Boolean);
-  if (location.hostname.endsWith("github.io") && parts.length > 0) {
-    return `/${parts[0]}/`;
-  }
-  return "/";
-}
-
-const SCOPE_BASE = detectScopeBase();
-const SW_URL = `${SCOPE_BASE}service-worker.js`;
-
-function urlBase64ToUint8Array(base64String){
-  const padding = "=".repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
-  return outputArray;
-}
-
-async function ensureServiceWorker(){
-  if (!("serviceWorker" in navigator)) throw new Error("Service Worker não suportado.");
-  if (!isSecureContext) throw new Error("Push só funciona em HTTPS.");
-
-  const reg = await navigator.serviceWorker.register(SW_URL, { scope: SCOPE_BASE });
-  await navigator.serviceWorker.ready;
-  try { await reg.update(); } catch {}
-  return reg;
-}
-
-async function getVapidFromServer(){
-  try{
-    const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key?t=" + Date.now(), { cache:"no-store" });
-    if (!res.ok) throw new Error("Falha ao pegar VAPID do servidor");
-    const data = await res.json();
-    if (data?.publicKey) VAPID_PUBLIC_KEY = data.publicKey;
-  }catch{
-    // usa fallback
-  }
-}
-
-async function saveSubscriptionToServer(subscription){
-  const subJson = (typeof subscription?.toJSON === "function") ? subscription.toJSON() : subscription;
-
-  const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/save-subscription", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(subJson)
-  });
-
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Falha ao salvar inscrição (HTTP ${res.status}): ${text}`);
-}
-
-async function subscribeOrResave(){
-  const reg = await navigator.serviceWorker.ready;
-  let sub = await reg.pushManager.getSubscription();
-
-  // se já existe, re-salva (Render pode ter reiniciado)
-  if (sub){
-    await saveSubscriptionToServer(sub);
-    return sub;
-  }
-
-  if (!VAPID_PUBLIC_KEY) throw new Error("VAPID_PUBLIC_KEY vazia.");
-
-  sub = await reg.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-  });
-
-  await saveSubscriptionToServer(sub);
-  return sub;
-}
-
-function shouldShowPrompt(){
-  if (!("Notification" in window)) return false;
-  const perm = Notification.permission;
-  if (perm === "granted") return false;
-  return true;
-}
-
-async function initPushUI(){
-  try {
-    await ensureServiceWorker();
-    await getVapidFromServer();
-  } catch (e) {
-    // se falhar aqui, não trava a página — só não mostra o popup
-    return;
-  }
-
-  if (shouldShowPrompt()){
-    if (Notification.permission === "denied"){
-      showNotifBar("⚠️ Notificações bloqueadas.\nLibere nas configurações do navegador para este site.");
-    } else {
-      showNotifBar("");
-    }
-  } else {
-    hideNotifBar();
-    // se já está granted, recadastra silenciosamente
-    try { await subscribeOrResave(false); } catch {}
-  }
-}
-
-notifClose.addEventListener("click", () => hideNotifBar());
-
-notifBtn.addEventListener("click", async () => {
-  try{
-    notifStatus.textContent = "Processando...";
-
-    await ensureServiceWorker();
-    await getVapidFromServer();
-
-    if (!("Notification" in window)) throw new Error("Notificações não suportadas.");
-
-    const perm = await Notification.requestPermission();
-    if (perm !== "granted"){
-      showNotifBar("⚠️ Permissão não concedida.\nSe bloqueou, libere nas configurações.");
-      return;
-    }
-
-    notifStatus.textContent = "Cadastrando no servidor...";
-    await subscribeOrResave(true); // força recadastro no clique
-
-    hideNotifBar();
-  }catch(e){
-    showNotifBar("❌ Erro ao ativar.\n" + (e?.message || e));
-  }
-});
-
-initPushUI();
 </script>
 
 </body>
