@@ -17,7 +17,7 @@
     button.ghost{background:#222;border:1px solid #333}
     button:disabled{opacity:.5;cursor:not-allowed}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .small{font-size:12px;opacity:.8;line-height:1.35}
+    .small{font-size:12px;opacity:.8;line-height:1.35;white-space:pre-wrap}
     .ok{color:#2ecc71}
     .err{color:#ff6b6b;white-space:pre-wrap}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
@@ -64,12 +64,10 @@
 
     <div class="card">
       <div class="small">
-        ✅ Se der erro 401 (Não autorizado), é porque seu <b>server.js</b> exige <b>ADMIN_TOKEN</b>.
-        <br>• Se você usa token, preencha o campo.
-        <br>• Se quiser “sem senha”, eu ajusto seu server.js.
-        <br><br>
-        ⚠️ Importante: Push funciona de verdade principalmente em <b>Android (Chrome)</b>.
-        Em <b>PC</b>, às vezes você cadastra, mas o browser bloqueia e o servidor remove como inválida no envio.
+        ✅ Se der erro 401, é porque seu <b>server.js</b> exige <b>ADMIN_TOKEN</b>.<br>
+        • Se você usa token, preencha o campo.<br>
+        • Se quiser “sem senha”, deixe ADMIN_TOKEN vazio no Render.<br><br>
+        ⚠️ Push funciona de verdade principalmente em <b>Android (Chrome)</b> com o site instalado (PWA).
       </div>
     </div>
   </div>
@@ -180,12 +178,10 @@
     sendBtn.disabled = true;
     setLog("");
     try{
-      // 1) stats antes (confirma quantos existem no disco)
       showOk("Checando /stats antes do envio...");
       const before = await getStats();
       const beforeTotal = before?.total ?? 0;
 
-      // 2) envia
       showOk(`Enviando... (inscrições no servidor antes: ${beforeTotal})`);
       const data = await sendPush();
 
@@ -193,7 +189,6 @@
       const success = results.filter(r => r && r.ok).length;
       const failed  = results.filter(r => r && r.ok === false).length;
 
-      // 3) stats depois (confirma se o server removeu inválidas)
       showOk("Checando /stats depois do envio...");
       const after = await getStats();
       const afterTotal = after?.total ?? 0;
@@ -214,4 +209,3 @@
 </script>
 </body>
 </html>
-
