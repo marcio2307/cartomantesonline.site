@@ -578,8 +578,22 @@ try{
 }
 
 /* ==========================================================
-   ✅ SERVICE WORKER (REGISTRO ROBUSTO)
-   ✅ CORRIGIDO: garante que existe registration antes de usar ready
+   ✅ HELPERS
+========================================================== */
+function isStandalone(){
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+}
+function isIOS(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+}
+function canAskNotificationInThisContext(){
+  if(!("Notification" in window)) return false;
+  if(isIOS() && !isStandalone()) return false;
+  return true;
+}
+
+/* ==========================================================
+   ✅ SERVICE WORKER (GARANTE REGISTRO ANTES DE USAR)
 ========================================================== */
 async function ensureSW(){
   if(!("serviceWorker" in navigator)) return null;
@@ -589,7 +603,6 @@ async function ensureSW(){
     if(!reg){
       reg = await navigator.serviceWorker.register(swUrl);
     }
-    // força pegar o registration "pronto"
     try{ reg = await navigator.serviceWorker.ready; }catch{}
     return reg || null;
   }catch(e){
@@ -791,27 +804,11 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 
 /* ==========================================================
-   ✅ NOTIFICAÇÕES (MÁXIMO POSSÍVEL SEM FCM)
-   ✅ CORRIGIDO PRA FUNCIONAR NO S25 E NO TABLET:
-   - tentar showNotification
-   - se falhar (tablet), faz fallback pro postMessage
-   - se ainda falhar, tenta new Notification (último recurso)
+   ✅ NOTIFICAÇÕES (SEM FCM)
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
 const ONLINE_PING_MS = 20000;
-
-function isStandalone(){
-  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
-}
-function isIOS(){
-  return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
-}
-function canAskNotificationInThisContext(){
-  if(!("Notification" in window)) return false;
-  if(isIOS() && !isStandalone()) return false;
-  return true;
-}
 
 /* ✅ deviceId estável */
 function getOrMakeDeviceId(){
@@ -877,11 +874,9 @@ async function enviarNotificacaoLocal(title, body){
       });
       return;
     }
-  }catch(e){
-    // continua para fallback
-  }
+  }catch(e){}
 
-  // 2) fallback: postMessage pro SW (funciona em vários tablets)
+  // 2) fallback: postMessage pro SW
   try{
     const reg2 = await ensureSW();
     if(reg2 && reg2.active){
@@ -893,16 +888,12 @@ async function enviarNotificacaoLocal(title, body){
       });
       return;
     }
-  }catch(e){
-    // continua
-  }
+  }catch(e){}
 
-  // 3) último recurso: Notification direto (nem sempre funciona em PWA)
+  // 3) último recurso
   try{
     new Notification(t, { body: b, icon: "./logo.png" });
-  }catch(e){
-    // silencioso
-  }
+  }catch(e){}
 }
 
 /* ✅ presença sempre */
@@ -915,11 +906,13 @@ async function enviarNotificacaoLocal(title, body){
 })();
 
 /* ==========================================================
-   ✅ POPUP PERMISSÃO: APARECE SEMPRE APÓS INSTALAR/ADICIONAR À TELA INICIAL
-   ✅ CORRIGIDO (funciona em vários navegadores):
-   - appinstalled (Chrome/Edge/etc)
-   - primeira vez abrindo em standalone (qualquer navegador)
-   - se o usuário instalou e o popup já tinha sido “adiado” antes, agora reseta
+   ✅ PERMISSÃO: "FORÇAR" EM TODA INSTALAÇÃO + LEMBRAR ATÉ ATIVAR
+   Regras:
+   - Se não estiver granted: popup aparece SEMPRE ao abrir (app ou navegador)
+   - Se clicar "DEPOIS": some, mas volta sozinho após um tempo
+   - Se instalar de novo: reseta e volta a pedir
+   - Se permission = denied: não dá pra abrir o popup nativo de novo (Chrome bloqueia),
+     mas a gente continua mostrando o popup com instrução para liberar nas configs.
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -928,12 +921,13 @@ async function enviarNotificacaoLocal(title, body){
   const help   = document.getElementById("notifHelp");
   if(!wrap || !enable || !later) return;
 
-  const KEY_OK          = "co_notif_ok_v7";
-  const KEY_DAY         = "co_notif_prompt_day_v7";
-  const KEY_INSTALL_ID  = "co_install_id_v2";
-  const KEY_STANDALONE1 = "co_first_standalone_seen_v1";
+  const KEY_INSTALL_STAMP = "co_install_stamp_v3";
+  const KEY_LAST_MODE     = "co_last_mode_v3";   // "standalone" | "browser"
+  const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_v1"; // timestamp em ms (só pra não travar o usuário)
 
-  function todayKey(){ return new Date().toISOString().slice(0,10); }
+  // Ajuste aqui: em quanto tempo volta a lembrar se clicar "DEPOIS"
+  const REMIND_AFTER_MS = 90 * 1000; // 1min30
+
   function showWrap(){ wrap.style.display = "flex"; }
   function hideWrap(){ wrap.style.display = "none"; }
   function showHelp(html){
@@ -941,54 +935,36 @@ async function enviarNotificacaoLocal(title, body){
     help.style.display = "block";
     help.innerHTML = html;
   }
-
-  function resetPromptForNewInstall(){
-    localStorage.removeItem(KEY_OK);
-    localStorage.removeItem(KEY_DAY);
-  }
-  function markInstall(){
-    const id = "inst_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
-    localStorage.setItem(KEY_INSTALL_ID, id);
-    resetPromptForNewInstall();
+  function clearHelp(){
+    if(!help) return;
+    help.style.display = "none";
+    help.innerHTML = "";
   }
 
-  if(!("Notification" in window)) return;
-
-  // ✅ detecta instalação por evento (Chrome/Edge)
-  window.addEventListener("appinstalled", () => {
-    markInstall();
-    // mostra na hora (se não estiver granted)
-    if(Notification.permission !== "granted"){
-      localStorage.setItem(KEY_DAY, ""); // força aparecer
-    }
-  });
-
-  // ✅ detecta “Add to Home Screen / instalado” em QUALQUER navegador:
-  // primeira vez que o app abre em standalone
-  if(isStandalone()){
-    if(localStorage.getItem(KEY_STANDALONE1) !== "1"){
-      localStorage.setItem(KEY_STANDALONE1, "1");
-      markInstall();
-      localStorage.setItem(KEY_DAY, ""); // força aparecer
-    }
-  }else{
-    // se voltou pro navegador, não faz nada
+  function markInstall(reason){
+    // A cada "instalação/primeira abertura em standalone" criamos um stamp novo
+    // (isso faz o app "se comportar como recém-instalado")
+    const stamp = "inst_" + (reason||"x") + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2);
+    localStorage.setItem(KEY_INSTALL_STAMP, stamp);
+    // remove snooze pra voltar a pedir
+    localStorage.removeItem(KEY_SNOOZE_UNTIL);
   }
 
-  // se já concedeu, salva e sai
-  if(Notification.permission === "granted"){
-    localStorage.setItem(KEY_OK, "1");
-    hideWrap();
-    upsertDevice();
-    return;
+  function shouldShowNow(){
+    if(!("Notification" in window)) return false;
+    if(Notification.permission === "granted") return false;
+
+    // não bloquear totalmente: se o usuário clicou "depois", espera um pouco e volta
+    const until = Number(localStorage.getItem(KEY_SNOOZE_UNTIL) || "0");
+    if(until && Date.now() < until) return false;
+
+    return true;
   }
 
-  const ok  = (localStorage.getItem(KEY_OK) === "1");
-  const day = localStorage.getItem(KEY_DAY);
+  async function openPopupIfNeeded(){
+    if(!shouldShowNow()) return;
 
-  // ✅ mostra 1x por dia até ativar (mas após instalação forçamos KEY_DAY = "")
-  if(!ok && day !== todayKey()){
-    localStorage.setItem(KEY_DAY, todayKey());
+    clearHelp();
     showWrap();
 
     // iOS sem instalar: instrução correta
@@ -999,10 +975,64 @@ async function enviarNotificacaoLocal(title, body){
         `Depois volte aqui e toque em <b>ATIVAR AGORA</b>.`
       );
     }
+
+    // Se já está denied, avisa como liberar
+    if(Notification.permission === "denied"){
+      showHelp(
+        `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
+        `Abra as configurações do navegador/app e permita notificações para este site.<br>`+
+        `<b>Depois</b> volte aqui que vai funcionar.`
+      );
+    }
   }
 
-  later.onclick = () => hideWrap();
+  // ✅ Detecta evento de instalação (Chrome/Edge)
+  window.addEventListener("appinstalled", () => {
+    markInstall("appinstalled");
+    // se estiver aberto, já pede
+    openPopupIfNeeded();
+  });
 
+  // ✅ Detecta primeira abertura em modo "instalado" (serve pra Samsung Internet e outros)
+  (function detectStandaloneTransition(){
+    const modeNow  = isStandalone() ? "standalone" : "browser";
+    const lastMode = localStorage.getItem(KEY_LAST_MODE) || "";
+    localStorage.setItem(KEY_LAST_MODE, modeNow);
+
+    // Entrou em standalone agora (geralmente significa "abriu o app instalado")
+    if(modeNow === "standalone" && lastMode && lastMode !== "standalone"){
+      markInstall("standalone_open");
+    }
+
+    // Primeira vez absoluta em standalone (sem histórico)
+    if(modeNow === "standalone" && !lastMode){
+      markInstall("standalone_first");
+    }
+  })();
+
+  // ✅ Sempre que abrir a página, se não estiver granted, pede (respeitando snooze)
+  // Pequeno delay pra não "piscar" antes de renderizar
+  setTimeout(openPopupIfNeeded, 1200);
+
+  // ✅ Se voltar pro app e ainda não ativou, pede de novo
+  document.addEventListener("visibilitychange", () => {
+    if(!document.hidden){
+      setTimeout(openPopupIfNeeded, 500);
+    }
+  });
+
+  // Botão "DEPOIS": fecha, mas volta depois (até ativar)
+  later.onclick = () => {
+    hideWrap();
+    // volta a lembrar em REMIND_AFTER_MS
+    localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + REMIND_AFTER_MS));
+    setTimeout(() => {
+      // se ainda não ativou, reabre
+      if(Notification.permission !== "granted") openPopupIfNeeded();
+    }, REMIND_AFTER_MS + 150);
+  };
+
+  // Botão "ATIVAR AGORA"
   enable.onclick = async () => {
     // iOS sem instalar
     if(!canAskNotificationInThisContext()){
@@ -1016,10 +1046,11 @@ async function enviarNotificacaoLocal(title, body){
       return;
     }
 
+    // Se denied, não tem como chamar o prompt nativo de novo
     if(Notification.permission === "denied"){
       showHelp(
         `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
-        `Abra as configurações do navegador e permita notificações para este site.`
+        `Abra as configurações do navegador/app e permita notificações para este site.`
       );
       upsertDevice();
       return;
@@ -1030,16 +1061,24 @@ async function enviarNotificacaoLocal(title, body){
       await upsertDevice();
 
       if(perm === "granted"){
-        localStorage.setItem(KEY_OK, "1");
         hideWrap();
+        localStorage.removeItem(KEY_SNOOZE_UNTIL);
         enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
         return;
       }
 
+      // Se não concedeu, continua lembrando
       showHelp(`Permissão não concedida. Para receber avisos, toque em <b>ATIVAR AGORA</b> e permita as notificações.`);
+      // volta a lembrar logo
+      localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
+      setTimeout(openPopupIfNeeded, 20050);
+
     }catch(e){
       showHelp(`Não foi possível solicitar permissão agora. Tente novamente.`);
       upsertDevice();
+      // volta a lembrar
+      localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
+      setTimeout(openPopupIfNeeded, 20050);
     }
   };
 })();
