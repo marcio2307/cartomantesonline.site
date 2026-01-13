@@ -1,6 +1,6 @@
 <!-- =========================
-     ✅ leituras.html (COMPLETO / ATUALIZADO)
-     - Firebase OK (seu config)
+     ✅ leituras.html (COMPLETO / CORRIGIDO PARA GITHUB PAGES)
+     - Firebase OK (seu config) com proteção contra init duplicado
      - Presença online (/devices) SEM depender de Notification
      - Popup 1x no app instalado
      - Comunhão com painel (/notifications) -> Service Worker LOCAL_NOTIFY
@@ -457,7 +457,12 @@ let db = null;
 let fbOk = false;
 
 try{
-  firebase.initializeApp(firebaseConfig);
+  // ✅ evita erro se outra página já inicializou Firebase (muito comum em sites multi-página)
+  if (firebase.apps && firebase.apps.length) {
+    firebase.app();
+  } else {
+    firebase.initializeApp(firebaseConfig);
+  }
   db = firebase.database();
   fbOk = true;
 }catch(e){
@@ -465,10 +470,11 @@ try{
 }
 
 /* ==========================================================
-   ✅ SERVICE WORKER
+   ✅ SERVICE WORKER (robusto no GitHub Pages)
 ========================================================== */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
+    // sw deve estar no mesmo diretório do arquivo para respeitar scope do GitHub Pages
     navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
   });
 }
@@ -538,6 +544,7 @@ consultores.forEach((c, idx) => {
     localStorage.setItem('consultorValor', String(c.valor));
     localStorage.setItem('consultorImagem', c.imagem);
 
+    // ✅ mantém seu link (absoluto)
     window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pacotes.html';
   });
 
@@ -730,12 +737,14 @@ async function enviarNotificacaoLocal(title, body, url){
   if(Notification.permission !== "granted") return;
 
   const reg = await navigator.serviceWorker.ready;
-  reg.active && reg.active.postMessage({
-    type: "LOCAL_NOTIFY",
-    title: title || "Cartomantes Online",
-    body: body || "Nova atualização.",
-    url: url || "./leituras.html"
-  });
+  if(reg && reg.active){
+    reg.active.postMessage({
+      type: "LOCAL_NOTIFY",
+      title: title || "Cartomantes Online",
+      body: body || "Nova atualização.",
+      url: url || "./leituras.html"
+    });
+  }
 }
 
 /* ✅ Boot presença (sempre) */
