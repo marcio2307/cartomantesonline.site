@@ -1,11 +1,3 @@
-<!-- =========================
-     ✅ leituras.html (COMPLETO / CORRIGIDO PARA GITHUB PAGES)
-     - Firebase OK (seu config) com proteção contra init duplicado
-     - Presença online (/devices) SEM depender de Notification
-     - Popup 1x no app instalado
-     - Comunhão com painel (/notifications) -> Service Worker LOCAL_NOTIFY
-     - ✅ SEM DEBUG VISÍVEL (nenhuma mensagem na tela)
-========================= -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -109,7 +101,7 @@ body{
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
 
-/* ✅ OPÇÃO A (AVISO) */
+/* ✅ AVISO */
 .hero .vip-aviso{
   display:flex;
   justify-content:center;
@@ -221,6 +213,7 @@ body{
     0 0 30px rgba(199,160,8,0.14),
     0 0 0 1px rgba(255,240,166,0.10) inset;
 }
+
 .card .img-wrap{ position:relative; z-index:2; padding:10px 10px 0; }
 .card .img-wrap img{
   width:100%;
@@ -381,12 +374,41 @@ body{
 #notifEnable{ flex:1; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
 #notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
 #notifOk{ flex:1; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
+
+/* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares) */
+fabapp-banner-footer,
+fabapp-banner-footer *{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  height:0 !important;
+  max-height:0 !important;
+  min-height:0 !important;
+  width:0 !important;
+  max-width:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
+#ads-container,
+[id="ads-container"],
+[id*="ads-container"],
+[class*="ads-container"],
+iframe[src*="fabapp-ads"],
+video[src*="fabapp-ads"],
+source[src*="fabapp-ads"]{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  height:0 !important;
+  max-height:0 !important;
+  overflow:hidden !important;
+  pointer-events:none !important;
+}
 </style>
 </head>
 
 <body>
 
-<!-- ✅ Carrossel (8s) -->
 <div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
   <div class="spacer">
     <img src="https://i.ibb.co/4Z8xDjcV/Chat-GPT-Image-12-01-2026-04-49-28.png" alt="" />
@@ -441,7 +463,49 @@ body{
 
 <script>
 /* ==========================================================
-   ✅ FIREBASE CONFIG (SEU)
+   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
+========================================================== */
+(function bloquearPropagandasInjetadas(){
+  const SELECTORS = [
+    'fabapp-banner-footer',
+    'fabapp-banner-footer video',
+    '#ads-container',
+    '[id="ads-container"]',
+    'iframe[src*="fabapp-ads"]',
+    'video[src*="fabapp-ads"]',
+    'source[src*="fabapp-ads"]',
+    'script[src*="fabapp-ads"]'
+  ];
+  function remover() {
+    for (const sel of SELECTORS) {
+      document.querySelectorAll(sel).forEach(el => { try{ el.remove(); }catch{} });
+    }
+  }
+  remover();
+  const obs = new MutationObserver(remover);
+  obs.observe(document.documentElement, { childList:true, subtree:true });
+
+  let tries = 0;
+  const t = setInterval(() => {
+    remover();
+    tries++;
+    if (tries >= 30) clearInterval(t);
+  }, 500);
+})();
+
+/* ✅ CARROSSEL (8s) */
+(function initBannerCarousel(){
+  const carousel = document.getElementById('bannerCarousel');
+  if(!carousel) return;
+  const slides = Array.from(carousel.querySelectorAll('.slide'));
+  if(slides.length <= 1) return;
+  let i = 0;
+  function show(index){ slides.forEach((s, k) => s.classList.toggle('active', k === index)); }
+  setInterval(() => { i = (i + 1) % slides.length; show(i); }, 8000);
+})();
+
+/* ==========================================================
+   ✅ FIREBASE CONFIG (SEU) + init seguro
 ========================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
@@ -457,7 +521,6 @@ let db = null;
 let fbOk = false;
 
 try{
-  // ✅ evita erro se outra página já inicializou Firebase (muito comum em sites multi-página)
   if (firebase.apps && firebase.apps.length) {
     firebase.app();
   } else {
@@ -466,29 +529,17 @@ try{
   db = firebase.database();
   fbOk = true;
 }catch(e){
-  console.warn("Firebase falhou ao inicializar:", e);
+  // sem debug na tela
 }
 
 /* ==========================================================
-   ✅ SERVICE WORKER (robusto no GitHub Pages)
+   ✅ SERVICE WORKER (precisa existir o arquivo service-worker.js)
 ========================================================== */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    // sw deve estar no mesmo diretório do arquivo para respeitar scope do GitHub Pages
     navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
   });
 }
-
-/* ✅ CARROSSEL (8s) */
-(function initBannerCarousel(){
-  const carousel = document.getElementById('bannerCarousel');
-  if(!carousel) return;
-  const slides = Array.from(carousel.querySelectorAll('.slide'));
-  if(slides.length <= 1) return;
-  let i = 0;
-  function show(index){ slides.forEach((s, k) => s.classList.toggle('active', k === index)); }
-  setInterval(() => { i = (i + 1) % slides.length; show(i); }, 8000);
-})();
 
 /* ===========================
    LISTA DE CONSULTORES
@@ -536,6 +587,7 @@ consultores.forEach((c, idx) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
 
+    // ⚠️ não usar clear() (pode apagar configs do seu site)
     localStorage.removeItem('consultorNome');
     localStorage.removeItem('consultorValor');
     localStorage.removeItem('consultorImagem');
@@ -544,7 +596,6 @@ consultores.forEach((c, idx) => {
     localStorage.setItem('consultorValor', String(c.valor));
     localStorage.setItem('consultorImagem', c.imagem);
 
-    // ✅ mantém seu link (absoluto)
     window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pacotes.html';
   });
 
@@ -554,7 +605,7 @@ consultores.forEach((c, idx) => {
 /* ===========================
    STATUS REALISTA
 =========================== */
-const chance = (p) => Math.random() < p;
+function chance(p){ return Math.random() < p; }
 const STORAGE_KEY = "status_realista_v3";
 let estado = null;
 
@@ -617,10 +668,7 @@ function initEstado(){
     estado = anterior;
     return;
   }
-  estado = {
-    dia,
-    consultores: consultores.map(() => ({ status: "online", holdUntil: 0 }))
-  };
+  estado = { dia, consultores: consultores.map(() => ({ status:"online", holdUntil:0 })) };
   aplicarStatusRealista(true);
   salvarEstado();
 }
@@ -681,15 +729,13 @@ function aplicarStatusRealista(forceAll=false){
 
   salvarEstado();
 }
-
 initEstado();
 aplicarStatusRealista(false);
 setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 
 /* ==========================================================
-   ✅ NOTIFICAÇÕES EM COMUNHÃO COM O PAINEL (FIREBASE)
-   ✅ PRESENÇA ONLINE SEM depender de Notification
+   ✅ COMUNHÃO COM PAINEL: /devices + /notifications
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -726,9 +772,7 @@ async function upsertDevice(){
 }
 async function pingLastSeen(){
   if(!db) return;
-  try{
-    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() });
-  }catch(e){}
+  try{ await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() }); }catch(e){}
 }
 
 async function enviarNotificacaoLocal(title, body, url){
@@ -747,18 +791,17 @@ async function enviarNotificacaoLocal(title, body, url){
   }
 }
 
-/* ✅ Boot presença (sempre) */
+/* ✅ presença sempre */
 (async function bootPresence(){
   if(!fbOk) return;
   const ok = await upsertDevice();
   if(!ok) return;
-
   pingLastSeen();
   setInterval(pingLastSeen, ONLINE_PING_MS);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
 })();
 
-/* ✅ Popup 1x no app instalado (ativa permissão) */
+/* ✅ popup 1x no app instalado */
 (function initNotifPopup(){
   const KEY_DONE  = "notif_activated_done_v1";
   const KEY_SHOWN = "notif_popup_shown_v1";
@@ -771,17 +814,14 @@ async function enviarNotificacaoLocal(title, body, url){
   if(!wrap) return;
   if(!("Notification" in window)) return;
 
-  // só no app instalado
   if(!isStandalone()) return;
 
-  // se já ativou, nunca mais mostra
   if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
     localStorage.setItem(KEY_DONE,"1");
     wrap.style.display = "none";
     return;
   }
 
-  // aparece só 1 vez
   if(localStorage.getItem(KEY_SHOWN) === "1"){
     wrap.style.display = "none";
     return;
@@ -824,7 +864,7 @@ async function enviarNotificacaoLocal(title, body, url){
   };
 })();
 
-/* ✅ escuta painel */
+/* ✅ escuta painel (/notifications) */
 (function listenPanelNotifications(){
   if(!db) return;
   if(!("Notification" in window)) return;
