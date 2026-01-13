@@ -1,18 +1,37 @@
 /* ==========================================================
    CARTOMANTES ONLINE – SERVICE WORKER (CACHE + PUSH)
    GitHub Pages / PWA
+   ✅ Ajustado p/ GitHub Pages (scope /repo/) + ícones absolutos
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.1"; // ✅ aumente p/ forçar update
+const CACHE_VERSION = "v1.1.2"; // ✅ aumente p/ forçar update
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
+/* ✅ Detecta base do GitHub Pages automaticamente:
+   - em github.io: /NOME-REPO/
+   - em domínio próprio: /
+*/
+function getBasePath() {
+  const host = self.location.hostname;
+  const parts = self.location.pathname.split("/").filter(Boolean);
+
+  // github.io -> "/repo/"
+  if (host.endsWith("github.io") && parts.length > 0) {
+    return `/${parts[0]}/`;
+  }
+  return "/";
+}
+
+const BASE_PATH = getBasePath();
+
+/* ✅ Monta URLs absolutas (evita falhas em Android e cache estranho) */
 const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./leituras.html",
-  "./manifest.json",
-  "./logo.png",
-  "./service-worker.js"
+  `${BASE_PATH}`,
+  `${BASE_PATH}index.html`,
+  `${BASE_PATH}leituras.html`,
+  `${BASE_PATH}manifest.json`,
+  `${BASE_PATH}logo.png`,
+  `${BASE_PATH}service-worker.js`
 ];
 
 /* ===========================
@@ -20,7 +39,12 @@ const APP_SHELL = [
 =========================== */
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // ✅ tenta cachear tudo; se algo falhar, não derruba o install
+      for (const url of APP_SHELL) {
+        try { await cache.add(url); } catch {}
+      }
+    })
   );
   self.skipWaiting();
 });
@@ -51,13 +75,13 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
-  // ✅ não cacheia cross-origin (ex.: Render)
+  // ✅ não cacheia cross-origin (ex.: https://envio-7.onrender.com)
   if (url.origin !== self.location.origin) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // Navegação (HTML)
+  // Navegação (HTML) -> network-first com fallback
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -67,13 +91,13 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() =>
-          caches.match(req).then((r) => r || caches.match("./leituras.html"))
+          caches.match(req).then((r) => r || caches.match(`${BASE_PATH}leituras.html`))
         )
     );
     return;
   }
 
-  // Cache-first para arquivos do seu site
+  // Cache-first para assets do site
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -91,9 +115,8 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
-   🔔 PUSH NOTIFICATIONS (compatível)
+   🔔 PUSH NOTIFICATIONS (compatível / Android)
 ========================================================== */
-
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -109,12 +132,12 @@ self.addEventListener("push", (event) => {
   const title = data.title || "Cartomantes Online";
   const body = data.body || "Você tem uma nova notificação.";
 
-  // ✅ abre sempre em URL do seu GitHub Pages (mesma origem do SW)
-  const fallbackUrl = `${self.location.origin}/cartomantesonline.site/leituras.html`;
-  const targetUrl = data.url || fallbackUrl;
+  // ✅ sempre abre no seu site (mesma origem do SW)
+  const fallbackUrl = `${self.location.origin}${BASE_PATH}leituras.html`;
+  const targetUrl = (data.url && typeof data.url === "string") ? data.url : fallbackUrl;
 
-  // ✅ ÍCONE/BADGE ABSOLUTO (resolve “não aparece nada” em alguns Android)
-  const iconUrl = `${self.location.origin}/cartomantesonline.site/logo.png`;
+  // ✅ ícone/badge ABSOLUTO (corrige “não aparece” em alguns Android)
+  const iconUrl = `${self.location.origin}${BASE_PATH}logo.png`;
 
   const options = {
     body,
@@ -124,7 +147,7 @@ self.addEventListener("push", (event) => {
     vibrate: [120, 60, 120],
     tag: "cartomantes-online",
     renotify: true,
-    // ✅ melhor compatibilidade:
+    // ✅ melhor compatibilidade (evita travar notificação)
     requireInteraction: false
   };
 
@@ -136,11 +159,11 @@ self.addEventListener("notificationclick", (event) => {
 
   const targetUrl =
     event.notification?.data?.url ||
-    `${self.location.origin}/cartomantesonline.site/leituras.html`;
+    `${self.location.origin}${BASE_PATH}leituras.html`;
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      // ✅ foca qualquer aba do mesmo site, mesmo que URL tenha parâmetros
+      // ✅ foca uma aba do mesmo site, e se não tiver, abre a URL
       for (const client of list) {
         if (client.url && client.url.startsWith(self.location.origin)) {
           return client.focus();
