@@ -3,7 +3,7 @@
    GitHub Pages / PWA
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.0"; // ✅ aumente p/ forçar update
+const CACHE_VERSION = "v1.1.1"; // ✅ aumente p/ forçar update
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -51,7 +51,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
-  // ✅ IMPORTANTE: não cacheia cross-origin (ex.: https://envio-6.onrender.com)
+  // ✅ não cacheia cross-origin (ex.: Render)
   if (url.origin !== self.location.origin) {
     event.respondWith(fetch(req));
     return;
@@ -91,8 +91,9 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
-   🔔 PUSH NOTIFICATIONS
+   🔔 PUSH NOTIFICATIONS (compatível)
 ========================================================== */
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -107,19 +108,24 @@ self.addEventListener("push", (event) => {
 
   const title = data.title || "Cartomantes Online";
   const body = data.body || "Você tem uma nova notificação.";
-  const url =
-    data.url ||
-    "https://marcio2307.github.io/cartomantesonline.site/leituras.html";
+
+  // ✅ abre sempre em URL do seu GitHub Pages (mesma origem do SW)
+  const fallbackUrl = `${self.location.origin}/cartomantesonline.site/leituras.html`;
+  const targetUrl = data.url || fallbackUrl;
+
+  // ✅ ÍCONE/BADGE ABSOLUTO (resolve “não aparece nada” em alguns Android)
+  const iconUrl = `${self.location.origin}/cartomantesonline.site/logo.png`;
 
   const options = {
     body,
-    data: { url },
-    icon: "./logo.png",
-    badge: "./logo.png",
+    data: { url: targetUrl },
+    icon: iconUrl,
+    badge: iconUrl,
     vibrate: [120, 60, 120],
     tag: "cartomantes-online",
     renotify: true,
-    requireInteraction: true
+    // ✅ melhor compatibilidade:
+    requireInteraction: false
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -128,17 +134,19 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const url = event.notification?.data?.url;
-  const fallback = "https://marcio2307.github.io/cartomantesonline.site/leituras.html";
-  const targetUrl = url || fallback;
+  const targetUrl =
+    event.notification?.data?.url ||
+    `${self.location.origin}/cartomantesonline.site/leituras.html`;
 
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if (client.url === targetUrl && "focus" in client) return client.focus();
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      // ✅ foca qualquer aba do mesmo site, mesmo que URL tenha parâmetros
+      for (const client of list) {
+        if (client.url && client.url.startsWith(self.location.origin)) {
+          return client.focus();
         }
-        if (clients.openWindow) return clients.openWindow(targetUrl);
-      })
+      }
+      return clients.openWindow(targetUrl);
+    })
   );
 });
