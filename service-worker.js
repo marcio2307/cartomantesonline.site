@@ -2,9 +2,10 @@
    CARTOMANTES ONLINE – SERVICE WORKER (CACHE + NOTIF)
    GitHub Pages / PWA
    ✅ Em comunhão com painel + Firebase (via postMessage LOCAL_NOTIFY)
+   ✅ Ajustado para start_url com ?pwa=true
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.4"; // 🔴 aumente sempre que trocar arquivos
+const CACHE_VERSION = "v1.1.5"; // 🔴 aumente sempre que trocar arquivos
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 /* ✅ ajuste aqui se você criar novas páginas */
@@ -41,7 +42,15 @@ self.addEventListener("activate", (event) => {
           .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
           .map((k) => caches.delete(k))
       );
+
+      // ✅ Garante que versões antigas não fiquem presas
       await self.clients.claim();
+
+      // ✅ opcional: força atualizar páginas abertas
+      const allClients = await self.clients.matchAll({ includeUncontrolled: true });
+      allClients.forEach((c) => {
+        try { c.postMessage({ type: "SW_UPDATED", version: CACHE_VERSION }); } catch {}
+      });
     })()
   );
 });
@@ -49,6 +58,8 @@ self.addEventListener("activate", (event) => {
 /* ===========================
    FETCH (CACHE)
    ✅ NÃO CACHEIA EXTERNOS
+   ✅ Network-first para HTML
+   ✅ Cache-first para assets
 =========================== */
 self.addEventListener("fetch", (event) => {
   const req = event.request;
@@ -62,8 +73,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // ✅ Navegação HTML (network-first com fallback)
-  if (req.mode === "navigate") {
+  // ✅ HTML (network-first, fallback cache)
+  const isHTML =
+    req.mode === "navigate" ||
+    (req.headers.get("accept") || "").includes("text/html");
+
+  if (isHTML) {
     event.respondWith(
       fetch(req)
         .then((res) => {
@@ -71,14 +86,18 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() =>
-          caches.match(req).then((r) => r || caches.match("./leituras.html"))
-        )
+        .catch(async () => {
+          const cached = await caches.match(req);
+          if (cached) return cached;
+
+          // ✅ fallback sempre para leituras (com pwa=true igual ao manifest)
+          return caches.match("./leituras.html") || caches.match("./");
+        })
     );
     return;
   }
 
-  // ✅ Cache-first para assets internos
+  // ✅ Assets internos (cache-first)
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -105,14 +124,18 @@ self.addEventListener("message", (event) => {
   if (data.type !== "LOCAL_NOTIFY") return;
 
   const title = data.title || "Cartomantes Online";
+
+  // ✅ tag única por mensagem (evita “sumir” se mandar várias diferentes)
+  const tag = data.tag || `cartomantes-${Date.now()}`;
+
   const options = {
     body: data.body || "Você tem uma nova atualização.",
     icon: "./logo.png",
     badge: "./logo.png",
-    tag: data.tag || "cartomantes-local", // evita spam de várias iguais
+    tag,
     renotify: true,
     data: {
-      url: data.url || "./leituras.html"
+      url: data.url || "./leituras.html?pwa=true"
     }
   };
 
@@ -137,7 +160,7 @@ self.addEventListener("push", (event) => {
     icon: "./logo.png",
     badge: "./logo.png",
     data: {
-      url: payload.url || "./leituras.html"
+      url: payload.url || "./leituras.html?pwa=true"
     }
   };
 
@@ -150,7 +173,7 @@ self.addEventListener("push", (event) => {
 =========================== */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || "./leituras.html";
+  const url = (event.notification.data && event.notification.data.url) || "./leituras.html?pwa=true";
 
   event.waitUntil(
     (async () => {
@@ -159,9 +182,9 @@ self.addEventListener("notificationclick", (event) => {
         includeUncontrolled: true
       });
 
-      // tenta usar aba já aberta do seu site
+      // ✅ tenta usar aba já aberta do seu site
       for (const client of allClients) {
-        try{
+        try {
           const cUrl = new URL(client.url);
           const targetUrl = new URL(url, self.location.origin);
 
@@ -171,10 +194,10 @@ self.addEventListener("notificationclick", (event) => {
             try { await client.navigate(targetUrl.href); } catch {}
             return;
           }
-        }catch{}
+        } catch {}
       }
 
-      // senão abre nova aba/janela
+      // ✅ senão abre nova aba/janela
       if (clients.openWindow) {
         return clients.openWindow(url);
       }
