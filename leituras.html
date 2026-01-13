@@ -139,7 +139,6 @@ body{
     0 0 0 1px rgba(255,240,166,0.10) inset;
 
   text-transform:uppercase;
-  /* melhora o toque no celular */
   -webkit-tap-highlight-color: transparent;
 }
 .hero .vip-aviso a:hover{ filter:brightness(1.05); }
@@ -388,39 +387,6 @@ body{
     0 0 0 1px rgba(246,226,122,0.10) inset,
     0 0 22px rgba(199,160,8,0.10);
 }
-
-/* ==========================================================
-   ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
-========================================================== */
-fabapp-banner-footer,
-fabapp-banner-footer *{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  min-height:0 !important;
-  width:0 !important;
-  max-width:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
-}
-
-#ads-container,
-[id="ads-container"],
-[id*="ads-container"],
-[class*="ads-container"],
-iframe[src*="fabapp-ads"],
-video[src*="fabapp-ads"],
-source[src*="fabapp-ads"]{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
-}
 </style>
 </head>
 
@@ -468,41 +434,6 @@ source[src*="fabapp-ads"]{
 </div>
 
 <script>
-/* ==========================================================
-   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
-========================================================== */
-(function bloquearPropagandasInjetadas(){
-  const SELECTORS = [
-    'fabapp-banner-footer',
-    'fabapp-banner-footer video',
-    '#ads-container',
-    '[id="ads-container"]',
-    'iframe[src*="fabapp-ads"]',
-    'video[src*="fabapp-ads"]',
-    'source[src*="fabapp-ads"]',
-    'script[src*="fabapp-ads"]'
-  ];
-
-  function remover() {
-    for (const sel of SELECTORS) {
-      document.querySelectorAll(sel).forEach(el => {
-        try { el.remove(); } catch {}
-      });
-    }
-  }
-
-  remover();
-  const obs = new MutationObserver(() => remover());
-  obs.observe(document.documentElement, { childList:true, subtree:true });
-
-  let tries = 0;
-  const t = setInterval(() => {
-    remover();
-    tries++;
-    if (tries >= 30) clearInterval(t);
-  }, 500);
-})();
-
 /* ===========================
    ✅ CARROSSEL (8s)
 =========================== */
@@ -527,11 +458,8 @@ source[src*="fabapp-ads"]{
    LISTA DE CONSULTORES
 =========================== */
 const consultores = [
-  /* ✅ P.Márcio agora R$ 2,00 por minuto */
   { nome: "P.Márcio", valor: 2, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
-
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Dalila", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/11//0b284c7b42-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Adria", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/07/25//d6152621b2-1-_3.webp", estrelas: 5, novo: true },
@@ -539,7 +467,6 @@ const consultores = [
   { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
   { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
   { nome: "M.Padilha", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2025/01/27//699974ac8a-1-.jpg", estrelas: 4 },
@@ -691,12 +618,11 @@ function aplicarStatusRealista(forceAll=false){
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  /* ✅ NOVO: das 02:00 às 10:00 TODOS INDISPONÍVEIS */
   if(todosIndisponiveisAgora()){
     cards.forEach((card, i) => {
       const st = estado.consultores[i];
       st.status = "indisp";
-      st.holdUntil = now + 60 * 1000; // mantém “vivo” e atualiza sempre
+      st.holdUntil = now + 60 * 1000;
       setStatusDOM(card, "indisp");
     });
     salvarEstado();
@@ -747,8 +673,107 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) aplicarStatusRealista(false);
 });
+
+/* ==========================================================
+   ✅ NOTIFICAÇÕES LOCAIS (SEM PUSH REAL)
+   - Pede permissão com clique
+   - Escuta o painel (BroadcastChannel/localStorage)
+   - Dispara a notificação via Service Worker (LOCAL_NOTIFY)
+========================================================== */
+function isStandalone(){
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+}
+
+async function pedirPermissaoNotificacao(){
+  if(!("Notification" in window)) return { ok:false, msg:"Seu navegador não suporta notificações." };
+  const perm = await Notification.requestPermission();
+  return { ok: perm === "granted", msg: "Permissão: " + perm };
+}
+
+async function enviarNotificacaoLocal(title, body, url){
+  if(!("serviceWorker" in navigator)) return;
+  if(Notification.permission !== "granted") return;
+
+  const reg = await navigator.serviceWorker.ready;
+  reg.active?.postMessage({
+    type: "LOCAL_NOTIFY",
+    title: title || "Cartomantes Online",
+    body: body || "Nova atualização.",
+    url: url || "./leituras.html"
+  });
+}
+
+/* ✅ Banner de ativação (aparece só no app instalado) */
+(function bannerNotificacoes(){
+  if(!isStandalone()) return;
+
+  // não ficar aparecendo sempre se já decidiu
+  if(localStorage.getItem("push_banner_visto") === "1") return;
+
+  const bar = document.createElement("div");
+  bar.style.position="fixed";
+  bar.style.left="12px";
+  bar.style.right="12px";
+  bar.style.bottom="12px";
+  bar.style.zIndex="999999";
+  bar.style.border="1px solid rgba(199,160,8,.55)";
+  bar.style.borderRadius="16px";
+  bar.style.padding="14px";
+  bar.style.background="rgba(0,0,0,.88)";
+  bar.style.color="#fff";
+  bar.style.fontFamily="system-ui,Arial";
+  bar.style.boxShadow="0 20px 50px rgba(0,0,0,.55)";
+  bar.innerHTML = `
+    <div style="font-weight:900;margin-bottom:6px">Ativar notificações?</div>
+    <div style="opacity:.9;font-size:13px;line-height:1.4;margin-bottom:10px">
+      Receba avisos enquanto o app estiver aberto.
+    </div>
+    <div style="display:flex;gap:10px">
+      <button id="pushYes" style="flex:1;height:48px;border:0;border-radius:14px;font-weight:900;cursor:pointer;background:linear-gradient(180deg,#2ecc71,#1f9b50);color:#fff">ATIVAR</button>
+      <button id="pushNo" style="width:120px;height:48px;border:0;border-radius:14px;font-weight:900;cursor:pointer;background:rgba(255,255,255,.10);color:#fff">AGORA NÃO</button>
+    </div>
+  `;
+  document.body.appendChild(bar);
+
+  document.getElementById("pushNo").onclick = () => {
+    localStorage.setItem("push_banner_visto","1");
+    bar.remove();
+  };
+
+  document.getElementById("pushYes").onclick = async () => {
+    const r = await pedirPermissaoNotificacao();
+    if(r.ok){
+      localStorage.setItem("push_banner_visto","1");
+      bar.remove();
+      enviarNotificacaoLocal("Notificações ativadas ✅", "Agora você pode receber avisos do painel.", "./leituras.html");
+    }else{
+      alert(r.msg);
+    }
+  };
+})();
+
+/* ✅ Escuta o painel via BroadcastChannel */
+const bc = ("BroadcastChannel" in window) ? new BroadcastChannel("cartomantes_notifs") : null;
+if(bc){
+  bc.onmessage = (ev) => {
+    const d = ev.data || {};
+    if(d.type === "SEND"){
+      enviarNotificacaoLocal(d.title, d.body, d.url);
+    }
+  };
+}
+
+/* ✅ Fallback: escuta localStorage (outro navegador/aba) */
+window.addEventListener("storage", (e) => {
+  if(e.key !== "cartomantes_notif_last") return;
+  try{
+    const d = JSON.parse(e.newValue || "{}");
+    if(d && d.type === "SEND"){
+      enviarNotificacaoLocal(d.title, d.body, d.url);
+    }
+  }catch{}
+});
 </script>
 
 </body>
 </html>
-
