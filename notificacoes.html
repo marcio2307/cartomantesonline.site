@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ativar Notificações – Cartomantes Online</title>
 
+  <!-- PWA -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,7 +16,7 @@
     .card{background:#151515;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:14px}
     h1{margin:0 0 10px;font-size:20px}
     .small{font-size:12px;opacity:.85;line-height:1.35;white-space:pre-wrap}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New", monospace}
     button{width:100%;border-radius:12px;border:none;background:#2ecc71;color:#000;padding:14px;font-weight:900;cursor:pointer;margin-top:10px}
     button.secondary{background:#3b82f6;color:#fff}
     button.ghost{background:#222;border:1px solid #333;color:#fff}
@@ -42,6 +43,9 @@
     <div class="small" style="margin-top:8px">
       Permissão atual: <span class="mono" id="perm"></span>
     </div>
+    <div class="small" style="margin-top:6px">
+      SW scope detectado: <span class="mono" id="scopeInfo"></span>
+    </div>
   </div>
 
   <div class="card">
@@ -52,12 +56,13 @@
     <input id="token" placeholder="Se você tiver ADMIN_TOKEN no Render, coloque aqui (opcional)">
 
     <div class="row">
-      <button id="btnAtivar" type="button">ATIVAR E CADASTRAR</button>
-      <button id="btnReforcar" class="secondary" type="button">RECADASTRAR (FORÇAR)</button>
+      <button id="btnAtivar">ATIVAR E CADASTRAR</button>
+      <button id="btnReforcar" class="secondary">RECADASTRAR (FORÇAR)</button>
     </div>
 
-    <button id="btnTestar" class="warn" type="button">🧪 TESTAR ENVIO AGORA (POST /send)</button>
-    <button id="btnStats" class="ghost" type="button">VER /stats</button>
+    <button id="btnTestar" class="warn">🧪 TESTAR ENVIO AGORA (POST /send)</button>
+    <button id="btnStats" class="ghost">VER /stats</button>
+    <button id="btnDiag" class="ghost">VER /diag</button>
 
     <div id="status" class="small" style="margin-top:10px;"></div>
     <pre id="log" class="small mono"></pre>
@@ -65,8 +70,8 @@
 
   <div class="card">
     <div class="small">
-      ✅ Se o teste mostrar <b>success: 0</b>, olhe em <b>results</b> o <b>statusCode</b> e <b>error</b> — ali está o motivo real.<br>
-      ✅ Se aparecer <b>401</b>, seu server exige token (ADMIN_TOKEN).
+      ✅ Se o teste mostrar <b>success: 0</b>, olhe em <b>results</b> o <b>statusCode</b> e <b>error</b> — isso diz por que não chega.<br>
+      ✅ Se aparecer “VAPID public key must be on the P-256 curve”, você ainda está com inscrições antigas. Use <b>RECADASTRAR (FORÇAR)</b> e teste de novo.
     </div>
   </div>
 
@@ -79,17 +84,36 @@ const tokenEl = $("token");
 const statusEl = $("status");
 const logEl = $("log");
 const permEl = $("perm");
+const scopeInfoEl = $("scopeInfo");
 
 permEl.textContent = (window.Notification ? Notification.permission : "indisponível");
 
-function base(){ return serverEl.value.trim().replace(/\/+$/,""); }
+function base(){
+  return serverEl.value.trim().replace(/\/+$/,"");
+}
 
-function ok(msg){ statusEl.className="small ok"; statusEl.textContent=msg; }
-function err(msg){ statusEl.className="small err"; statusEl.textContent=msg; }
+function ok(msg){
+  statusEl.className="small ok";
+  statusEl.textContent=msg;
+}
+function err(msg){
+  statusEl.className="small err";
+  statusEl.textContent=msg;
+}
 function log(v){
   try{ logEl.textContent = JSON.stringify(v,null,2); }
   catch{ logEl.textContent = String(v); }
 }
+
+// ✅ GitHub Pages precisa scope fixo: "/NOME-REPO/"
+function detectScopeBase(){
+  const parts = location.pathname.split("/").filter(Boolean);
+  if (location.hostname.endsWith("github.io") && parts.length > 0) return `/${parts[0]}/`;
+  return "/";
+}
+const SCOPE_BASE = detectScopeBase();
+const SW_URL = `${SCOPE_BASE}service-worker.js`;
+scopeInfoEl.textContent = `scope=${SCOPE_BASE} sw=${SW_URL}`;
 
 function urlBase64ToUint8Array(base64){
   const pad="=".repeat((4-base64.length%4)%4);
@@ -107,23 +131,26 @@ async function fetchJson(url,opt){
 
 async function registerSW(){
   if(!("serviceWorker"in navigator)) throw new Error("Service Worker não suportado");
-  const reg=await navigator.serviceWorker.register("./service-worker.js",{scope:"./"});
+  if(!isSecureContext) throw new Error("Push só funciona em HTTPS.");
+  const reg=await navigator.serviceWorker.register(SW_URL,{ scope:SCOPE_BASE });
   await navigator.serviceWorker.ready;
+  try{ await reg.update(); }catch{}
   return reg;
 }
 
 async function getVapid(){
-  const {r,j,t}=await fetchJson(base()+"/vapid-public-key",{cache:"no-store"});
+  const {r,j,t}=await fetchJson(base()+"/vapid-public-key?t="+Date.now(),{cache:"no-store"});
   log(j||t);
   if(!r.ok||!j?.publicKey) throw new Error("Falha ao obter VAPID");
   return j.publicKey;
 }
 
 async function saveSub(sub){
+  const subJson = (typeof sub?.toJSON === "function") ? sub.toJSON() : sub;
   const {r,j,t}=await fetchJson(base()+"/save-subscription",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(sub)
+    body:JSON.stringify(subJson)
   });
   log(j||t);
   if(!r.ok) throw new Error("Erro ao salvar subscription");
@@ -140,6 +167,8 @@ async function ensureSub(force=false){
   const vapid=await getVapid();
 
   let sub=await reg.pushManager.getSubscription();
+
+  // ✅ FORÇAR: descadastra e cadastra de novo (resolve troca de VAPID)
   if(force && sub){
     try{ await sub.unsubscribe(); }catch{}
     sub=null;
@@ -193,7 +222,7 @@ $("btnAtivar").onclick=async()=>{
 };
 
 $("btnReforcar").onclick=async()=>{
-  ok("Reforçando cadastro...");
+  ok("Reforçando cadastro (FORÇAR)...");
   try{
     const r=await ensureSub(true);
     ok("✅ Reinscrito! Total: "+r.saved.total);
@@ -203,26 +232,37 @@ $("btnReforcar").onclick=async()=>{
 $("btnStats").onclick=async()=>{
   ok("Consultando stats...");
   try{
-    const {r,j,t}=await fetchJson(base()+"/stats?t=" + Date.now(),{cache:"no-store"});
+    const {r,j,t}=await fetchJson(base()+"/stats?t="+Date.now(),{cache:"no-store"});
     log(j||t);
     if(!r.ok) throw new Error("Erro /stats");
     ok("Total no servidor: "+j.total);
   }catch(e){ err(e.message||e); }
 };
 
+$("btnDiag").onclick=async()=>{
+  ok("Consultando diag...");
+  try{
+    const {r,j,t}=await fetchJson(base()+"/diag?t="+Date.now(),{cache:"no-store"});
+    log(j||t);
+    if(!r.ok) throw new Error("Erro /diag");
+    ok("✅ /diag OK (veja o log)");
+  }catch(e){ err(e.message||e); }
+};
+
 $("btnTestar").onclick=async()=>{
   ok("Preparando teste...");
   try{
+    // garante cadastrado ANTES do teste
     await ensureSub(false);
     ok("Enviando teste via /send...");
     const resp = await sendTest();
-    ok(`✅ Enviado! success: ${resp.success} | fail: ${resp.fail} | alive: ${resp.alive}`);
+    ok(`✅ Enviado! success: ${resp.success} | fail: ${resp.fail} | removed: ${resp.removed} | alive: ${resp.alive}`);
   }catch(e){
     err("❌ Falha no teste:\n" + (e?.message || e));
   }
 };
 
-ok("Pronto. Primeiro clique em ATIVAR e depois em TESTAR.");
+ok("Pronto. Clique em RECADASTRAR (FORÇAR) e depois em TESTAR.");
 </script>
 </body>
 </html>
