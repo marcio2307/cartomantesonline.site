@@ -3,285 +3,209 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ativar Notificações – Cartomantes Online</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-
+  <title>Painel de Notificações - Cartomantes Online</title>
   <style>
-    body{
-      font-family:Arial,Helvetica,sans-serif;
-      background:#0b0b0b;
-      color:#fff;
-      margin:0;
-      padding:18px
-    }
-    .wrap{max-width:820px;margin:0 auto}
-    .card{
-      background:#151515;
-      border:1px solid #2a2a2a;
-      border-radius:14px;
-      padding:16px;
-      margin-bottom:14px
-    }
-    h1{margin:0 0 10px;font-size:20px}
-    .small{font-size:12px;opacity:.85;line-height:1.35}
-    .mono{
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-      "Liberation Mono","Courier New", monospace
-    }
-    button{
-      width:100%;
-      border-radius:12px;
-      border:none;
-      background:#2ecc71;
-      color:#000;
-      padding:14px;
-      font-weight:900;
-      cursor:pointer;
-      margin-top:10px
-    }
-    button.secondary{background:#3b82f6;color:#fff}
-    button.ghost{
-      background:#222;
-      border:1px solid #333;
-      color:#fff
-    }
-    button.warn{
-      background:#f59e0b;
-      color:#111
-    }
-    button:disabled{opacity:.6;cursor:not-allowed}
+    body{font-family:Arial,Helvetica,sans-serif;background:#0b0b0b;color:#fff;margin:0;padding:18px}
+    .wrap{max-width:780px;margin:0 auto}
+    .card{background:#151515;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:14px}
+    h1{margin:0 0 10px;font-size:22px}
+    label{display:block;margin:10px 0 6px;font-size:13px;opacity:.9}
+    input,textarea,button{width:100%;box-sizing:border-box;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#fff;padding:12px}
+    textarea{min-height:90px;resize:vertical}
+    button{cursor:pointer;border:none;background:#2ecc71;font-weight:800;margin-top:12px}
+    button.secondary{background:#3b82f6}
+    button.ghost{background:#222;border:1px solid #333}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .small{font-size:12px;opacity:.8;line-height:1.35;white-space:pre-wrap}
     .ok{color:#2ecc71}
     .err{color:#ff6b6b;white-space:pre-wrap}
-    pre{
-      background:#0f0f0f;
-      border:1px solid #2a2a2a;
-      border-radius:12px;
-      padding:12px;
-      white-space:pre-wrap;
-      word-break:break-word;
-      margin:10px 0 0
-    }
-    input{
-      width:100%;
-      border-radius:10px;
-      border:1px solid #333;
-      background:#0f0f0f;
-      color:#fff;
-      padding:12px
-    }
-    label{display:block;margin:10px 0 6px;font-size:13px;opacity:.9}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    pre{margin:10px 0 0;background:#0f0f0f;border:1px solid #2a2a2a;border-radius:12px;padding:12px;white-space:pre-wrap;word-break:break-word}
   </style>
 </head>
-
 <body>
-<div class="wrap">
-
-  <div class="card">
-    <h1>🔔 Ativar notificações</h1>
-    <div class="small">
-      Este arquivo cadastra seu celular no servidor de push.<br>
-      Depois disso, as notificações chegam mesmo com o app fechado.
+  <div class="wrap">
+    <div class="card">
+      <h1>📣 Painel de envio de notificações</h1>
+      <div class="small">Servidor: <span class="mono" id="serverUrl"></span></div>
+      <div class="small">Dica: primeiro ative as notificações no arquivo <b>notificacoes.html</b> (no celular compatível com Push).</div>
     </div>
-    <div class="small" style="margin-top:8px">
-      Permissão atual: <span class="mono" id="perm"></span>
+
+    <div class="card">
+      <label>URL do servidor (Render)</label>
+      <input id="apiBase" value="https://envio-7.onrender.com" />
+
+      <label>Token (opcional)</label>
+      <input id="token" placeholder="Se você tiver ADMIN_TOKEN no Render, coloque aqui (opcional)" />
+
+      <div class="row">
+        <div>
+          <label>Título</label>
+          <input id="title" placeholder="Cartomantes Online" />
+        </div>
+        <div>
+          <label>Link para abrir</label>
+          <input id="url" value="https://marcio2307.github.io/cartomantesonline.site/leituras.html" />
+        </div>
+      </div>
+
+      <label>Descrição / mensagem</label>
+      <textarea id="body" placeholder="Digite a mensagem da notificação..."></textarea>
+
+      <div class="row">
+        <button id="statsBtn" class="ghost" type="button">VER /stats</button>
+        <button id="sendBtn" type="button">ENVIAR NOTIFICAÇÃO</button>
+      </div>
+
+      <div id="result" class="small" style="margin-top:12px;"></div>
+      <pre id="log" class="small mono"></pre>
+    </div>
+
+    <div class="card">
+      <div class="small">
+        ✅ Se der erro 401, é porque seu <b>server.js</b> exige <b>ADMIN_TOKEN</b>.<br>
+        • Se você usa token, preencha o campo.<br>
+        • Se quiser “sem senha”, deixe ADMIN_TOKEN vazio no Render.<br><br>
+        ⚠️ Push funciona de verdade principalmente em <b>Android (Chrome)</b> com o site instalado (PWA).
+      </div>
     </div>
   </div>
-
-  <div class="card">
-    <label>Servidor (Render)</label>
-    <input id="server" value="https://envio-7.onrender.com">
-
-    <label>Token (opcional)</label>
-    <input id="token" placeholder="Se você tiver ADMIN_TOKEN no Render, coloque aqui (opcional)">
-
-    <div class="row">
-      <button id="btnAtivar">ATIVAR E CADASTRAR</button>
-      <button id="btnReforcar" class="secondary">RECADASTRAR (FORÇAR)</button>
-    </div>
-
-    <button id="btnTestar" class="warn">🧪 TESTAR ENVIO AGORA (POST /send)</button>
-
-    <button id="btnStats" class="ghost">VER /stats</button>
-
-    <div id="status" class="small" style="margin-top:10px;"></div>
-    <pre id="log" class="small mono"></pre>
-  </div>
-
-  <div class="card">
-    <div class="small">
-      ✅ Se o teste mostrar <b>success: 0</b>, olhe em <b>results</b> o <b>statusCode</b> e <b>error</b> — é isso que diz por que não chega.<br>
-      ✅ Se aparecer <b>401</b>, seu server está exigindo token (ADMIN_TOKEN).
-    </div>
-  </div>
-
-</div>
 
 <script>
-const $ = id => document.getElementById(id);
-const serverEl = $("server");
-const tokenEl = $("token");
-const statusEl = $("status");
-const logEl = $("log");
-const permEl = $("perm");
+  const $ = (id) => document.getElementById(id);
+  const serverUrlEl = $("serverUrl");
+  const apiBaseEl = $("apiBase");
+  const tokenEl = $("token");
+  const titleEl = $("title");
+  const bodyEl = $("body");
+  const urlEl = $("url");
+  const sendBtn = $("sendBtn");
+  const statsBtn = $("statsBtn");
+  const resultEl = $("result");
+  const logEl = $("log");
 
-permEl.textContent = (window.Notification ? Notification.permission : "indisponível");
-
-function base(){
-  return serverEl.value.trim().replace(/\/+$/,"");
-}
-
-function ok(msg){
-  statusEl.className="small ok";
-  statusEl.textContent=msg;
-}
-function err(msg){
-  statusEl.className="small err";
-  statusEl.textContent=msg;
-}
-function log(v){
-  try{ logEl.textContent = JSON.stringify(v,null,2); }
-  catch{ logEl.textContent = String(v); }
-}
-
-function urlBase64ToUint8Array(base64){
-  const pad="=".repeat((4-base64.length%4)%4);
-  const b=(base64+pad).replace(/-/g,"+").replace(/_/g,"/");
-  const raw=atob(b);
-  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
-}
-
-async function fetchJson(url,opt){
-  const r=await fetch(url,opt);
-  const t=await r.text();
-  let j=null; try{j=JSON.parse(t)}catch{}
-  return {r,t,j};
-}
-
-async function registerSW(){
-  if(!("serviceWorker"in navigator))
-    throw new Error("Service Worker não suportado");
-  const reg=await navigator.serviceWorker.register("./service-worker.js",{scope:"./"});
-  await navigator.serviceWorker.ready;
-  return reg;
-}
-
-async function getVapid(){
-  const {r,j,t}=await fetchJson(base()+"/vapid-public-key",{cache:"no-store"});
-  log(j||t);
-  if(!r.ok||!j?.publicKey) throw new Error("Falha ao obter VAPID");
-  return j.publicKey;
-}
-
-async function saveSub(sub){
-  const {r,j,t}=await fetchJson(base()+"/save-subscription",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(sub)
-  });
-  log(j||t);
-  if(!r.ok) throw new Error("Erro ao salvar subscription");
-  return j;
-}
-
-async function ensureSub(force=false){
-  if(!("Notification" in window)) throw new Error("Notificações não suportadas neste aparelho/navegador.");
-  const perm=await Notification.requestPermission();
-  permEl.textContent = perm;
-  if(perm!=="granted") throw new Error("Permissão negada");
-
-  const reg=await registerSW();
-  const vapid=await getVapid();
-
-  let sub=await reg.pushManager.getSubscription();
-  if(force && sub){
-    try{ await sub.unsubscribe(); }catch{}
-    sub=null;
+  function apiBase(){
+    return apiBaseEl.value.trim().replace(/\/+$/,"");
   }
 
-  if(!sub){
-    sub=await reg.pushManager.subscribe({
-      userVisibleOnly:true,
-      applicationServerKey:urlBase64ToUint8Array(vapid)
+  function setLog(v){
+    if (typeof v === "string") logEl.textContent = v;
+    else {
+      try { logEl.textContent = JSON.stringify(v, null, 2); }
+      catch { logEl.textContent = String(v); }
+    }
+  }
+
+  function showOk(msg){
+    resultEl.className = "small ok";
+    resultEl.textContent = msg;
+  }
+  function showErr(msg){
+    resultEl.className = "small err";
+    resultEl.textContent = msg;
+  }
+
+  async function fetchJsonOrText(url, opts){
+    const res = await fetch(url, opts);
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch {}
+    return { res, text, json };
+  }
+
+  async function getStats(){
+    const url = apiBase() + "/stats?t=" + Date.now();
+    const { res, text, json } = await fetchJsonOrText(url, { cache: "no-store" });
+    setLog(json || text);
+    if (!res.ok) throw new Error("Erro /stats: " + text);
+    return json;
+  }
+
+  async function sendPush(){
+    const payload = {
+      title: titleEl.value.trim() || "Cartomantes Online",
+      body: bodyEl.value.trim() || "Você tem uma nova notificação.",
+      url: urlEl.value.trim() || "https://marcio2307.github.io/cartomantesonline.site/leituras.html",
+    };
+
+    const headers = { "Content-Type": "application/json" };
+    const token = tokenEl.value.trim();
+    if (token) headers["x-admin-token"] = token;
+
+    const url = apiBase() + "/send?t=" + Date.now();
+
+    const { res, text, json } = await fetchJsonOrText(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+      cache: "no-store"
     });
+
+    setLog(json || text);
+
+    if (!res.ok){
+      const msg = json?.error ? json.error : text;
+      throw new Error(`HTTP ${res.status}: ${msg}`);
+    }
+    return json;
   }
 
-  const saved=await saveSub(sub);
-  return { saved, sub };
-}
+  function refreshHeader(){
+    serverUrlEl.textContent = apiBase();
+  }
+  refreshHeader();
+  apiBaseEl.addEventListener("input", refreshHeader);
 
-async function sendTest(){
-  const api = base();
-  const token = tokenEl.value.trim();
-
-  const payload = {
-    title: "Teste Cartomantes Online",
-    body: "Se você recebeu isso, o Push está funcionando ✅",
-    url: "https://marcio2307.github.io/cartomantesonline.site/leituras.html"
-  };
-
-  const headers = { "Content-Type":"application/json" };
-  if(token) headers["x-admin-token"] = token;
-
-  const {r,j,t} = await fetchJson(api + "/send", {
-    method:"POST",
-    headers,
-    body: JSON.stringify(payload)
+  statsBtn.addEventListener("click", async () => {
+    statsBtn.disabled = true;
+    sendBtn.disabled = true;
+    setLog("");
+    try{
+      showOk("Consultando /stats...");
+      const s = await getStats();
+      showOk(`✅ /stats OK — total salvo no servidor: ${s.total}`);
+    }catch(e){
+      showErr("❌ " + (e?.message || e));
+    }finally{
+      statsBtn.disabled = false;
+      sendBtn.disabled = false;
+    }
   });
 
-  log(j || t);
-  if(!r.ok){
-    const msg = j?.error ? j.error : t;
-    throw new Error(`HTTP ${r.status}: ${msg}`);
-  }
-  return j;
-}
+  sendBtn.addEventListener("click", async () => {
+    statsBtn.disabled = true;
+    sendBtn.disabled = true;
+    setLog("");
+    try{
+      showOk("Checando /stats antes do envio...");
+      const before = await getStats();
+      const beforeTotal = before?.total ?? 0;
 
-$("btnAtivar").onclick=async()=>{
-  ok("Ativando...");
-  try{
-    const r=await ensureSub(false);
-    ok("✅ Cadastrado! Total: "+r.saved.total);
-  }catch(e){ err(e.message||e); }
-};
+      showOk(`Enviando... (inscrições no servidor antes: ${beforeTotal})`);
+      const data = await sendPush();
 
-$("btnReforcar").onclick=async()=>{
-  ok("Reforçando cadastro...");
-  try{
-    const r=await ensureSub(true);
-    ok("✅ Reinscrito! Total: "+r.saved.total);
-  }catch(e){ err(e.message||e); }
-};
+      const results = Array.isArray(data?.results) ? data.results : [];
+      const success = results.filter(r => r && r.ok).length;
+      const failed  = results.filter(r => r && r.ok === false).length;
 
-$("btnStats").onclick=async()=>{
-  ok("Consultando stats...");
-  try{
-    const {r,j,t}=await fetchJson(base()+"/stats",{cache:"no-store"});
-    log(j||t);
-    if(!r.ok) throw new Error("Erro /stats");
-    ok("Total no servidor: "+j.total);
-  }catch(e){ err(e.message||e); }
-};
+      showOk("Checando /stats depois do envio...");
+      const after = await getStats();
+      const afterTotal = after?.total ?? 0;
 
-$("btnTestar").onclick=async()=>{
-  ok("Preparando teste...");
-  try{
-    // garante que está cadastrado antes de testar
-    await ensureSub(false);
-    ok("Enviando teste via /send...");
-    const resp = await sendTest();
-    ok(`✅ Enviado! success: ${resp.success} | fail: ${resp.fail} | alive: ${resp.alive}`);
-  }catch(e){
-    err("❌ Falha no teste:\n" + (e?.message || e));
-  }
-};
-
-ok("Pronto. Primeiro clique em ATIVAR e depois em TESTAR.");
+      showOk(
+        `✅ Enviado!\n` +
+        `Tentativas: ${data?.sent ?? "?"} | Sucesso: ${success} | Falhas: ${failed}\n` +
+        `Ativas (server alive): ${data?.alive ?? "?"}\n` +
+        `Total salvo no disco (antes → depois): ${beforeTotal} → ${afterTotal}`
+      );
+    }catch(e){
+      showErr("❌ Erro ao enviar:\n" + (e?.message || e));
+    }finally{
+      statsBtn.disabled = false;
+      sendBtn.disabled = false;
+    }
+  });
 </script>
 </body>
 </html>
-
