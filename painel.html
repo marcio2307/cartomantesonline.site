@@ -17,9 +17,7 @@
   --card: rgba(0,0,0,.80);
   --line: rgba(199,160,8,.55);
 }
-
 *{ box-sizing:border-box; }
-
 body{
   margin:0;
   min-height:100vh;
@@ -31,22 +29,8 @@ body{
   font-family:'Poppins',sans-serif;
   color:#fff;
 }
-
-.wrap{
-  max-width:1100px;
-  margin:0 auto;
-  padding:22px 18px 40px;
-}
-
-.top{
-  display:flex;
-  gap:16px;
-  align-items:flex-start;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  margin-bottom:14px;
-}
-
+.wrap{ max-width:1100px; margin:0 auto; padding:22px 18px 40px; }
+.top{ display:flex; gap:16px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; margin-bottom:14px; }
 h1{
   margin:0;
   font-family:'Cinzel', serif;
@@ -57,25 +41,9 @@ h1{
   background-clip:text;
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
-
-.sub{
-  margin-top:6px;
-  opacity:.86;
-  font-size:13px;
-  line-height:1.35;
-  max-width:680px;
-}
-
-.row{
-  display:grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap:16px;
-  margin-top:16px;
-}
-@media (max-width:980px){
-  .row{ grid-template-columns:1fr; }
-}
-
+.sub{ margin-top:6px; opacity:.86; font-size:13px; line-height:1.35; max-width:680px; }
+.row{ display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:16px; }
+@media (max-width:980px){ .row{ grid-template-columns:1fr; } }
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -96,7 +64,6 @@ h1{
   opacity:.9;
   pointer-events:none;
 }
-
 .card h2{
   margin:0 0 10px;
   font-size:15px;
@@ -107,25 +74,15 @@ h1{
   -webkit-background-clip:text;
   background-clip:text;
 }
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-@media (max-width:520px){
-  .stats{ grid-template-columns:1fr; }
-}
+.stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+@media (max-width:520px){ .stats{ grid-template-columns:1fr; } }
 .stat{
   border:1px solid rgba(255,255,255,.10);
   border-radius:14px;
   padding:12px 12px;
   background:rgba(255,255,255,.06);
 }
-.stat .k{
-  font-size:12px;
-  opacity:.78;
-}
+.stat .k{ font-size:12px; opacity:.78; }
 .stat .v{
   font-size:22px;
   font-weight:900;
@@ -135,16 +92,8 @@ h1{
   -webkit-background-clip:text;
   background-clip:text;
 }
-
-.form{
-  display:grid;
-  gap:10px;
-  margin-top:10px;
-}
-label{
-  font-size:12px;
-  opacity:.8;
-}
+.form{ display:grid; gap:10px; margin-top:10px; }
+label{ font-size:12px; opacity:.8; }
 input, textarea, select{
   width:100%;
   padding:12px 12px;
@@ -156,13 +105,7 @@ input, textarea, select{
   font-family:'Poppins',sans-serif;
 }
 textarea{ min-height:120px; resize:vertical; }
-
-.actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:6px;
-}
+.actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
 .btn{
   height:48px;
   padding:0 14px;
@@ -174,16 +117,8 @@ textarea{ min-height:120px; resize:vertical; }
   color:#111;
   background:linear-gradient(180deg, var(--gold-1), var(--gold-3));
 }
-.btn.green{
-  color:#fff;
-  background:linear-gradient(180deg,#2ecc71,#1f9b50);
-}
-.btn.ghost{
-  color:#fff;
-  background:rgba(255,255,255,.10);
-  border:1px solid rgba(255,255,255,.14);
-}
-
+.btn.green{ color:#fff; background:linear-gradient(180deg,#2ecc71,#1f9b50); }
+.btn.ghost{ color:#fff; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14); }
 .log{
   margin-top:10px;
   font-size:12px;
@@ -195,19 +130,8 @@ textarea{ min-height:120px; resize:vertical; }
   max-height:220px;
   overflow:auto;
 }
-
-.table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-  font-size:12px;
-}
-.table th, .table td{
-  border-bottom:1px solid rgba(255,255,255,.10);
-  padding:10px 8px;
-  text-align:left;
-  vertical-align:top;
-}
+.table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:12px; }
+.table th, .table td{ border-bottom:1px solid rgba(255,255,255,.10); padding:10px 8px; text-align:left; vertical-align:top; }
 .badge{
   display:inline-flex;
   align-items:center;
@@ -222,35 +146,24 @@ textarea{ min-height:120px; resize:vertical; }
 .dot.off{ background:#e74c3c; box-shadow:none; }
 .badge.off{ background:rgba(231,76,60,.12); }
 .badge.on{ background:rgba(46,204,113,.12); }
-
-.small{
-  font-size:12px;
-  opacity:.8;
-  line-height:1.35;
-}
-hr.sep{
-  border:0;
-  border-top:1px solid rgba(255,255,255,.08);
-  margin:12px 0;
-}
+.small{ font-size:12px; opacity:.8; line-height:1.35; }
+hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
 </style>
 </head>
 
 <body>
 <div class="wrap">
-
   <div class="top">
     <div>
       <h1>🔔 Painel de Notificações — Cartomantes Online</h1>
       <div class="sub">
-        Este painel envia aviso para quem <b>já ativou notificações</b> e está com o app/site <b>aberto</b>.
+        Este painel envia aviso para quem <b>já ativou notificações</b> e está com o app/site <b>aberto</b> (ou em segundo plano).
         Mostra quantos dispositivos estão <b>registrados</b> e quantos estão <b>online agora</b>.
       </div>
     </div>
   </div>
 
   <div class="row">
-
     <div class="card">
       <h2>📊 Status dos Usuários</h2>
 
@@ -274,7 +187,7 @@ hr.sep{
       <div class="small">
         ✅ <b>Registrado</b> = dispositivo que clicou “ATIVAR” e concedeu permissão.<br/>
         ✅ <b>Online</b> = abriu o app/site recentemente (lastSeen &lt; 70s).<br/>
-       ⚠️ Para notificar com app fechado precisa Push real (FCM/VAPID + backend).
+        ⚠️ Notificar com app totalmente fechado exige Push real (FCM/VAPID + backend).
       </div>
 
       <hr class="sep"/>
@@ -307,7 +220,7 @@ hr.sep{
 
         <div class="actions">
           <button class="btn green" id="btnSend">ENVIAR AGORA</button>
-          <button class="btn ghost" id="btnTest">TESTAR (só no seu dispositivo)</button>
+          <button class="btn ghost" id="btnTest">TESTAR (broadcast)</button>
           <button class="btn" id="btnRefresh">ATUALIZAR LISTA</button>
         </div>
 
@@ -337,17 +250,15 @@ hr.sep{
         Dica: se quiser “zerar” todos os registros, apague o nó <b>/devices</b> no Firebase.
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <script>
 /* ==========================================================
-   ✅ 1) COLOQUE AQUI SEU firebaseConfig
+   ✅ COLE AQUI seu firebaseConfig (o MESMO do site)
 ========================================================== */
 const firebaseConfig = {
   apiKey: "COLE_AQUI",
@@ -359,9 +270,9 @@ const firebaseConfig = {
   appId: "COLE_AQUI"
 };
 
-let app, db;
+let db;
 try{
-  app = firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
   db = firebase.database();
 }catch(e){
   alert("ERRO: configure o firebaseConfig corretamente no painel.html");
@@ -369,12 +280,12 @@ try{
 }
 
 /* ==========================================================
-   ✅ 2) AJUSTES
+   AJUSTES
 ========================================================== */
-const ONLINE_WINDOW_MS = 70 * 1000;     // online se lastSeen < 70s
-const LIST_LIMIT = 60;                  // quantos mostrar na tabela
-const NODE_DEVICES = "devices";         // onde os apps registram dispositivos
-const NODE_NOTIFS  = "notifications";   // onde o painel publica as notificações
+const ONLINE_WINDOW_MS = 70 * 1000;
+const LIST_LIMIT = 80;
+const NODE_DEVICES = "devices";
+const NODE_NOTIFS  = "notifications";
 
 const elRegistered = document.getElementById("vRegistered");
 const elOnline = document.getElementById("vOnline");
@@ -388,24 +299,19 @@ const nUrl   = document.getElementById("nUrl");
 const nTarget= document.getElementById("nTarget");
 
 function log(msg){
-  const t = new Date();
-  const stamp = t.toLocaleString("pt-BR");
+  const stamp = new Date().toLocaleString("pt-BR");
   logBox.textContent = `[${stamp}] ${msg}\n` + logBox.textContent;
 }
-
 function fmtTime(ms){
   if(!ms) return "—";
-  try{
-    return new Date(ms).toLocaleString("pt-BR");
-  }catch{ return "—"; }
+  return new Date(ms).toLocaleString("pt-BR");
 }
-
 function safeStr(x){
   return String(x ?? "").replace(/[<>]/g, "");
 }
 
 /* ==========================================================
-   ✅ 3) LER DISPOSITIVOS (registrados/online)
+   LER DISPOSITIVOS
 ========================================================== */
 let cacheDevices = [];
 
@@ -454,34 +360,30 @@ async function refreshAll(){
     const { registered, online } = computeCounts(devs);
     elRegistered.textContent = registered;
     elOnline.textContent = online;
-    renderTable(devs);
     log(`Lista atualizada: ${registered} registrados / ${online} online.`);
+    renderTable(devs);
   }catch(e){
     console.error(e);
     log("ERRO ao atualizar lista (verifique databaseURL e regras do Firebase).");
   }
 }
 
-/* Atualiza automaticamente a cada 10s */
 setInterval(refreshAll, 10000);
 refreshAll();
 
 /* ==========================================================
-   ✅ 4) ENVIAR NOTIFICAÇÃO (publica no Firebase)
-   - os apps abertos escutam /notifications e mostram localmente
+   ENVIAR NOTIFICAÇÃO (publica no Firebase)
 ========================================================== */
 async function sendNotification({title, body, url, target}){
   title = (title || "Cartomantes Online").trim();
   body  = (body  || "Nova mensagem.").trim();
-  url   = (url   || "./").trim();
+  url   = (url   || "./leituras.html").trim();
   target = target || "online";
 
-  // busca a lista mais recente (cache) para decidir destinatários
   const devs = cacheDevices.length ? cacheDevices : await fetchDevicesOnce();
-
   const now = Date.now();
-  let recipients = [];
 
+  let recipients = [];
   if(target === "registered"){
     recipients = devs.filter(d => d && d.enabled === true).map(d => d.id);
   }else{
@@ -491,17 +393,14 @@ async function sendNotification({title, body, url, target}){
   }
 
   const payload = {
-    title,
-    body,
-    url,
+    title, body, url,
     ts: now,
     target,
-    recipients,     // lista de ids para o app filtrar
+    recipients,       // app filtra pelo deviceId
     sentBy: "painel",
     sentAt: now
   };
 
-  // grava no nó notifications
   const ref = db.ref(NODE_NOTIFS).push();
   await ref.set(payload);
 
@@ -509,14 +408,13 @@ async function sendNotification({title, body, url, target}){
   log(`Enviado para ${recipients.length} dispositivo(s) (${target}).`);
 }
 
-/* Botões */
 document.getElementById("btnSend").onclick = async () => {
   try{
     if(!nBody.value.trim()){
       alert("Digite a mensagem antes de enviar.");
       return;
     }
-    await refreshAll(); // atualiza antes de enviar
+    await refreshAll();
     await sendNotification({
       title: nTitle.value,
       body: nBody.value,
@@ -531,7 +429,6 @@ document.getElementById("btnSend").onclick = async () => {
 
 document.getElementById("btnRefresh").onclick = refreshAll;
 
-/* ✅ TESTE local: grava um aviso com recipients vazio (o app aberto pode mostrar se você quiser) */
 document.getElementById("btnTest").onclick = async () => {
   try{
     const now = Date.now();
@@ -547,13 +444,12 @@ document.getElementById("btnTest").onclick = async () => {
       sentAt: now
     });
     elLastSend.textContent = new Date(now).toLocaleTimeString("pt-BR");
-    log("Teste enviado (target=test).");
+    log("Teste enviado (broadcast '*').");
   }catch(e){
     console.error(e);
     log("ERRO ao enviar teste.");
   }
 };
 </script>
-
 </body>
 </html>
