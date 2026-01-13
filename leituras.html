@@ -339,7 +339,12 @@ body{
   box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
 
-/* ✅ Popup permissão notificações (estilo app) */
+/* ==========================================================
+   ✅ POPUP PERMISSÃO (MODERNO / ESTILO APP)
+   - Bottom-sheet com animação
+   - Ícone + texto curto
+   - Botões grandes
+========================================================== */
 #notifPopupWrap{
   position:fixed;
   inset:0;
@@ -348,34 +353,89 @@ body{
   align-items:flex-end;
   justify-content:center;
   padding:14px;
-  background:rgba(0,0,0,.35);
-  backdrop-filter: blur(2px);
+  background:rgba(0,0,0,.40);
+  backdrop-filter: blur(8px);
 }
-#notifPopup{
-  width:min(560px, 100%);
+#notifSheet{
+  width:min(620px, 100%);
+  border-radius:22px 22px 18px 18px;
   border:1px solid rgba(199,160,8,.55);
-  border-radius:18px;
+  background:rgba(0,0,0,.94);
+  box-shadow:0 30px 90px rgba(0,0,0,.70);
   padding:14px;
-  background:rgba(0,0,0,.92);
-  color:#fff;
-  box-shadow:0 26px 70px rgba(0,0,0,.65);
+  transform:translateY(12px);
+  animation:sheetIn .18s ease-out forwards;
 }
-#notifPopup .t{ font-weight:900; margin-bottom:6px; }
-#notifPopup .d{ opacity:.9; font-size:13px; line-height:1.4; margin-bottom:12px; }
-#notifPopup .row{ display:flex; gap:10px; flex-wrap:wrap; }
-#notifPopup button{
-  height:48px;
+@keyframes sheetIn{
+  to{ transform:translateY(0); }
+}
+#notifHeader{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  padding:6px 4px 10px;
+}
+#notifIcon{
+  width:46px;height:46px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg, rgba(246,226,122,.22), rgba(199,160,8,.10));
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 14px 30px rgba(0,0,0,.45);
+  flex:0 0 auto;
+}
+#notifIcon svg{ width:24px;height:24px; opacity:.95; }
+#notifTitle{
+  font-weight:900;
+  font-size:15px;
+  line-height:1.1;
+}
+#notifDesc{
+  opacity:.90;
+  font-size:13px;
+  line-height:1.4;
+  margin-top:4px;
+}
+#notifBtns{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+@media (max-width:420px){
+  #notifBtns{ grid-template-columns:1fr; }
+}
+.notifBtn{
+  height:52px;
   border:0;
-  border-radius:14px;
+  border-radius:16px;
   font-weight:900;
   cursor:pointer;
-  letter-spacing:.5px;
+  letter-spacing:.4px;
+  font-family:'Poppins',sans-serif;
 }
-#notifEnable{ flex:1; min-width:160px; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
-#notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
-#notifOk{ flex:1; min-width:160px; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
+#notifEnable{
+  background:linear-gradient(180deg,#2ecc71,#1f9b50);
+  color:#fff;
+}
+#notifLater{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+}
+#notifHelp{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  font-size:12px;
+  line-height:1.35;
+  opacity:.92;
+  display:none;
+}
+#notifHelp b{ color:transparent; background-image:linear-gradient(180deg, var(--gold-2), var(--gold-3)); -webkit-background-clip:text; background-clip:text; }
 
-/* ✅ Mini botão fixo (se popup não aparecer, o usuário consegue ativar) */
+/* ✅ FAB (backup sempre visível quando precisa) */
 #notifFab{
   position:fixed;
   right:14px;
@@ -393,7 +453,7 @@ body{
   font-weight:900;
   letter-spacing:.4px;
   box-shadow:0 18px 50px rgba(0,0,0,.55);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   cursor:pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -480,20 +540,32 @@ source[src*="fabapp-ads"]{
   <div class="container" id="cards-container"></div>
 </div>
 
-<!-- ✅ POPUP -->
+<!-- ✅ POPUP MODERNO (BOTTOM SHEET) -->
 <div id="notifPopupWrap" role="dialog" aria-label="Ativar notificações">
-  <div id="notifPopup">
-    <div class="t">Ativar notificações?</div>
-    <div class="d">Receba avisos do painel. (Recomendado para quem instalou o app na tela inicial)</div>
-    <div class="row">
-      <button id="notifEnable">ATIVAR</button>
-      <button id="notifLater">AGORA NÃO</button>
-      <button id="notifOk">OK</button>
+  <div id="notifSheet">
+    <div id="notifHeader">
+      <div id="notifIcon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 22a2.2 2.2 0 0 0 2.2-2.2h-4.4A2.2 2.2 0 0 0 12 22Z" fill="white" opacity=".92"/>
+          <path d="M18 10.5c0-3.2-2-5.6-5-6.2V3a1 1 0 1 0-2 0v1.3c-3 .6-5 3-5 6.2V16l-1.4 1.4A1 1 0 0 0 5.3 19h13.4a1 1 0 0 0 .7-1.7L18 16v-5.5Z" fill="white" opacity=".92"/>
+        </svg>
+      </div>
+      <div>
+        <div id="notifTitle">Ativar notificações do app?</div>
+        <div id="notifDesc">Receba avisos importantes do painel (promoções, chamadas e atualizações).</div>
+      </div>
     </div>
+
+    <div id="notifBtns">
+      <button id="notifEnable" class="notifBtn" type="button">ATIVAR AGORA</button>
+      <button id="notifLater" class="notifBtn" type="button">DEPOIS</button>
+    </div>
+
+    <div id="notifHelp"></div>
   </div>
 </div>
 
-<!-- ✅ Botão flutuante (backup) -->
+<!-- ✅ FAB (backup) -->
 <button id="notifFab" type="button" aria-label="Ativar notificações">
   <span class="dot"></span>
   <span class="p">Notificações</span>
@@ -777,11 +849,17 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 /* ==========================================================
    ✅ COMUNHÃO COM PAINEL: /devices + /notifications
-   CORREÇÕES IMPORTANTES:
-   ✅ Agora o painel manda recipients como MAPA {id:true}
-   ✅ Aqui a leitura entende MAPA e também broadcast {"*":true}
-   ✅ Popup de permissão: se for app instalado, tenta mostrar; se falhar, FAB aparece
-   ✅ Sempre abre ./leituras.html ao clicar na notificação
+   ✅ CORRIGE "alguns recebem e outros não" fazendo:
+      1) ID do device MAIS estável
+      2) Anti-duplicação por notifId (não só ts)
+      3) Aceita recipients como:
+         - MAPA {id:true}
+         - ARRAY ["id", "*"]
+         - STRING "*"
+      4) Atualiza /devices enabled SEMPRE que muda permissão
+      5) Mantém listener mesmo se abrir tarde
+   ✅ IMPORTANTE:
+      - Ainda NÃO é push real com app fechado (sem FCM)
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -790,19 +868,28 @@ const ONLINE_PING_MS = 20000;
 function isStandalone(){
   return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
 }
-function makeId(){
-  return "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-function getDeviceId(){
-  let id = localStorage.getItem("co_device_id");
-  if(!id){
-    id = makeId();
-    localStorage.setItem("co_device_id", id);
+
+/* ✅ deviceId mais estável */
+function getOrMakeDeviceId(){
+  const KEY = "co_device_id_v2";
+  let id = localStorage.getItem(KEY);
+  if(id && id.length > 8) return id;
+
+  // tenta reaproveitar antigo se existir
+  const old = localStorage.getItem("co_device_id");
+  if(old && old.length > 8){
+    localStorage.setItem(KEY, old);
+    return old;
   }
+
+  // cria novo
+  id = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem(KEY, id);
   return id;
 }
-const deviceId = getDeviceId();
+const deviceId = getOrMakeDeviceId();
 
+/* ✅ registra/atualiza device */
 async function upsertDevice(){
   if(!db) return false;
   try{
@@ -814,14 +901,19 @@ async function upsertDevice(){
       installed: isStandalone()
     });
     return true;
-  }catch(e){ return false; }
+  }catch(e){
+    return false;
+  }
 }
 async function pingLastSeen(){
   if(!db) return;
-  try{ await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() }); }catch(e){}
+  try{
+    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() });
+  }catch(e){}
 }
 
-async function enviarNotificacaoLocal(title, body, url){
+/* ✅ mostrar notificação via SW */
+async function enviarNotificacaoLocal(title, body){
   if(!("serviceWorker" in navigator)) return;
   if(!("Notification" in window)) return;
   if(Notification.permission !== "granted") return;
@@ -848,24 +940,35 @@ async function enviarNotificacaoLocal(title, body, url){
 })();
 
 /* ==========================================================
-   ✅ PERMISSÃO DE NOTIFICAÇÕES (MELHORADO)
-   - No app instalado: tenta mostrar popup automaticamente
-   - Se o navegador não permitir popup automático, mostra botão flutuante (FAB)
+   ✅ UX PERMISSÃO (MODERNA) + GARANTE QUE QUEM JÁ INSTALOU VÊ
+   REGRAS:
+   - Sempre que permission != granted => FAB aparece
+   - No app instalado: mostra bottom-sheet 1x por dia até ativar
+   - Não pede permissão sozinho (browser bloqueia)
 ========================================================== */
-(function initNotifPermissionUX(){
-  const KEY_DONE  = "notif_activated_done_v2";
-  const wrap = document.getElementById("notifPopupWrap");
-  const btnEnable = document.getElementById("notifEnable");
-  const btnLater  = document.getElementById("notifLater");
-  const btnOk     = document.getElementById("notifOk");
-  const fab       = document.getElementById("notifFab");
-
+(function notifPermissionUX(){
   if(!("Notification" in window)) return;
 
-  function fechar(){ if(wrap) wrap.style.display = "none"; }
+  const wrap   = document.getElementById("notifPopupWrap");
+  const enable = document.getElementById("notifEnable");
+  const later  = document.getElementById("notifLater");
+  const fab    = document.getElementById("notifFab");
+  const help   = document.getElementById("notifHelp");
+
+  const KEY_OK   = "co_notif_ok_v3";
+  const KEY_DAY  = "co_notif_prompt_day_v3";
+
+  function todayKey(){
+    return new Date().toISOString().slice(0,10); // yyyy-mm-dd
+  }
+
   function showWrap(){
     if(!wrap) return;
     wrap.style.display = "flex";
+  }
+  function hideWrap(){
+    if(!wrap) return;
+    wrap.style.display = "none";
   }
 
   function setFabState(){
@@ -875,17 +978,14 @@ async function enviarNotificacaoLocal(title, body, url){
     fab.style.display = granted ? "none" : "flex";
   }
 
-  async function pedirPermissao(){
+  async function pedir(){
+    // browsers exigem gesto do usuário -> só aqui
     if(Notification.permission === "denied"){
-      if(wrap){
-        const desc = wrap.querySelector(".d");
-        desc.textContent = "Notificações BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
-        if(btnEnable) btnEnable.style.display = "none";
-        if(btnLater) btnLater.style.display = "none";
-        if(btnOk){
-          btnOk.style.display = "block";
-          btnOk.onclick = () => fechar();
-        }
+      if(help){
+        help.style.display = "block";
+        help.innerHTML =
+          `Notificações estão <b>bloqueadas</b> neste celular.<br>` +
+          `Abra as configurações do navegador/app e permita notificações para este site.`;
       }
       setFabState();
       return;
@@ -894,87 +994,146 @@ async function enviarNotificacaoLocal(title, body, url){
     const perm = await Notification.requestPermission();
 
     if(perm === "granted"){
-      localStorage.setItem(KEY_DONE,"1");
-      fechar();
+      localStorage.setItem(KEY_OK, "1");
+      hideWrap();
       await upsertDevice();
       setFabState();
-      enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
+      enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
       return;
     }
 
-    if(wrap){
-      const desc = wrap.querySelector(".d");
-      desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
-      if(btnEnable) btnEnable.style.display = "none";
-      if(btnLater) btnLater.style.display = "none";
-      if(btnOk){
-        btnOk.style.display = "block";
-        btnOk.onclick = () => fechar();
-      }
+    if(help){
+      help.style.display = "block";
+      help.innerHTML =
+        `Permissão não concedida. Para receber avisos, toque em <b>ATIVAR AGORA</b> e permita as notificações.`;
     }
     setFabState();
   }
 
-  // handlers
-  if(btnLater) btnLater.onclick = () => { fechar(); setFabState(); };
-  if(btnEnable) btnEnable.onclick = () => pedirPermissao();
-  if(fab) fab.onclick = () => { showWrap(); };
+  // botões
+  if(enable) enable.onclick = () => pedir();
+  if(later)  later.onclick  = () => { hideWrap(); setFabState(); };
+  if(fab)    fab.onclick    = () => showWrap();
 
-  // lógica para aparecer no app instalado:
-  // IMPORTANTE: navegadores só deixam pedir permissão após gesto do usuário.
-  // Então: mostramos popup automaticamente (visível), mas o request só acontece ao clicar "ATIVAR".
-  const done = (localStorage.getItem(KEY_DONE) === "1");
-  const granted = (Notification.permission === "granted");
-  if(done || granted){
-    localStorage.setItem(KEY_DONE,"1");
-    fechar();
+  // sempre mostra FAB quando não está granted
+  setFabState();
+
+  // se já ativou, marca e sai
+  if(Notification.permission === "granted"){
+    localStorage.setItem(KEY_OK, "1");
+    hideWrap();
     setFabState();
+    upsertDevice();
     return;
   }
 
-  // Se for app instalado, tenta mostrar popup. Se não, mostra o FAB como fallback.
-  if(isStandalone()){
-    // mostra popup SEM pedir permissão automaticamente (evita bloqueio)
-    showWrap();
+  // ✅ mesmo quem já instalou: mostrar sheet 1x por dia até ativar
+  const ok = localStorage.getItem(KEY_OK) === "1";
+  const day = localStorage.getItem(KEY_DAY);
+  const isApp = isStandalone();
 
-    // se por algum motivo o popup ficar invisível, o FAB aparece
-    setTimeout(() => setFabState(), 1200);
-  }else{
-    // fora do modo app: não atrapalha, mas mostra FAB para o usuário ativar quando quiser
-    setFabState();
+  if(isApp && !ok){
+    if(day !== todayKey()){
+      localStorage.setItem(KEY_DAY, todayKey());
+      showWrap();
+      // fallback: se algo impedir ver, FAB já está lá
+    }
   }
 })();
 
 /* ==========================================================
-   ✅ ESCUTA PAINEL (/notifications)
-   CORREÇÃO: recipients agora pode vir como:
-   - MAPA: { "dev_x": true, ... }
-   - Broadcast: { "*": true }
+   ✅ RECEBER NOTIFICAÇÕES DO PAINEL (MÁXIMO DE APARELHOS POSSÍVEL)
+   CORRIGE "alguns recebem e outros não" com:
+   - dedupe por notifKey (id do firebase) e por ts
+   - aceita recipients em 3 formatos:
+     1) MAPA: { "dev_x": true, "*": true }
+     2) ARRAY: ["dev_x", "*"]
+     3) STRING: "*"
+   - se recipients vier vazio, ignora (segurança)
 ========================================================== */
 (function listenPanelNotifications(){
   if(!db) return;
   if(!("Notification" in window)) return;
 
-  let lastTs = Number(localStorage.getItem("co_last_notif_ts") || "0");
+  const LAST_TS_KEY   = "co_last_notif_ts_v2";
+  const SEEN_IDS_KEY  = "co_seen_notif_ids_v2";
 
-  db.ref(NODE_NOTIFS).limitToLast(40).on("child_added", async (snap) => {
+  let lastTs = Number(localStorage.getItem(LAST_TS_KEY) || "0");
+
+  // cache de IDs vistos (para não repetir e não falhar por ts igual)
+  let seen = {};
+  try{ seen = JSON.parse(localStorage.getItem(SEEN_IDS_KEY) || "{}") || {}; }catch{ seen = {}; }
+
+  function rememberSeen(id){
+    seen[id] = Date.now();
+    // limpa muito antigo (7 dias)
+    const cutoff = Date.now() - (7*24*60*60*1000);
+    for(const k in seen){
+      if(seen[k] < cutoff) delete seen[k];
+    }
+    try{ localStorage.setItem(SEEN_IDS_KEY, JSON.stringify(seen)); }catch{}
+  }
+
+  function isRecipientOk(recipients){
+    if(!recipients) return false;
+
+    // string "*"
+    if(typeof recipients === "string"){
+      return recipients === "*" ? true : (recipients === deviceId);
+    }
+
+    // array ["id","*"]
+    if(Array.isArray(recipients)){
+      return recipients.includes("*") || recipients.includes(deviceId);
+    }
+
+    // map {id:true,"*":true}
+    if(typeof recipients === "object"){
+      return recipients["*"] === true || recipients[deviceId] === true;
+    }
+
+    return false;
+  }
+
+  db.ref(NODE_NOTIFS).limitToLast(80).on("child_added", async (snap) => {
+    const notifId = snap.key;                 // ✅ id único
     const d = snap.val() || {};
-    const ts = Number(d.ts || 0);
-    if(!ts || ts <= lastTs) return;
+    const ts = Number(d.ts || d.sentAt || 0);
 
+    // ✅ dedupe por ID
+    if(notifId && seen[notifId]) return;
+
+    // ✅ dedupe por TS (backup)
+    if(ts && ts <= lastTs) {
+      if(notifId) rememberSeen(notifId);
+      return;
+    }
+
+    // precisa permissão
     if(Notification.permission !== "granted") return;
 
-    // ✅ aceita MAPA
-    const recMap = (d.recipients && typeof d.recipients === "object") ? d.recipients : {};
-    const ok = (recMap["*"] === true) || (recMap[deviceId] === true);
-    if(!ok) return;
+    // valida destinatários
+    if(!isRecipientOk(d.recipients)) return;
 
-    localStorage.setItem("co_last_notif_ts", String(ts));
-    lastTs = ts;
+    // marca como visto
+    if(ts){
+      lastTs = ts;
+      localStorage.setItem(LAST_TS_KEY, String(ts));
+    }
+    if(notifId) rememberSeen(notifId);
 
-    await enviarNotificacaoLocal(d.title, d.body, "./leituras.html");
+    // ✅ mostra
+    await enviarNotificacaoLocal(d.title, d.body);
+
+    // ✅ atualiza device (garante enabled/ua etc)
+    upsertDevice();
   });
 })();
+
+/* ==========================================================
+   ✅ service-worker register (mantenho aqui também)
+   (já está no load acima, mas manter não quebra)
+========================================================== */
 </script>
 
 </body>
