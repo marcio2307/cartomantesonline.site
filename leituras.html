@@ -144,7 +144,6 @@ body{
     0 0 0 1px rgba(255,240,166,0.10) inset;
 
   text-transform:uppercase;
-  /* melhora o toque no celular */
   -webkit-tap-highlight-color: transparent;
 }
 .hero .vip-aviso a:hover{ filter:brightness(1.05); }
@@ -230,7 +229,7 @@ body{
   border-color:rgba(246,226,122,0.95);
   box-shadow:
     0 18px 44px rgba(0,0,0,0.60),
-    0 0 30px rgba(199,160,8,0.14),
+    0 0 3030px rgba(199,160,8,0.14),
     0 0 0 1px rgba(255,240,166,0.10) inset;
 }
 
@@ -516,7 +515,6 @@ source[src*="fabapp-ads"]{
     <img src="https://i.ibb.co/rRvmn4Q7/56e5b5c7-3199-4b85-a6d8-22608f6c0402.png" alt="Banner adicional" />
   </div>
 
-  <!-- ✅ NOVO BANNER (ÚLTIMO) -->
   <div class="slide" id="slideVip">
     <img src="https://i.ibb.co/cKPNwmMY/Chat-GPT-Image-12-01-2026-07-11-40.png" alt="Consultas de Tarot Exclusivas para Clientes VIP" />
   </div>
@@ -527,7 +525,6 @@ source[src*="fabapp-ads"]{
   <section class="hero">
     <h1>✨ Consultas de Tarot Exclusivas para Clientes VIP ✨</h1>
 
-    <!-- ✅ OPÇÃO A (ÚNICA) — CENTRALIZADA E RESPONSIVA -->
     <div class="vip-aviso" aria-label="Aviso Leitura Sorteada VIP">
       <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
         TODA SEXTA-FEIRA, A PARTIR DAS 18H, ROLA A LEITURA SORTEADA VIP!
@@ -539,7 +536,6 @@ source[src*="fabapp-ads"]{
 
 </div>
 
-<!-- ✅ POPUP/BARRA PARA ATIVAR NOTIFICAÇÕES (NOVO) -->
 <div id="notifBar" role="dialog" aria-live="polite" aria-label="Ativar notificações">
   <div class="box">
     <div class="title">🔔 Ative as notificações</div>
@@ -612,11 +608,8 @@ source[src*="fabapp-ads"]{
    LISTA DE CONSULTORES
 =========================== */
 const consultores = [
-  /* ✅ P.Márcio agora R$ 2,00 por minuto */
   { nome: "P.Márcio", valor: 2, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
-
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Dalila", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/11//0b284c7b42-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Adria", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/07/25//d6152621b2-1-_3.webp", estrelas: 5, novo: true },
@@ -624,7 +617,6 @@ const consultores = [
   { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
   { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
   { nome: "M.Padilha", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2025/01/27//699974ac8a-1-.jpg", estrelas: 4 },
@@ -636,9 +628,6 @@ const consultores = [
 
 const container = document.getElementById('cards-container');
 
-/* ===========================
-   RENDER DOS CARDS
-=========================== */
 consultores.forEach((c, idx) => {
   const card = document.createElement('div');
   card.className = 'card' + (c.novo ? ' novo' : '');
@@ -674,7 +663,6 @@ consultores.forEach((c, idx) => {
 
 /* ===========================
    ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
-   + NOVA REGRA: 02:00 ATÉ 10:00 TODOS INDISPONÍVEIS
 =========================== */
 const chance = (p) => Math.random() < p;
 
@@ -732,7 +720,6 @@ function setStatusDOM(card, status){
   }
 }
 
-/* ✅ regra geral de indisponibilidade 02:00 -> 10:00 */
 function todosIndisponiveisAgora(){
   const h = new Date().getHours();
   return (h >= 2 && h < 10);
@@ -776,12 +763,11 @@ function aplicarStatusRealista(forceAll=false){
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  /* ✅ NOVO: das 02:00 às 10:00 TODOS INDISPONÍVEIS */
   if(todosIndisponiveisAgora()){
     cards.forEach((card, i) => {
       const st = estado.consultores[i];
       st.status = "indisp";
-      st.holdUntil = now + 60 * 1000; // mantém “vivo” e atualiza sempre
+      st.holdUntil = now + 60 * 1000;
       setStatusDOM(card, "indisp");
     });
     salvarEstado();
@@ -834,13 +820,11 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ==========================================================
-   ✅ PUSH / NOTIFICAÇÕES (NOVO – COMPATÍVEL COM SEU RENDER)
-   - GET  /vapid-public-key
-   - POST /save-subscription
+   ✅ PUSH / NOTIFICAÇÕES (CORRIGIDO)
+   - SEMPRE SALVA NO SERVIDOR (mesmo se já existir subscription)
 ========================================================== */
 
 const PUSH_SERVER = "https://envio-6.onrender.com";
-const NOTIF_DONE_KEY = "push_perm_granted_v1";
 
 // ✅ SUA PUBLIC KEY (fallback)
 let VAPID_PUBLIC_KEY =
@@ -878,12 +862,12 @@ async function ensureServiceWorker(){
 
 async function getVapidFromServer(){
   try{
-    const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key");
+    const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key", { cache:"no-store" });
     if (!res.ok) throw new Error("Falha ao pegar VAPID do servidor");
     const data = await res.json();
     if (data?.publicKey) VAPID_PUBLIC_KEY = data.publicKey;
   }catch{
-    // se falhar, usa a key fixa (fallback)
+    // usa fallback
   }
 }
 
@@ -898,14 +882,19 @@ async function saveSubscriptionToServer(subscription){
   if (!res.ok) throw new Error(`Falha ao salvar inscrição (HTTP ${res.status}): ${text}`);
 }
 
-async function subscribeIfNeeded(){
+async function subscribeOrResave(){
   const reg = await navigator.serviceWorker.ready;
-  const existing = await reg.pushManager.getSubscription();
-  if (existing) return existing;
+  let sub = await reg.pushManager.getSubscription();
+
+  // ✅ se já existe, SALVA de novo no servidor (Render pode ter reiniciado)
+  if (sub){
+    await saveSubscriptionToServer(sub);
+    return sub;
+  }
 
   if (!VAPID_PUBLIC_KEY) throw new Error("VAPID_PUBLIC_KEY vazia.");
 
-  const sub = await reg.pushManager.subscribe({
+  sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
   });
@@ -916,18 +905,12 @@ async function subscribeIfNeeded(){
 
 function shouldShowPrompt(){
   if (!("Notification" in window)) return false;
-
   const perm = Notification.permission;
-
-  if (perm === "granted") {
-    try { localStorage.setItem(NOTIF_DONE_KEY, "1"); } catch {}
-    return false;
-  }
+  if (perm === "granted") return false;
   return true;
 }
 
 async function initPushUI(){
-  // registra SW silenciosamente + pega key
   try { await ensureServiceWorker(); } catch {}
   await getVapidFromServer();
 
@@ -939,15 +922,12 @@ async function initPushUI(){
     }
   } else {
     hideNotifBar();
-    // se já está granted, garante inscrição silenciosamente
-    try { await subscribeIfNeeded(); } catch {}
+    // ✅ se já está granted, recadastra silenciosamente
+    try { await subscribeOrResave(); } catch {}
   }
 }
 
-notifClose.addEventListener("click", () => {
-  // só fecha visualmente; se não ativou, ao abrir de novo aparece
-  hideNotifBar();
-});
+notifClose.addEventListener("click", () => hideNotifBar());
 
 notifBtn.addEventListener("click", async () => {
   try{
@@ -964,17 +944,15 @@ notifBtn.addEventListener("click", async () => {
       return;
     }
 
-    notifStatus.textContent = "Ativando inscrição...";
-    await subscribeIfNeeded();
+    notifStatus.textContent = "Salvando inscrição no servidor...";
+    await subscribeOrResave();
 
-    try { localStorage.setItem(NOTIF_DONE_KEY, "1"); } catch {}
     hideNotifBar();
   }catch(e){
     showNotifBar("❌ Erro ao ativar.\n" + (e?.message || e));
   }
 });
 
-// inicia
 initPushUI();
 </script>
 
