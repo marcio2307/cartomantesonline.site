@@ -814,17 +814,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ==========================================================
-   ✅ PUSH / NOTIFICAÇÕES (AJUSTE IMPORTANTE PARA GITHUB PAGES)
-   - REGISTRA SW COM SCOPE FIXO
-   - EVITA 2 SERVICE WORKERS DIFERENTES
-   - SEMPRE RE-SALVA NO SERVIDOR
+   ✅ PUSH / NOTIFICAÇÕES (AJUSTADO PARA O ENVIO-7 + GITHUB PAGES)
 ========================================================== */
 
-const PUSH_SERVER = "https://envio-6.onrender.com";
-
-// fallback (se o /vapid-public-key falhar)
-let VAPID_PUBLIC_KEY =
-  "BFA6GY6T7di8FEqmp0-Zuiloqv-199NKM1_d0abosTQV-A9t6xbxE90ZTXntQn6KF3598vgp0hLdQLTMQGouPLQ";
+const PUSH_SERVER = "https://envio-7.onrender.com";
 
 const notifBar = document.getElementById("notifBar");
 const notifBtn = document.getElementById("notifBtn");
@@ -843,9 +836,7 @@ function hideNotifBar(){
 function detectScopeBase(){
   // github.io -> "/NOME-REPO/"
   const parts = location.pathname.split("/").filter(Boolean);
-  if (location.hostname.endsWith("github.io") && parts.length > 0) {
-    return `/${parts[0]}/`;
-  }
+  if (location.hostname.endsWith("github.io") && parts.length > 0) return `/${parts[0]}/`;
   // domínio próprio -> raiz
   return "/";
 }
@@ -867,28 +858,26 @@ async function ensureServiceWorker(){
   if (!isSecureContext) throw new Error("Push só funciona em HTTPS.");
 
   const reg = await navigator.serviceWorker.register(SW_URL, { scope: SCOPE_BASE });
-
   await navigator.serviceWorker.ready;
 
-  // força o browser a checar update do SW
+  // força update do SW (quando você muda o arquivo)
   try { await reg.update(); } catch {}
 
   return reg;
 }
 
+let VAPID_PUBLIC_KEY = "";
+
 async function getVapidFromServer(){
-  try{
-    const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key", { cache:"no-store" });
-    if (!res.ok) throw new Error("Falha ao pegar VAPID do servidor");
-    const data = await res.json();
-    if (data?.publicKey) VAPID_PUBLIC_KEY = data.publicKey;
-  }catch{
-    // usa fallback
-  }
+  const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key", { cache:"no-store" });
+  const text = await res.text();
+  let data = null;
+  try { data = JSON.parse(text); } catch {}
+  if (!res.ok || !data?.publicKey) throw new Error("Falha ao pegar VAPID do servidor: " + text);
+  VAPID_PUBLIC_KEY = data.publicKey;
 }
 
 async function saveSubscriptionToServer(subscription){
-  // garante JSON puro (mais compatível)
   const subJson = (typeof subscription?.toJSON === "function") ? subscription.toJSON() : subscription;
 
   const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/save-subscription", {
@@ -901,11 +890,15 @@ async function saveSubscriptionToServer(subscription){
   if (!res.ok) throw new Error(`Falha ao salvar inscrição (HTTP ${res.status}): ${text}`);
 }
 
-async function subscribeOrResave(){
+async function subscribeOrResave(force=false){
   const reg = await navigator.serviceWorker.ready;
   let sub = await reg.pushManager.getSubscription();
 
-  // se já existe, re-salva (Render pode ter reiniciado antes)
+  if (force && sub){
+    try { await sub.unsubscribe(); } catch {}
+    sub = null;
+  }
+
   if (sub){
     await saveSubscriptionToServer(sub);
     return sub;
@@ -930,8 +923,13 @@ function shouldShowPrompt(){
 }
 
 async function initPushUI(){
-  try { await ensureServiceWorker(); } catch {}
-  await getVapidFromServer();
+  try {
+    await ensureServiceWorker();
+    await getVapidFromServer();
+  } catch (e) {
+    // se falhar aqui, não trava a página — só não mostra o popup
+    return;
+  }
 
   if (shouldShowPrompt()){
     if (Notification.permission === "denied"){
@@ -942,7 +940,7 @@ async function initPushUI(){
   } else {
     hideNotifBar();
     // se já está granted, recadastra silenciosamente
-    try { await subscribeOrResave(); } catch {}
+    try { await subscribeOrResave(false); } catch {}
   }
 }
 
@@ -963,8 +961,8 @@ notifBtn.addEventListener("click", async () => {
       return;
     }
 
-    notifStatus.textContent = "Salvando inscrição no servidor...";
-    await subscribeOrResave();
+    notifStatus.textContent = "Cadastrando no servidor...";
+    await subscribeOrResave(true); // força recadastro no clique
 
     hideNotifBar();
   }catch(e){
