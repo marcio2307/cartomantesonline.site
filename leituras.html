@@ -341,9 +341,6 @@ body{
 
 /* ==========================================================
    ✅ POPUP PERMISSÃO (MODERNO / ESTILO APP)
-   - Bottom-sheet com animação
-   - Ícone + texto curto
-   - Botões grandes
 ========================================================== */
 #notifPopupWrap{
   position:fixed;
@@ -366,9 +363,7 @@ body{
   transform:translateY(12px);
   animation:sheetIn .18s ease-out forwards;
 }
-@keyframes sheetIn{
-  to{ transform:translateY(0); }
-}
+@keyframes sheetIn{ to{ transform:translateY(0); } }
 #notifHeader{
   display:flex;
   gap:12px;
@@ -384,26 +379,17 @@ body{
   flex:0 0 auto;
 }
 #notifIcon svg{ width:24px;height:24px; opacity:.95; }
-#notifTitle{
-  font-weight:900;
-  font-size:15px;
-  line-height:1.1;
-}
-#notifDesc{
-  opacity:.90;
-  font-size:13px;
-  line-height:1.4;
-  margin-top:4px;
-}
+#notifTitle{ font-weight:900; font-size:15px; line-height:1.1; }
+#notifDesc{ opacity:.90; font-size:13px; line-height:1.4; margin-top:4px; }
+
 #notifBtns{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap:10px;
   margin-top:10px;
 }
-@media (max-width:420px){
-  #notifBtns{ grid-template-columns:1fr; }
-}
+@media (max-width:420px){ #notifBtns{ grid-template-columns:1fr; } }
+
 .notifBtn{
   height:52px;
   border:0;
@@ -413,10 +399,7 @@ body{
   letter-spacing:.4px;
   font-family:'Poppins',sans-serif;
 }
-#notifEnable{
-  background:linear-gradient(180deg,#2ecc71,#1f9b50);
-  color:#fff;
-}
+#notifEnable{ background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
 #notifLater{
   background:rgba(255,255,255,.10);
   color:#fff;
@@ -433,43 +416,12 @@ body{
   opacity:.92;
   display:none;
 }
-#notifHelp b{ color:transparent; background-image:linear-gradient(180deg, var(--gold-2), var(--gold-3)); -webkit-background-clip:text; background-clip:text; }
-
-/* ✅ FAB (backup sempre visível quando precisa) */
-#notifFab{
-  position:fixed;
-  right:14px;
-  bottom:14px;
-  z-index:999998;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  height:52px;
-  padding:0 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(0,0,0,.78);
-  color:#fff;
-  font-weight:900;
-  letter-spacing:.4px;
-  box-shadow:0 18px 50px rgba(0,0,0,.55);
-  backdrop-filter: blur(8px);
-  cursor:pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-#notifFab .p{
+#notifHelp b{
   color:transparent;
   background-image:linear-gradient(180deg, var(--gold-2), var(--gold-3));
   -webkit-background-clip:text;
   background-clip:text;
 }
-#notifFab .dot{
-  width:9px;height:9px;border-radius:50%;
-  background:#f39c12;
-  box-shadow:0 0 10px rgba(243,156,18,.35);
-  margin-right:8px;
-}
-#notifFab.enabled .dot{ background:#2ecc71; box-shadow:0 0 12px rgba(46,204,113,.35); }
 
 /* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares) */
 fabapp-banner-footer,
@@ -565,12 +517,6 @@ source[src*="fabapp-ads"]{
   </div>
 </div>
 
-<!-- ✅ FAB (backup) -->
-<button id="notifFab" type="button" aria-label="Ativar notificações">
-  <span class="dot"></span>
-  <span class="p">Notificações</span>
-</button>
-
 <!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -642,9 +588,7 @@ try{
   }
   db = firebase.database();
   fbOk = true;
-}catch(e){
-  // sem debug na tela
-}
+}catch(e){}
 
 /* ==========================================================
    ✅ SERVICE WORKER (precisa existir o arquivo service-worker.js)
@@ -875,14 +819,12 @@ function getOrMakeDeviceId(){
   let id = localStorage.getItem(KEY);
   if(id && id.length > 8) return id;
 
-  // tenta reaproveitar antigo se existir
   const old = localStorage.getItem("co_device_id");
   if(old && old.length > 8){
     localStorage.setItem(KEY, old);
     return old;
   }
 
-  // cria novo
   id = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
   localStorage.setItem(KEY, id);
   return id;
@@ -907,9 +849,7 @@ async function upsertDevice(){
 }
 async function pingLastSeen(){
   if(!db) return;
-  try{
-    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() });
-  }catch(e){}
+  try{ await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() }); }catch(e){}
 }
 
 /* ✅ mostrar notificação via SW */
@@ -924,7 +864,7 @@ async function enviarNotificacaoLocal(title, body){
       type: "LOCAL_NOTIFY",
       title: title || "Cartomantes Online",
       body: body || "Nova atualização.",
-      url: "./leituras.html" // ✅ SEMPRE
+      url: "./leituras.html"
     });
   }
 }
@@ -940,11 +880,10 @@ async function enviarNotificacaoLocal(title, body){
 })();
 
 /* ==========================================================
-   ✅ UX PERMISSÃO (MODERNA) + GARANTE QUE QUEM JÁ INSTALOU VÊ
-   REGRAS:
-   - Sempre que permission != granted => FAB aparece
-   - No app instalado: mostra bottom-sheet 1x por dia até ativar
-   - Não pede permissão sozinho (browser bloqueia)
+   ✅ UX PERMISSÃO (SÓ POPUP — SEM BOTÃO FLUTUANTE)
+   - No app instalado: mostra 1x por dia até ativar
+   - Fora do app: pode mostrar 1x por dia também (opcional)
+   - O request só acontece ao clicar ATIVAR (gesto do usuário)
 ========================================================== */
 (function notifPermissionUX(){
   if(!("Notification" in window)) return;
@@ -952,34 +891,17 @@ async function enviarNotificacaoLocal(title, body){
   const wrap   = document.getElementById("notifPopupWrap");
   const enable = document.getElementById("notifEnable");
   const later  = document.getElementById("notifLater");
-  const fab    = document.getElementById("notifFab");
   const help   = document.getElementById("notifHelp");
 
-  const KEY_OK   = "co_notif_ok_v3";
-  const KEY_DAY  = "co_notif_prompt_day_v3";
+  const KEY_OK   = "co_notif_ok_v4";
+  const KEY_DAY  = "co_notif_prompt_day_v4";
 
-  function todayKey(){
-    return new Date().toISOString().slice(0,10); // yyyy-mm-dd
-  }
+  function todayKey(){ return new Date().toISOString().slice(0,10); }
 
-  function showWrap(){
-    if(!wrap) return;
-    wrap.style.display = "flex";
-  }
-  function hideWrap(){
-    if(!wrap) return;
-    wrap.style.display = "none";
-  }
-
-  function setFabState(){
-    if(!fab) return;
-    const granted = (Notification.permission === "granted");
-    fab.classList.toggle("enabled", granted);
-    fab.style.display = granted ? "none" : "flex";
-  }
+  function showWrap(){ if(wrap) wrap.style.display = "flex"; }
+  function hideWrap(){ if(wrap) wrap.style.display = "none"; }
 
   async function pedir(){
-    // browsers exigem gesto do usuário -> só aqui
     if(Notification.permission === "denied"){
       if(help){
         help.style.display = "block";
@@ -987,7 +909,6 @@ async function enviarNotificacaoLocal(title, body){
           `Notificações estão <b>bloqueadas</b> neste celular.<br>` +
           `Abra as configurações do navegador/app e permita notificações para este site.`;
       }
-      setFabState();
       return;
     }
 
@@ -997,7 +918,6 @@ async function enviarNotificacaoLocal(title, body){
       localStorage.setItem(KEY_OK, "1");
       hideWrap();
       await upsertDevice();
-      setFabState();
       enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
       return;
     }
@@ -1007,49 +927,37 @@ async function enviarNotificacaoLocal(title, body){
       help.innerHTML =
         `Permissão não concedida. Para receber avisos, toque em <b>ATIVAR AGORA</b> e permita as notificações.`;
     }
-    setFabState();
   }
 
-  // botões
   if(enable) enable.onclick = () => pedir();
-  if(later)  later.onclick  = () => { hideWrap(); setFabState(); };
-  if(fab)    fab.onclick    = () => showWrap();
-
-  // sempre mostra FAB quando não está granted
-  setFabState();
+  if(later)  later.onclick  = () => hideWrap();
 
   // se já ativou, marca e sai
   if(Notification.permission === "granted"){
     localStorage.setItem(KEY_OK, "1");
     hideWrap();
-    setFabState();
     upsertDevice();
     return;
   }
 
-  // ✅ mesmo quem já instalou: mostrar sheet 1x por dia até ativar
-  const ok = localStorage.getItem(KEY_OK) === "1";
+  const ok  = (localStorage.getItem(KEY_OK) === "1");
   const day = localStorage.getItem(KEY_DAY);
   const isApp = isStandalone();
 
-  if(isApp && !ok){
-    if(day !== todayKey()){
-      localStorage.setItem(KEY_DAY, todayKey());
+  // ✅ mostra 1x por dia até ativar (principalmente no app instalado)
+  if(!ok && day !== todayKey()){
+    localStorage.setItem(KEY_DAY, todayKey());
+    if(isApp){
       showWrap();
-      // fallback: se algo impedir ver, FAB já está lá
+    }else{
+      // fora do app: não atrapalha, mas ainda lembra 1x por dia (se você quiser tirar, basta comentar)
+      showWrap();
     }
   }
 })();
 
 /* ==========================================================
-   ✅ RECEBER NOTIFICAÇÕES DO PAINEL (MÁXIMO DE APARELHOS POSSÍVEL)
-   CORRIGE "alguns recebem e outros não" com:
-   - dedupe por notifKey (id do firebase) e por ts
-   - aceita recipients em 3 formatos:
-     1) MAPA: { "dev_x": true, "*": true }
-     2) ARRAY: ["dev_x", "*"]
-     3) STRING: "*"
-   - se recipients vier vazio, ignora (segurança)
+   ✅ RECEBER NOTIFICAÇÕES DO PAINEL (MÁXIMO POSSÍVEL)
 ========================================================== */
 (function listenPanelNotifications(){
   if(!db) return;
@@ -1060,80 +968,56 @@ async function enviarNotificacaoLocal(title, body){
 
   let lastTs = Number(localStorage.getItem(LAST_TS_KEY) || "0");
 
-  // cache de IDs vistos (para não repetir e não falhar por ts igual)
   let seen = {};
   try{ seen = JSON.parse(localStorage.getItem(SEEN_IDS_KEY) || "{}") || {}; }catch{ seen = {}; }
 
   function rememberSeen(id){
     seen[id] = Date.now();
-    // limpa muito antigo (7 dias)
     const cutoff = Date.now() - (7*24*60*60*1000);
-    for(const k in seen){
-      if(seen[k] < cutoff) delete seen[k];
-    }
+    for(const k in seen){ if(seen[k] < cutoff) delete seen[k]; }
     try{ localStorage.setItem(SEEN_IDS_KEY, JSON.stringify(seen)); }catch{}
   }
 
   function isRecipientOk(recipients){
     if(!recipients) return false;
 
-    // string "*"
     if(typeof recipients === "string"){
       return recipients === "*" ? true : (recipients === deviceId);
     }
-
-    // array ["id","*"]
     if(Array.isArray(recipients)){
       return recipients.includes("*") || recipients.includes(deviceId);
     }
-
-    // map {id:true,"*":true}
     if(typeof recipients === "object"){
       return recipients["*"] === true || recipients[deviceId] === true;
     }
-
     return false;
   }
 
   db.ref(NODE_NOTIFS).limitToLast(80).on("child_added", async (snap) => {
-    const notifId = snap.key;                 // ✅ id único
+    const notifId = snap.key;
     const d = snap.val() || {};
     const ts = Number(d.ts || d.sentAt || 0);
 
-    // ✅ dedupe por ID
     if(notifId && seen[notifId]) return;
 
-    // ✅ dedupe por TS (backup)
     if(ts && ts <= lastTs) {
       if(notifId) rememberSeen(notifId);
       return;
     }
 
-    // precisa permissão
     if(Notification.permission !== "granted") return;
-
-    // valida destinatários
     if(!isRecipientOk(d.recipients)) return;
 
-    // marca como visto
     if(ts){
       lastTs = ts;
       localStorage.setItem(LAST_TS_KEY, String(ts));
     }
     if(notifId) rememberSeen(notifId);
 
-    // ✅ mostra
     await enviarNotificacaoLocal(d.title, d.body);
-
-    // ✅ atualiza device (garante enabled/ua etc)
     upsertDevice();
   });
 })();
-
-/* ==========================================================
-   ✅ service-worker register (mantenho aqui também)
-   (já está no load acima, mas manter não quebra)
-========================================================== */
 </script>
 
 </body>
