@@ -12,17 +12,14 @@
   --gold-1:#fff0a6;
   --gold-2:#f6e27a;
   --gold-3:#c7a008;
-  --gold-4:#b8860b;
   --bg:#000;
   --card: rgba(0,0,0,.82);
   --line: rgba(199,160,8,.55);
-  --soft: rgba(255,255,255,.10);
-  --ok:#2ecc71;
-  --bad:#e74c3c;
 }
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+
 body{
   margin:0;
   background:
@@ -35,83 +32,21 @@ body{
 }
 
 .wrap{
-  max-width:1180px;
+  max-width:780px;
   margin:0 auto;
-  padding:18px 14px 40px;
+  padding:16px 12px 28px;
 }
 
-.header{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:12px;
-}
-.title{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  min-width:min(760px, 100%);
-}
 h1{
-  margin:0;
+  margin:0 0 12px;
   font-family:'Cinzel', serif;
-  font-size:26px;
-  line-height:1.1;
+  font-size:22px;
+  line-height:1.15;
   color:transparent;
   background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 45%, var(--gold-1) 80%);
   -webkit-background-clip:text;
   background-clip:text;
   text-shadow:0 0 22px rgba(199,160,8,0.15);
-}
-.sub{
-  margin:0;
-  opacity:.86;
-  font-size:13px;
-  line-height:1.35;
-}
-
-.pills{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:flex-end;
-}
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:10px 12px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.06);
-  font-size:12px;
-  font-weight:800;
-}
-.pill .dot{
-  width:9px;height:9px;border-radius:50%;
-  background:var(--ok);
-  box-shadow:0 0 12px rgba(46,204,113,.35);
-}
-.pill.off .dot{ background:var(--bad); box-shadow:none; }
-.pill strong{
-  color:transparent;
-  background-image:linear-gradient(180deg, var(--gold-2), var(--gold-3));
-  -webkit-background-clip:text;
-  background-clip:text;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns: 1.06fr .94fr;
-  gap:14px;
-  margin-top:12px;
-}
-@media (max-width:980px){
-  .grid{ grid-template-columns:1fr; }
-  .pills{ justify-content:flex-start; }
 }
 
 .card{
@@ -134,40 +69,36 @@ h1{
   opacity:.95;
   pointer-events:none;
 }
-.card h2{
-  margin:0 0 10px;
-  font-size:15px;
-  letter-spacing:.2px;
-  font-weight:900;
-  color:transparent;
-  background-image:linear-gradient(180deg, #fff0a6, #c7a008);
-  -webkit-background-clip:text;
-  background-clip:text;
-}
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(2,1fr);
   gap:10px;
 }
 @media (max-width:520px){
   .stats{ grid-template-columns:1fr; }
 }
+
 .stat{
   border:1px solid rgba(255,255,255,.10);
   border-radius:14px;
   padding:12px;
   background:rgba(255,255,255,.06);
 }
-.stat .k{ font-size:12px; opacity:.78; }
+.stat .k{ font-size:12px; opacity:.80; }
 .stat .v{
-  font-size:22px;
+  font-size:24px;
   font-weight:900;
   margin-top:4px;
   color:transparent;
   background-image:linear-gradient(180deg, #f6e27a, #c7a008);
   -webkit-background-clip:text;
   background-clip:text;
+}
+.stat .s{
+  margin-top:6px;
+  font-size:12px;
+  opacity:.82;
 }
 
 hr.sep{
@@ -176,20 +107,13 @@ hr.sep{
   margin:12px 0;
 }
 
-.note{
-  font-size:12px;
-  opacity:.85;
-  line-height:1.45;
-}
-.note b{ color:#fff; opacity:1; }
-
-.form{ display:grid; gap:10px; }
 label{
   display:block;
   font-size:12px;
   opacity:.82;
   margin-bottom:6px;
 }
+
 input, textarea, select{
   width:100%;
   padding:12px 12px;
@@ -200,23 +124,16 @@ input, textarea, select{
   outline:none;
   font-family:'Poppins',sans-serif;
 }
-textarea{ min-height:120px; resize:vertical; }
 
-.row2{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:10px;
-}
-@media (max-width:520px){
-  .row2{ grid-template-columns:1fr; }
-}
+textarea{ min-height:110px; resize:vertical; }
 
 .actions{
   display:flex;
   flex-wrap:wrap;
   gap:10px;
-  margin-top:4px;
+  margin-top:10px;
 }
+
 .btn{
   height:50px;
   padding:0 14px;
@@ -232,6 +149,7 @@ textarea{ min-height:120px; resize:vertical; }
 }
 .btn:active{ transform:translateY(1px); }
 .btn:hover{ filter:brightness(1.05); }
+
 .btn.green{
   color:#fff;
   background:linear-gradient(180deg,#2ecc71,#1f9b50);
@@ -242,210 +160,70 @@ textarea{ min-height:120px; resize:vertical; }
   border:1px solid rgba(255,255,255,.14);
   box-shadow:none;
 }
-.btn.small{
-  height:44px;
-  border-radius:12px;
-  font-size:13px;
-}
 
-.log{
+.smallline{
   margin-top:10px;
   font-size:12px;
+  opacity:.80;
   line-height:1.35;
-  opacity:.92;
   border-top:1px solid rgba(255,255,255,.08);
   padding-top:10px;
-  white-space:pre-wrap;
-  max-height:240px;
-  overflow:auto;
 }
-
-/* Lista */
-.list-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.search{ width:min(360px, 100%); }
-.table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-  font-size:12px;
-}
-.table th, .table td{
-  border-bottom:1px solid rgba(255,255,255,.10);
-  padding:10px 8px;
-  text-align:left;
-  vertical-align:top;
-}
-.table th{ opacity:.85; font-weight:900; }
-
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  padding:6px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:900;
-  border:1px solid rgba(255,255,255,.14);
-}
-.bdot{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--ok);
-  box-shadow:0 0 10px rgba(46,204,113,.35);
-}
-.badge.off .bdot{ background:var(--bad); box-shadow:none; }
-.badge.on{ background:rgba(46,204,113,.12); }
-.badge.off{ background:rgba(231,76,60,.12); }
-.badge.reg{ background:rgba(246,226,122,.10); }
-.badge.reg .bdot{ background:#f6e27a; box-shadow:0 0 10px rgba(246,226,122,.25); }
-
-.mini{
-  opacity:.75;
-  margin-top:4px;
-  word-break:break-word;
-}
-
-/* Toast */
-.toast{
-  position:fixed;
-  left:50%;
-  bottom:16px;
-  transform:translateX(-50%);
-  z-index:999999;
-  background:rgba(0,0,0,.88);
-  border:1px solid rgba(199,160,8,.55);
-  border-radius:14px;
-  padding:12px 14px;
-  width:min(520px, calc(100% - 24px));
-  box-shadow:0 20px 60px rgba(0,0,0,.65);
-  display:none;
-}
-.toast.show{ display:block; }
-.toast .t{ font-weight:900; margin-bottom:4px; }
-.toast .d{ font-size:13px; opacity:.9; line-height:1.35; }
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <div class="header">
-    <div class="title">
-      <h1>🔔 Painel de Notificações — Cartomantes Online</h1>
-      <p class="sub">
-        Envia aviso para quem <b>ativou notificações</b> (enabled=true).<br/>
-        ✅ <b>Online</b> = enabled=true e lastSeen &lt; 70s.
-      </p>
+  <h1>🔔 Painel de Notificações</h1>
+
+  <div class="card">
+
+    <!-- ✅ Online à esquerda / Registrados à direita -->
+    <div class="stats">
+      <div class="stat">
+        <div class="k">Online agora</div>
+        <div class="v" id="vOnline">0</div>
+        <div class="s">enabled=true e lastSeen &lt; 70s</div>
+      </div>
+
+      <div class="stat">
+        <div class="k">Registrados (ativaram)</div>
+        <div class="v" id="vRegistered">0</div>
+        <div class="s">enabled = true</div>
+      </div>
     </div>
 
-    <div class="pills">
-      <div class="pill" id="pillDb"><span class="dot"></span>Firebase: <strong id="dbState">OK</strong></div>
-      <div class="pill off" id="pillLive"><span class="dot"></span>Atualização: <strong id="liveState">—</strong></div>
+    <hr class="sep"/>
+
+    <div>
+      <label>Título</label>
+      <input id="nTitle" placeholder="Ex: Promoção VIP 🔮" value="Cartomantes Online" />
     </div>
+
+    <div style="margin-top:10px;">
+      <label>Mensagem</label>
+      <textarea id="nBody" placeholder="Digite a mensagem para enviar..."></textarea>
+    </div>
+
+    <!-- ✅ REMOVIDO VISUALMENTE: URL fixa -->
+    <div style="margin-top:10px;">
+      <label>Enviar para</label>
+      <select id="nTarget">
+        <option value="online">Somente ONLINE agora</option>
+        <option value="registered">Todos REGISTRADOS (ativaram)</option>
+      </select>
+    </div>
+
+    <div class="actions">
+      <button class="btn green" id="btnSend">ENVIAR</button>
+      <button class="btn" id="btnRefresh">ATUALIZAR</button>
+      <button class="btn ghost" id="btnBroadcast" title="Envia recipients {'*':true}">
+        BROADCAST (*)
+      </button>
+    </div>
+
+    <div class="smallline" id="miniInfo">—</div>
   </div>
-
-  <div class="grid">
-    <div class="card">
-      <h2>📊 Status + Envio</h2>
-
-      <div class="stats">
-        <div class="stat">
-          <div class="k">Registrados (ativaram)</div>
-          <div class="v" id="vRegistered">0</div>
-        </div>
-        <div class="stat">
-          <div class="k">Online agora</div>
-          <div class="v" id="vOnline">0</div>
-        </div>
-        <div class="stat">
-          <div class="k">Último envio</div>
-          <div class="v" id="vLastSend">—</div>
-        </div>
-      </div>
-
-      <hr class="sep"/>
-
-      <div class="note">
-        ✅ <b>Registrado</b>: permitiu notificações (enabled=true).<br/>
-        ✅ <b>Online</b>: abriu o app/site recentemente.<br/>
-        📌 Clique da notificação abre: <b>./leituras.html</b>.
-      </div>
-
-      <hr class="sep"/>
-
-      <h2>📨 Enviar Notificação</h2>
-
-      <div class="form">
-        <div>
-          <label>Título</label>
-          <input id="nTitle" placeholder="Ex: Promoção VIP 🔮" value="Cartomantes Online" />
-        </div>
-
-        <div>
-          <label>Mensagem</label>
-          <textarea id="nBody" placeholder="Ex: Consulta liberada! Clique para abrir."></textarea>
-        </div>
-
-        <div class="row2">
-          <div>
-            <label>Enviar para</label>
-            <select id="nTarget">
-              <option value="online">Somente ONLINE agora</option>
-              <option value="registered">Todos REGISTRADOS (ativaram)</option>
-            </select>
-          </div>
-          <div>
-            <label>Link ao clicar (travado)</label>
-            <input id="nUrl" value="./leituras.html" disabled />
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn green" id="btnSend">ENVIAR AGORA</button>
-          <button class="btn ghost" id="btnTest">ENVIAR PRA TODOS (broadcast)</button>
-          <button class="btn" id="btnRefresh">ATUALIZAR LISTA</button>
-          <button class="btn ghost small" id="btnClearLog" title="Limpar log">LIMPAR LOG</button>
-        </div>
-
-        <div class="log" id="logBox">Log: aguardando…</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="list-head">
-        <div>
-          <h2>👥 Dispositivos</h2>
-          <div class="note">Dica: para “zerar” todos, apague <b>/devices</b> no Firebase.</div>
-        </div>
-        <div class="search">
-          <label>Buscar device (ID)</label>
-          <input id="searchId" placeholder="Digite parte do ID…">
-        </div>
-      </div>
-
-      <table class="table">
-        <thead>
-          <tr>
-            <th style="width:170px;">Device</th>
-            <th style="width:130px;">Status</th>
-            <th>Último acesso</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyUsers">
-          <tr><td colspan="3" style="opacity:.8">Carregando…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast">
-  <div class="t" id="toastT">—</div>
-  <div class="d" id="toastD">—</div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -453,7 +231,7 @@ textarea{ min-height:120px; resize:vertical; }
 
 <script>
 /* ==========================================================
-   ✅ FIREBASE CONFIG (o MESMO do site)
+   FIREBASE CONFIG (o mesmo do site)
 ========================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
@@ -465,86 +243,47 @@ const firebaseConfig = {
   appId: "1:740866367489:web:963e3f5be80cb35a71e000"
 };
 
-const ONLINE_WINDOW_MS = 70 * 1000;
-const LIST_LIMIT = 200;
-
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
+
+const ONLINE_WINDOW_MS = 70 * 1000;
+const LIST_LIMIT = 500;
 
 /* ==========================================================
    UI refs
 ========================================================== */
 const elRegistered = document.getElementById("vRegistered");
 const elOnline     = document.getElementById("vOnline");
-const elLastSend   = document.getElementById("vLastSend");
-const tbody        = document.getElementById("tbodyUsers");
-const logBox       = document.getElementById("logBox");
 
 const nTitle  = document.getElementById("nTitle");
 const nBody   = document.getElementById("nBody");
 const nTarget = document.getElementById("nTarget");
+const miniInfo  = document.getElementById("miniInfo");
 
-const pillDb   = document.getElementById("pillDb");
-const pillLive = document.getElementById("pillLive");
-const dbState  = document.getElementById("dbState");
-const liveState= document.getElementById("liveState");
-
-const searchId = document.getElementById("searchId");
-
-const toast = document.getElementById("toast");
-const toastT= document.getElementById("toastT");
-const toastD= document.getElementById("toastD");
-
-function toastShow(t,d){
-  toastT.textContent = t;
-  toastD.textContent = d || "";
-  toast.classList.add("show");
-  clearTimeout(window.__tst);
-  window.__tst = setTimeout(()=>toast.classList.remove("show"), 2600);
-}
-
-function log(msg){
-  const stamp = new Date().toLocaleString("pt-BR");
-  logBox.textContent = `[${stamp}] ${msg}\n` + logBox.textContent;
-}
 function fmtTime(ms){
   if(!ms) return "—";
-  return new Date(ms).toLocaleString("pt-BR");
-}
-function safeStr(x){
-  return String(x ?? "").replace(/[<>]/g, "");
-}
-function setFirebaseState(ok, msg){
-  if(ok){
-    pillDb.classList.remove("off");
-    dbState.textContent = "OK";
-    if(msg) log(msg);
-  }else{
-    pillDb.classList.add("off");
-    dbState.textContent = "ERRO";
-    if(msg) log(msg);
-  }
+  return new Date(ms).toLocaleTimeString("pt-BR");
 }
 
 /* ==========================================================
    INIT Firebase
 ========================================================== */
 let db = null;
-try{
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-  setFirebaseState(true, "Firebase conectado.");
-}catch(e){
-  console.error(e);
-  setFirebaseState(false, "Falha ao iniciar Firebase (confira firebaseConfig).");
-}
-
-/* ==========================================================
-   LER /devices em tempo real
-========================================================== */
 let cacheDevices = [];
 let lastRefresh = 0;
 
+try{
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+  miniInfo.textContent = "Conectado. Carregando dispositivos…";
+}catch(e){
+  console.error(e);
+  miniInfo.textContent = "Erro ao iniciar Firebase. Confira firebaseConfig.";
+}
+
+/* ==========================================================
+   Devices: counts + cache
+========================================================== */
 function computeCounts(devs){
   const now = Date.now();
   const registered = devs.filter(d => d && d.enabled === true).length;
@@ -552,55 +291,11 @@ function computeCounts(devs){
   return { registered, online };
 }
 
-function renderTable(devs){
-  const now = Date.now();
-  const q = (searchId.value || "").trim().toLowerCase();
-  const filtered = q ? devs.filter(d => String(d.id||"").toLowerCase().includes(q)) : devs;
-
-  if(!filtered.length){
-    tbody.innerHTML = `<tr><td colspan="3" style="opacity:.8">Nenhum dispositivo encontrado.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(d => {
-    const isRegistered = d.enabled === true;
-    const isOnline = isRegistered && (now - (d.lastSeen||0) < ONLINE_WINDOW_MS);
-
-    let badge = "";
-    if(isOnline){
-      badge = `<span class="badge on"><span class="bdot"></span>ONLINE</span>`;
-    }else if(isRegistered){
-      badge = `<span class="badge reg"><span class="bdot"></span>REGISTRADO</span>`;
-    }else{
-      badge = `<span class="badge off"><span class="bdot"></span>OFFLINE</span>`;
-    }
-
-    const idShort = safeStr(d.id).slice(0,14) + (String(d.id||"").length>14 ? "…" : "");
-
-    return `
-      <tr>
-        <td><b>${idShort}</b></td>
-        <td>${badge}</td>
-        <td>
-          ${fmtTime(d.lastSeen)}
-          <div class="mini">${safeStr(d.ua||"")}</div>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-function refreshUI(){
-  const devs = cacheDevices || [];
-  const { registered, online } = computeCounts(devs);
+function refreshCounters(){
+  const { registered, online } = computeCounts(cacheDevices);
   elRegistered.textContent = registered;
   elOnline.textContent = online;
-
-  const t = new Date().toLocaleTimeString("pt-BR");
-  pillLive.classList.remove("off");
-  liveState.textContent = t;
-
-  renderTable(devs);
+  miniInfo.textContent = `Atualizado: ${fmtTime(lastRefresh)} • Online: ${online} • Registrados: ${registered}`;
 }
 
 async function refreshDevicesOnce(){
@@ -612,13 +307,10 @@ async function refreshDevicesOnce(){
     arr.sort((a,b) => (b.lastSeen||0) - (a.lastSeen||0));
     cacheDevices = arr;
     lastRefresh = Date.now();
-    refreshUI();
-    const c = computeCounts(arr);
-    log(`Lista atualizada: ${c.registered} registrados / ${c.online} online.`);
+    refreshCounters();
   }catch(e){
     console.error(e);
-    setFirebaseState(false, "ERRO ao atualizar lista (regras/URL).");
-    toastShow("Erro", "Não foi possível ler /devices. Confira Rules e databaseURL.");
+    miniInfo.textContent = "Erro ao ler /devices. Confira Rules e databaseURL.";
   }
 }
 
@@ -631,23 +323,19 @@ function startRealtimeDevices(){
       arr.sort((a,b) => (b.lastSeen||0) - (a.lastSeen||0));
       cacheDevices = arr;
       lastRefresh = Date.now();
-      refreshUI();
+      refreshCounters();
     }, (err) => {
       console.error(err);
-      setFirebaseState(false, "ERRO real-time (regras).");
+      miniInfo.textContent = "Erro realtime /devices (Rules).";
     });
-
-    log("Realtime /devices ativado.");
   }catch(e){
     console.error(e);
-    log("Realtime falhou. Usando atualização manual.");
     refreshDevicesOnce();
   }
 }
-searchId.addEventListener("input", () => renderTable(cacheDevices));
 
 /* ==========================================================
-   ENVIAR NOTIFICAÇÃO
+   Send notifications
 ========================================================== */
 function buildRecipientsMap(ids){
   const m = {};
@@ -661,12 +349,13 @@ async function pushNotification(payload){
 }
 
 async function sendNotification({title, body, target}){
-  if(!db) throw new Error("No DB");
+  if(!db) throw new Error("Sem DB");
+
   title = (title || "Cartomantes Online").trim();
   body  = (body  || "Nova mensagem.").trim();
   target = target || "online";
 
-  const devs = cacheDevices.length ? cacheDevices : [];
+  const devs = cacheDevices || [];
   const now = Date.now();
 
   const registeredIds = devs.filter(d => d && d.enabled === true).map(d => d.id);
@@ -679,7 +368,7 @@ async function sendNotification({title, body, target}){
   const payload = {
     title,
     body,
-    url: "./leituras.html",
+    url: "./leituras.html", // ✅ continua fixo, mas não aparece na tela
     ts: now,
     target,
     recipients: buildRecipientsMap(ids),
@@ -688,10 +377,7 @@ async function sendNotification({title, body, target}){
   };
 
   await pushNotification(payload);
-
-  elLastSend.textContent = new Date(now).toLocaleTimeString("pt-BR");
-  log(`Enviado para ${ids.length} dispositivo(s) (${target}).`);
-  toastShow("Enviado ✅", `Foram ${ids.length} dispositivos (${target}).`);
+  miniInfo.textContent = `Enviado para ${ids.length} dispositivo(s) (${target}). • Atualizado: ${fmtTime(lastRefresh)}`;
 }
 
 document.getElementById("btnSend").onclick = async () => {
@@ -701,28 +387,27 @@ document.getElementById("btnSend").onclick = async () => {
       return;
     }
     if(!cacheDevices.length) await refreshDevicesOnce();
-
     await sendNotification({
       title: nTitle.value,
       body: nBody.value,
       target: nTarget.value
     });
-
   }catch(e){
     console.error(e);
-    log("ERRO ao enviar notificação (regras/URL).");
-    toastShow("Erro", "Não foi possível enviar. Confira Rules do /notifications.");
+    alert("Erro ao enviar. Confira Rules do /notifications.");
   }
 };
 
-/* ✅ ENVIAR PRA TODOS (broadcast) */
-document.getElementById("btnTest").onclick = async () => {
+document.getElementById("btnBroadcast").onclick = async () => {
   try{
-    if(!db) return;
+    if(!nBody.value.trim()){
+      alert("Digite a mensagem antes de enviar.");
+      return;
+    }
     const now = Date.now();
     await pushNotification({
       title: (nTitle.value || "Cartomantes Online").trim(),
-      body: (nBody.value.trim() || "Mensagem para todos que ativaram notificações."),
+      body: (nBody.value || "").trim(),
       url: "./leituras.html",
       ts: now,
       target: "broadcast",
@@ -730,39 +415,28 @@ document.getElementById("btnTest").onclick = async () => {
       sentBy: "painel",
       sentAt: now
     });
-
-    elLastSend.textContent = new Date(now).toLocaleTimeString("pt-BR");
-    log("Broadcast enviado para TODOS (recipients {'*':true}).");
-    toastShow("Enviado ✅", "Broadcast para todos que ativaram (quando estiverem com o app/site aberto).");
+    miniInfo.textContent = `Broadcast (*) enviado. • Atualizado: ${fmtTime(lastRefresh)}`;
   }catch(e){
     console.error(e);
-    log("ERRO ao enviar broadcast (regras/notifications).");
-    toastShow("Erro", "Não foi possível enviar. Confira Rules.");
+    alert("Erro ao enviar broadcast. Confira Rules.");
   }
 };
 
 document.getElementById("btnRefresh").onclick = () => refreshDevicesOnce();
-document.getElementById("btnClearLog").onclick = () => {
-  logBox.textContent = "Log limpo.\n";
-  toastShow("Ok", "Log limpo.");
-};
 
 /* ==========================================================
-   BOOT
+   Boot
 ========================================================== */
 (function boot(){
-  if(!db){
-    pillLive.classList.add("off");
-    liveState.textContent = "sem db";
-    return;
-  }
+  if(!db) return;
   startRealtimeDevices();
   refreshDevicesOnce();
+
   setInterval(() => {
-    if(Date.now() - lastRefresh > 15000){
+    if(Date.now() - lastRefresh > 20000){
       refreshDevicesOnce();
     }
-  }, 12000);
+  }, 15000);
 })();
 </script>
 </body>
