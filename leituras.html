@@ -338,23 +338,31 @@ body{
   box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
 
-/* ✅ Banner permissão notificações */
-#notifBar{
+/* ✅ Popup/Toast permissão notificações (estilo app) */
+#notifPopupWrap{
   position:fixed;
-  left:12px; right:12px; bottom:12px;
+  inset:0;
   z-index:999999;
-  border:1px solid rgba(199,160,8,.55);
-  border-radius:16px;
-  padding:14px;
-  background:rgba(0,0,0,.88);
-  color:#fff;
-  box-shadow:0 20px 50px rgba(0,0,0,.55);
   display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:14px;
+  background:rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
 }
-#notifBar .t{ font-weight:900; margin-bottom:6px; }
-#notifBar .d{ opacity:.9; font-size:13px; line-height:1.4; margin-bottom:10px; }
-#notifBar .row{ display:flex; gap:10px; }
-#notifBar button{
+#notifPopup{
+  width:min(560px, 100%);
+  border:1px solid rgba(199,160,8,.55);
+  border-radius:18px;
+  padding:14px;
+  background:rgba(0,0,0,.92);
+  color:#fff;
+  box-shadow:0 26px 70px rgba(0,0,0,.65);
+}
+#notifPopup .t{ font-weight:900; margin-bottom:6px; }
+#notifPopup .d{ opacity:.9; font-size:13px; line-height:1.4; margin-bottom:12px; }
+#notifPopup .row{ display:flex; gap:10px; }
+#notifPopup button{
   height:48px;
   border:0;
   border-radius:14px;
@@ -362,16 +370,22 @@ body{
   cursor:pointer;
   letter-spacing:.5px;
 }
-#notifYes{
+#notifEnable{
   flex:1;
   background:linear-gradient(180deg,#2ecc71,#1f9b50);
   color:#fff;
 }
-#notifNo{
-  width:120px;
+#notifLater{
+  width:140px;
   background:rgba(255,255,255,.10);
   color:#fff;
   border:1px solid rgba(255,255,255,.12);
+}
+#notifOk{
+  flex:1;
+  background:linear-gradient(180deg, var(--gold-2), var(--gold-3));
+  color:#111;
+  display:none;
 }
 </style>
 </head>
@@ -414,13 +428,16 @@ body{
   <div class="container" id="cards-container"></div>
 </div>
 
-<!-- ✅ Banner permissão notificações -->
-<div id="notifBar" role="dialog" aria-label="Ativar notificações">
-  <div class="t">Ativar notificações?</div>
-  <div class="d">Receba avisos enquanto o app estiver aberto.</div>
-  <div class="row">
-    <button id="notifYes">ATIVAR</button>
-    <button id="notifNo">AGORA NÃO</button>
+<!-- ✅ POPUP (aparece 1x no app instalado se ainda não ativou) -->
+<div id="notifPopupWrap" role="dialog" aria-label="Ativar notificações">
+  <div id="notifPopup">
+    <div class="t">Ativar notificações?</div>
+    <div class="d">Receba avisos do painel. (Recomendado para quem instalou o app na tela inicial)</div>
+    <div class="row">
+      <button id="notifEnable">ATIVAR</button>
+      <button id="notifLater">AGORA NÃO</button>
+      <button id="notifOk">OK</button>
+    </div>
   </div>
 </div>
 
@@ -638,9 +655,9 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 /* ==========================================================
    ✅ NOTIFICAÇÕES LOCAIS (SEM PUSH REAL)
-   - pede permissão com clique (botão ATIVAR)
-   - escuta o painel (BroadcastChannel/localStorage)
-   - dispara via Service Worker (LOCAL_NOTIFY)
+   ✅ POPUP APARECE AUTOMÁTICO AO ABRIR PELO ÍCONE (APP INSTALADO)
+   ✅ APARECE 1 VEZ (ENQUANTO NÃO ATIVAR)
+   ✅ SUMIU APÓS ATIVAR (NUNCA MAIS)
 ========================================================== */
 function isStandalone(){
   return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
@@ -648,6 +665,10 @@ function isStandalone(){
 
 async function pedirPermissaoNotificacao(){
   if(!("Notification" in window)) return false;
+
+  // Se estiver bloqueado, não dá para pedir de novo automaticamente
+  if(Notification.permission === "denied") return false;
+
   const perm = await Notification.requestPermission();
   return perm === "granted";
 }
@@ -666,39 +687,71 @@ async function enviarNotificacaoLocal(title, body, url){
   });
 }
 
-/* ✅ Mostra banner se ainda não tem permissão (e só no app instalado) */
-(function initNotifBar(){
-  const bar = document.getElementById("notifBar");
-  const yes = document.getElementById("notifYes");
-  const no  = document.getElementById("notifNo");
+/* ✅ Popup 1x no app instalado (enquanto não ativou) */
+(function initNotifPopup(){
+  const KEY_DONE = "notif_activated_done_v1";  // marcou que ativou (não aparece nunca mais)
+  const KEY_SHOWN = "notif_popup_shown_v1";     // marcou que já mostrou (para não repetir toda hora)
+  const wrap = document.getElementById("notifPopupWrap");
+  const btnEnable = document.getElementById("notifEnable");
+  const btnLater  = document.getElementById("notifLater");
+  const btnOk     = document.getElementById("notifOk");
 
+  if(!wrap) return;
   if(!("Notification" in window)) return;
 
-  // Se você quiser mostrar também no navegador normal, remova esse if:
+  // só no app instalado / tela inicial
   if(!isStandalone()) return;
 
-  // Já concedeu? não mostra.
-  if(Notification.permission === "granted") return;
+  // se já ativou, nunca mais mostra
+  if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
+    localStorage.setItem(KEY_DONE,"1");
+    wrap.style.display = "none";
+    return;
+  }
 
-  // Se já clicou "agora não", não insiste
-  if(localStorage.getItem("notif_bar_hide") === "1") return;
+  // se já mostrou antes e ainda não ativou, NÃO mostra de novo automaticamente
+  // (aparece só 1 vez, como você pediu)
+  if(localStorage.getItem(KEY_SHOWN) === "1"){
+    wrap.style.display = "none";
+    return;
+  }
 
-  bar.style.display = "block";
+  // primeira vez abrindo pelo ícone e ainda não ativou -> mostra
+  localStorage.setItem(KEY_SHOWN,"1");
+  wrap.style.display = "flex";
 
-  no.onclick = () => {
-    localStorage.setItem("notif_bar_hide","1");
-    bar.style.display = "none";
+  function fechar(){
+    wrap.style.display = "none";
+  }
+
+  btnLater.onclick = () => {
+    // não ativa e some; como pediu, não mostra de novo
+    fechar();
   };
 
-  yes.onclick = async () => {
+  btnEnable.onclick = async () => {
     const ok = await pedirPermissaoNotificacao();
+
     if(ok){
-      bar.style.display = "none";
-      localStorage.setItem("notif_bar_hide","1");
-      enviarNotificacaoLocal("Notificações ativadas ✅", "Agora você pode receber avisos do painel.", "./leituras.html");
-    }else{
-      alert("Permissão negada. Vá nas configurações do navegador e permita notificações para este site.");
+      // marcou como ativado: não aparece nunca mais
+      localStorage.setItem(KEY_DONE,"1");
+      fechar();
+      enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
+      return;
     }
+
+    // Se foi negado ou bloqueado: troca botões e dá orientação
+    const desc = wrap.querySelector(".d");
+    if(Notification.permission === "denied"){
+      desc.textContent = "Notificações foram BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
+    }else{
+      desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
+    }
+
+    btnEnable.style.display = "none";
+    btnLater.style.display = "none";
+    btnOk.style.display = "block";
+    btnOk.onclick = () => fechar();
   };
 })();
 
