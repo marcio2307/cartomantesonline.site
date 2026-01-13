@@ -441,8 +441,35 @@ body{
   </div>
 </div>
 
+<!-- Firebase (Compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
-/* ✅ registra o service worker (se ainda não tiver no index) */
+/* ==========================================================
+   ✅ FIREBASE CONFIG (SEU)
+========================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
+  authDomain: "coletivo2025-9de23.firebaseapp.com",
+  databaseURL: "https://coletivo2025-9de23-default-rtdb.firebaseio.com",
+  projectId: "coletivo2025-9de23",
+  storageBucket: "coletivo2025-9de23.appspot.com",
+  messagingSenderId: "740866367489",
+  appId: "1:740866367489:web:963e3f5be80cb35a71e000"
+};
+
+let db = null;
+try{
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+}catch(e){
+  console.warn("Firebase falhou ao inicializar:", e);
+}
+
+/* ==========================================================
+   ✅ SERVICE WORKER
+========================================================== */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
@@ -506,9 +533,13 @@ consultores.forEach((c, idx) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
 
-    localStorage.clear();
+    // ✅ limpa só o que é seleção do consultor (não apaga deviceId/notifs)
+    localStorage.removeItem('consultorNome');
+    localStorage.removeItem('consultorValor');
+    localStorage.removeItem('consultorImagem');
+
     localStorage.setItem('consultorNome', c.nome);
-    localStorage.setItem('consultorValor', c.valor);
+    localStorage.setItem('consultorValor', String(c.valor));
     localStorage.setItem('consultorImagem', c.imagem);
 
     window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pacotes.html';
@@ -654,23 +685,45 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 
 /* ==========================================================
-   ✅ NOTIFICAÇÕES LOCAIS (SEM PUSH REAL)
-   ✅ POPUP APARECE AUTOMÁTICO AO ABRIR PELO ÍCONE (APP INSTALADO)
-   ✅ APARECE 1 VEZ (ENQUANTO NÃO ATIVAR)
-   ✅ SUMIU APÓS ATIVAR (NUNCA MAIS)
+   ✅ NOTIFICAÇÕES EM COMUNHÃO COM O PAINEL (FIREBASE)
 ========================================================== */
+const NODE_DEVICES = "devices";
+const NODE_NOTIFS  = "notifications";
+const ONLINE_PING_MS = 20000;
+
 function isStandalone(){
   return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
 }
+function makeId(){
+  return "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+function getDeviceId(){
+  let id = localStorage.getItem("co_device_id");
+  if(!id){
+    id = makeId();
+    localStorage.setItem("co_device_id", id);
+  }
+  return id;
+}
+const deviceId = getDeviceId();
 
-async function pedirPermissaoNotificacao(){
-  if(!("Notification" in window)) return false;
-
-  // Se estiver bloqueado, não dá para pedir de novo automaticamente
-  if(Notification.permission === "denied") return false;
-
-  const perm = await Notification.requestPermission();
-  return perm === "granted";
+async function upsertDevice(enabled){
+  if(!db) return;
+  try{
+    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
+      id: deviceId,
+      enabled: !!enabled,
+      lastSeen: Date.now(),
+      ua: (navigator.userAgent || "").slice(0,220),
+      installed: isStandalone()
+    });
+  }catch(e){}
+}
+async function pingLastSeen(){
+  if(!db) return;
+  try{
+    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() });
+  }catch(e){}
 }
 
 async function enviarNotificacaoLocal(title, body, url){
@@ -687,10 +740,11 @@ async function enviarNotificacaoLocal(title, body, url){
   });
 }
 
-/* ✅ Popup 1x no app instalado (enquanto não ativou) */
+/* ✅ Popup 1x no app instalado */
 (function initNotifPopup(){
-  const KEY_DONE = "notif_activated_done_v1";  // marcou que ativou (não aparece nunca mais)
-  const KEY_SHOWN = "notif_popup_shown_v1";     // marcou que já mostrou (para não repetir toda hora)
+  const KEY_DONE  = "notif_activated_done_v1";
+  const KEY_SHOWN = "notif_popup_shown_v1";
+
   const wrap = document.getElementById("notifPopupWrap");
   const btnEnable = document.getElementById("notifEnable");
   const btnLater  = document.getElementById("notifLater");
@@ -698,84 +752,87 @@ async function enviarNotificacaoLocal(title, body, url){
 
   if(!wrap) return;
   if(!("Notification" in window)) return;
-
-  // só no app instalado / tela inicial
   if(!isStandalone()) return;
 
-  // se já ativou, nunca mais mostra
   if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
     localStorage.setItem(KEY_DONE,"1");
     wrap.style.display = "none";
     return;
   }
 
-  // se já mostrou antes e ainda não ativou, NÃO mostra de novo automaticamente
-  // (aparece só 1 vez, como você pediu)
   if(localStorage.getItem(KEY_SHOWN) === "1"){
     wrap.style.display = "none";
     return;
   }
 
-  // primeira vez abrindo pelo ícone e ainda não ativou -> mostra
   localStorage.setItem(KEY_SHOWN,"1");
   wrap.style.display = "flex";
 
-  function fechar(){
-    wrap.style.display = "none";
-  }
+  function fechar(){ wrap.style.display = "none"; }
 
-  btnLater.onclick = () => {
-    // não ativa e some; como pediu, não mostra de novo
-    fechar();
-  };
+  btnLater.onclick = () => fechar();
 
   btnEnable.onclick = async () => {
-    const ok = await pedirPermissaoNotificacao();
-
-    if(ok){
-      // marcou como ativado: não aparece nunca mais
-      localStorage.setItem(KEY_DONE,"1");
-      fechar();
-      enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
+    if(Notification.permission === "denied"){
+      const desc = wrap.querySelector(".d");
+      desc.textContent = "Notificações BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
+      btnEnable.style.display = "none";
+      btnLater.style.display = "none";
+      btnOk.style.display = "block";
+      btnOk.onclick = () => fechar();
       return;
     }
 
-    // Se foi negado ou bloqueado: troca botões e dá orientação
-    const desc = wrap.querySelector(".d");
-    if(Notification.permission === "denied"){
-      desc.textContent = "Notificações foram BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
+    const perm = await Notification.requestPermission();
+    if(perm === "granted"){
+      localStorage.setItem(KEY_DONE,"1");
+      fechar();
+      await upsertDevice(true);
+      enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
     }else{
+      const desc = wrap.querySelector(".d");
       desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
+      btnEnable.style.display = "none";
+      btnLater.style.display = "none";
+      btnOk.style.display = "block";
+      btnOk.onclick = () => fechar();
     }
-
-    btnEnable.style.display = "none";
-    btnLater.style.display = "none";
-    btnOk.style.display = "block";
-    btnOk.onclick = () => fechar();
   };
 })();
 
-/* ✅ Escuta painel: BroadcastChannel */
-const bc = ("BroadcastChannel" in window) ? new BroadcastChannel("cartomantes_notifs") : null;
-if(bc){
-  bc.onmessage = (ev) => {
-    const d = ev.data || {};
-    if(d.type === "SEND"){
-      enviarNotificacaoLocal(d.title, d.body, d.url);
-    }
-  };
-}
+/* ✅ presença online */
+(async function bootPresence(){
+  if(!("Notification" in window)) return;
+  const enabled = (Notification.permission === "granted");
+  await upsertDevice(enabled);
+  pingLastSeen();
+  setInterval(pingLastSeen, ONLINE_PING_MS);
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
+})();
 
-/* ✅ Fallback: localStorage */
-window.addEventListener("storage", (e) => {
-  if(e.key !== "cartomantes_notif_last") return;
-  try{
-    const d = JSON.parse(e.newValue || "{}");
-    if(d && d.type === "SEND"){
-      enviarNotificacaoLocal(d.title, d.body, d.url);
-    }
-  }catch{}
-});
+/* ✅ escuta painel */
+(function listenPanelNotifications(){
+  if(!db) return;
+  if(!("Notification" in window)) return;
+
+  let lastTs = Number(localStorage.getItem("co_last_notif_ts") || "0");
+
+  db.ref(NODE_NOTIFS).limitToLast(30).on("child_added", async (snap) => {
+    const d = snap.val() || {};
+    const ts = Number(d.ts || 0);
+    if(!ts || ts <= lastTs) return;
+    if(Notification.permission !== "granted") return;
+
+    const rec = Array.isArray(d.recipients) ? d.recipients : [];
+    const ok = rec.includes("*") || rec.includes(deviceId);
+    if(!ok) return;
+
+    localStorage.setItem("co_last_notif_ts", String(ts));
+    lastTs = ts;
+
+    await enviarNotificacaoLocal(d.title, d.body, d.url);
+  });
+})();
 </script>
 
 </body>
