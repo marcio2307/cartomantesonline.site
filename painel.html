@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Painel de Notificações</title>
+
+<link rel="icon" href="logo.png" />
+
+<style>
+  body{
+    margin:0;
+    min-height:100vh;
+    background:#000;
+    color:#fff;
+    font-family:system-ui, Arial, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+  }
+  .box{
+    width:min(560px, 100%);
+    border:1px solid rgba(199,160,8,.55);
+    border-radius:18px;
+    padding:18px;
+    background:rgba(255,255,255,.06);
+    box-shadow:0 24px 60px rgba(0,0,0,.65);
+  }
+  h1{
+    margin:0 0 14px;
+    font-size:20px;
+    font-weight:900;
+    letter-spacing:.2px;
+    color:transparent;
+    background-image:linear-gradient(180deg,#fff0a6 0%,#c7a008 55%,#f6e27a 100%);
+    -webkit-background-clip:text;
+    background-clip:text;
+  }
+  .sub{
+    margin:-6px 0 14px;
+    font-size:13px;
+    opacity:.88;
+    line-height:1.45;
+  }
+  label{
+    display:block;
+    margin:10px 0 6px;
+    font-size:12px;
+    opacity:.85;
+  }
+  input, textarea{
+    width:100%;
+    box-sizing:border-box;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(0,0,0,.35);
+    color:#fff;
+    padding:12px;
+    font-size:14px;
+    outline:none;
+  }
+  textarea{ min-height:120px; resize:vertical; }
+  .row{ display:flex; gap:10px; margin-top:12px; }
+  button{
+    height:54px;
+    border-radius:16px;
+    border:0;
+    font-weight:900;
+    cursor:pointer;
+    letter-spacing:.5px;
+  }
+  .send{
+    flex:1;
+    background:linear-gradient(180deg,#c7a008 0%,#f6e27a 100%);
+    color:#111;
+    box-shadow:0 18px 40px rgba(0,0,0,.55);
+  }
+  .test{
+    width:160px;
+    background:rgba(255,255,255,.10);
+    color:#fff;
+    border:1px solid rgba(255,255,255,.12);
+  }
+  .hint{
+    margin-top:14px;
+    font-size:12px;
+    opacity:.85;
+    line-height:1.45;
+    border-top:1px solid rgba(255,255,255,.08);
+    padding-top:12px;
+  }
+  .ok{
+    margin-top:10px;
+    font-size:12px;
+    color:#9cffb5;
+    display:none;
+  }
+</style>
+</head>
+
+<body>
+  <div class="box">
+    <h1>📣 Painel de Avisos</h1>
+    <div class="sub">
+      Envia “notificação local” <b>somente</b> para quem estiver com o app aberto (ou em segundo plano).
+      <br>⚠️ Se o app estiver totalmente fechado, não chega.
+    </div>
+
+    <label>Título</label>
+    <input id="title" placeholder="Ex: Consultor disponível!" />
+
+    <label>Mensagem</label>
+    <textarea id="body" placeholder="Ex: Abra agora para garantir sua consulta."></textarea>
+
+    <label>Link ao clicar (opcional)</label>
+    <input id="url" placeholder="./leituras.html" />
+
+    <div class="row">
+      <button class="send" id="send">ENVIAR AGORA</button>
+      <button class="test" id="fill">EXEMPLO</button>
+    </div>
+
+    <div class="ok" id="ok">✅ Enviado! (para quem estiver com o app aberto)</div>
+
+    <div class="hint">
+      Dica: deixe o <b>leituras.html</b> aberto no celular e envie por aqui para testar.
+    </div>
+  </div>
+
+<script>
+  // Canal para enviar para o app aberto
+  const channel = ("BroadcastChannel" in window) ? new BroadcastChannel("cartomantes_notifs") : null;
+
+  function dispatch(data){
+    // BroadcastChannel (melhor)
+    if(channel){
+      channel.postMessage(data);
+    }
+    // Fallback: localStorage (para alguns casos/abas)
+    try{
+      localStorage.setItem("cartomantes_notif_last", JSON.stringify({ ...data, ts: Date.now() }));
+    }catch{}
+  }
+
+  function enviar(){
+    const title = (document.getElementById("title").value || "").trim() || "Cartomantes Online";
+    const body  = (document.getElementById("body").value  || "").trim() || "Nova atualização.";
+    const url   = (document.getElementById("url").value   || "").trim() || "./leituras.html";
+
+    dispatch({ type:"SEND", title, body, url });
+
+    const ok = document.getElementById("ok");
+    ok.style.display = "block";
+    clearTimeout(window.__okTimer);
+    window.__okTimer = setTimeout(() => ok.style.display = "none", 2500);
+  }
+
+  document.getElementById("send").addEventListener("click", enviar);
+
+  document.getElementById("fill").addEventListener("click", () => {
+    document.getElementById("title").value = "✅ Consultor online agora!";
+    document.getElementById("body").value  = "Abra o app e inicie sua consulta enquanto está disponível.";
+    document.getElementById("url").value   = "./leituras.html";
+  });
+</script>
+
+</body>
+</html>
