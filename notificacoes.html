@@ -39,7 +39,7 @@
       <input id="server" value="https://envio-6.onrender.com" />
 
       <div class="row">
-        <button id="btnActivate">ATIVAR E CADASTRAR</button>
+        <button id="btnActivate" type="button">ATIVAR E CADASTRAR</button>
         <button id="btnResub" class="secondary" type="button">RECADASTRAR (FORÇAR NOVA)</button>
       </div>
 
@@ -103,6 +103,7 @@
   }
 
   async function getVapidKey(){
+    // cache no-store pra evitar pegar resposta antiga
     const { res, text, json } = await fetchJsonOrText(serverBase() + "/vapid-public-key", { cache:"no-store" });
     setLog(json || text);
     if(!res.ok) throw new Error("Falha ao obter /vapid-public-key: " + text);
@@ -112,16 +113,29 @@
 
   async function registerSW(){
     if(!("serviceWorker" in navigator)) throw new Error("Service Worker não suportado neste navegador.");
+
+    // ✅ garante que o SW antigo está atualizado (evita ficar preso num SW velho)
     const reg = await navigator.serviceWorker.register("./service-worker.js", { scope:"./" });
+    try { await reg.update(); } catch {}
+
     await navigator.serviceWorker.ready;
+
+    // ✅ se estiver esperando (waiting), força ele assumir mais rápido
+    if (reg.waiting) {
+      try { reg.waiting.postMessage({ type: "SKIP_WAITING" }); } catch {}
+    }
+
     return reg;
   }
 
   async function saveSubscription(sub){
+    // ✅ IMPORTANTÍSSIMO: enviar somente JSON plano (toJSON)
+    const payload = (sub && typeof sub.toJSON === "function") ? sub.toJSON() : sub;
+
     const { res, text, json } = await fetchJsonOrText(serverBase() + "/save-subscription", {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(sub)
+      body: JSON.stringify(payload)
     });
 
     setLog(json || text);
@@ -133,7 +147,9 @@
   }
 
   async function ensureSubscription(forceNew=false){
-    // permissão
+    if(!("Notification" in window)) throw new Error("Este navegador não suporta Notification API.");
+
+    // ✅ em alguns celulares precisa de gesto do usuário (clique) — aqui já estamos no clique
     const perm = await Notification.requestPermission();
     if(perm !== "granted") throw new Error("Permissão não concedida. (Permission = " + perm + ")");
 
@@ -142,6 +158,8 @@
 
     let sub = await reg.pushManager.getSubscription();
 
+    // ✅ Se já existe, SEMPRE salva de novo no servidor (Render pode ter reiniciado e perdido o arquivo/memória)
+    // ✅ Se forceNew=true, aí sim desinscreve e cria outra.
     if(forceNew && sub){
       try{ await sub.unsubscribe(); }catch{}
       sub = null;
@@ -170,7 +188,7 @@
     try{
       setStatusOk("Consultando /stats...");
       const s = await stats();
-      setStatusOk("✅ /stats OK — total inscrições: " + s.total);
+      setStatusOk("✅ /stats OK — total inscrições: " + (s?.total ?? "?"));
     }catch(e){
       setStatusErr("❌ " + (e?.message || e));
     }finally{
@@ -186,7 +204,7 @@
     try{
       setStatusOk("Ativando e cadastrando...");
       const { saved } = await ensureSubscription(false);
-      setStatusOk("✅ Cadastrado no servidor! Total agora: " + (saved?.total ?? "?") + " (abra /stats para confirmar)");
+      setStatusOk("✅ Cadastrado no servidor! Total agora: " + (saved?.total ?? "?") + " (clique em /stats para confirmar)");
     }catch(e){
       setStatusErr("❌ ERRO ao cadastrar:\n" + (e?.message || e));
     }finally{
@@ -204,7 +222,7 @@
     try{
       setStatusOk("Forçando novo cadastro (reinscrevendo)...");
       const { saved } = await ensureSubscription(true);
-      setStatusOk("✅ RECADASTRADO! Total agora: " + (saved?.total ?? "?") + " (abra /stats para confirmar)");
+      setStatusOk("✅ RECADASTRADO! Total agora: " + (saved?.total ?? "?") + " (clique em /stats para confirmar)");
     }catch(e){
       setStatusErr("❌ ERRO ao recadastrar:\n" + (e?.message || e));
     }finally{
@@ -221,9 +239,19 @@
         setStatusErr("❌ Este navegador não suporta Notification API.");
         return;
       }
-      setStatusOk("Permissão atual: " + Notification.permission + " | Abra /stats para ver inscrições.");
+      setStatusOk("Permissão atual: " + Notification.permission + " | Clique em ATIVAR para cadastrar. Depois veja /stats.");
     }catch{}
   })();
 </script>
+
+<!-- ✅ AJUDA: para o SW assumir rápido (opcional, mas ajuda no iOS/Android) -->
+<script>
+  // Se você usar esse SW, ele precisa ouvir SKIP_WAITING.
+  // (não quebra se não ouvir; apenas ignora)
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", () => {});
+  }
+</script>
+
 </body>
 </html>
