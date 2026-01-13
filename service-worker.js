@@ -3,7 +3,7 @@
    GitHub Pages / PWA
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.2"; // ✅ aumente p/ forçar update
+const CACHE_VERSION = "v1.1.3"; // 🔴 AUMENTEI a versão p/ forçar update
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -45,7 +45,7 @@ self.addEventListener("activate", (event) => {
 
 /* ===========================
    FETCH (CACHE)
-   ✅ NÃO CACHEIA REQUISIÇÕES EXTERNAS (Render etc)
+   ✅ NÃO CACHEIA REQUISIÇÕES EXTERNAS
 =========================== */
 self.addEventListener("fetch", (event) => {
   const req = event.request;
@@ -53,13 +53,13 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
-  // ✅ não cacheia cross-origin (ex.: Render)
+  // não cacheia cross-origin
   if (url.origin !== self.location.origin) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // Navegação (HTML)
+  // Navegação HTML
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -75,7 +75,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first para arquivos do seu site
+  // Cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -89,5 +89,58 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
     })
+  );
+});
+
+/* ==========================================================
+   ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL)
+   - Funciona com o app/site aberto ou em segundo plano
+   - Disparada via postMessage do site
+========================================================== */
+self.addEventListener("message", (event) => {
+  const data = event.data || {};
+  if (data.type !== "LOCAL_NOTIFY") return;
+
+  const title = data.title || "Cartomantes Online";
+  const options = {
+    body: data.body || "Você tem uma nova atualização.",
+    icon: "./logo.png",
+    badge: "./logo.png",
+    data: {
+      url: data.url || "./leituras.html"
+    }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+/* ===========================
+   CLICK NA NOTIFICAÇÃO
+=========================== */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "./leituras.html";
+
+  event.waitUntil(
+    (async () => {
+      const allClients = await clients.matchAll({
+        type: "window",
+        includeUncontrolled: true
+      });
+
+      for (const client of allClients) {
+        if ("focus" in client) {
+          client.focus();
+          try { client.navigate(url); } catch {}
+          return;
+        }
+      }
+
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })()
   );
 });
