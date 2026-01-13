@@ -340,7 +340,7 @@ body{
 }
 
 /* ==========================================================
-   ✅ POPUP PERMISSÃO (MODERNO / ESTILO APP)
+   ✅ POPUP PERMISSÃO (BOTTOM SHEET)
 ========================================================== */
 #notifPopupWrap{
   position:fixed;
@@ -423,7 +423,7 @@ body{
   background-clip:text;
 }
 
-/* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares) */
+/* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS */
 fabapp-banner-footer,
 fabapp-banner-footer *{
   display:none !important;
@@ -503,8 +503,8 @@ source[src*="fabapp-ads"]{
         </svg>
       </div>
       <div>
-        <div id="notifTitle">Ativar notificações do app?</div>
-        <div id="notifDesc">Receba avisos importantes do painel (promoções, chamadas e atualizações).</div>
+        <div id="notifTitle">Ativar notificações?</div>
+        <div id="notifDesc">Receba avisos do painel (promoções, chamadas e atualizações).</div>
       </div>
     </div>
 
@@ -565,7 +565,7 @@ source[src*="fabapp-ads"]{
 })();
 
 /* ==========================================================
-   ✅ FIREBASE CONFIG (SEU) + init seguro
+   ✅ FIREBASE CONFIG (SEU)
 ========================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
@@ -581,23 +581,29 @@ let db = null;
 let fbOk = false;
 
 try{
-  if (firebase.apps && firebase.apps.length) {
-    firebase.app();
-  } else {
-    firebase.initializeApp(firebaseConfig);
-  }
+  if (firebase.apps && firebase.apps.length) firebase.app();
+  else firebase.initializeApp(firebaseConfig);
   db = firebase.database();
   fbOk = true;
-}catch(e){}
+}catch(e){
+  fbOk = false;
+}
 
 /* ==========================================================
-   ✅ SERVICE WORKER (precisa existir o arquivo service-worker.js)
+   ✅ SERVICE WORKER (REGISTRO MAIS ROBUSTO para GitHub Pages)
 ========================================================== */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-  });
+async function registerSW(){
+  if(!("serviceWorker" in navigator)) return false;
+  try{
+    // garante a URL correta no GitHub Pages / subpasta
+    const swUrl = new URL("./service-worker.js", location.href).href;
+    await navigator.serviceWorker.register(swUrl);
+    return true;
+  }catch(e){
+    return false;
+  }
 }
+window.addEventListener("load", () => { registerSW(); });
 
 /* ===========================
    LISTA DE CONSULTORES
@@ -792,18 +798,10 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 
 /* ==========================================================
-   ✅ COMUNHÃO COM PAINEL: /devices + /notifications
-   ✅ CORRIGE "alguns recebem e outros não" fazendo:
-      1) ID do device MAIS estável
-      2) Anti-duplicação por notifId (não só ts)
-      3) Aceita recipients como:
-         - MAPA {id:true}
-         - ARRAY ["id", "*"]
-         - STRING "*"
-      4) Atualiza /devices enabled SEMPRE que muda permissão
-      5) Mantém listener mesmo se abrir tarde
-   ✅ IMPORTANTE:
-      - Ainda NÃO é push real com app fechado (sem FCM)
+   ✅ NOTIFICAÇÕES (MÁXIMO POSSÍVEL SEM FCM)
+   - registra o device em /devices
+   - painel manda /notifications
+   - este arquivo escuta e dispara via SW (LOCAL_NOTIFY)
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -811,6 +809,19 @@ const ONLINE_PING_MS = 20000;
 
 function isStandalone(){
   return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+}
+function isIOS(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+}
+
+/* ✅ iOS só permite push/notif em PWA (Add to Home Screen) */
+function canAskNotificationInThisContext(){
+  if(!("Notification" in window)) return false;
+  if(isIOS() && !isStandalone()){
+    // iOS Safari (sem instalar) não libera notificações de site
+    return false;
+  }
+  return true;
 }
 
 /* ✅ deviceId mais estável */
@@ -831,13 +842,15 @@ function getOrMakeDeviceId(){
 }
 const deviceId = getOrMakeDeviceId();
 
-/* ✅ registra/atualiza device */
+/* ✅ registra/atualiza device (sempre) */
 async function upsertDevice(){
   if(!db) return false;
   try{
+    const perm = ("Notification" in window) ? Notification.permission : "unsupported";
     await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
       id: deviceId,
-      enabled: (("Notification" in window) && Notification.permission === "granted"),
+      enabled: (perm === "granted"),
+      perm,
       lastSeen: Date.now(),
       ua: (navigator.userAgent || "").slice(0,220),
       installed: isStandalone()
@@ -869,70 +882,47 @@ async function enviarNotificacaoLocal(title, body){
   }
 }
 
-/* ✅ presença sempre */
+/* ✅ presença sempre (registra mesmo com permissão default/denied) */
 (async function bootPresence(){
   if(!fbOk) return;
-  const ok = await upsertDevice();
-  if(!ok) return;
+  await upsertDevice();
   pingLastSeen();
   setInterval(pingLastSeen, ONLINE_PING_MS);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
 })();
 
 /* ==========================================================
-   ✅ UX PERMISSÃO (SÓ POPUP — SEM BOTÃO FLUTUANTE)
-   - No app instalado: mostra 1x por dia até ativar
-   - Fora do app: pode mostrar 1x por dia também (opcional)
-   - O request só acontece ao clicar ATIVAR (gesto do usuário)
+   ✅ POPUP PERMISSÃO: aparece em QUALQUER navegador
+   - 1x por dia até ativar
+   - iOS sem instalar: mostra instrução “Adicionar à Tela de Início”
 ========================================================== */
 (function notifPermissionUX(){
-  if(!("Notification" in window)) return;
-
   const wrap   = document.getElementById("notifPopupWrap");
   const enable = document.getElementById("notifEnable");
   const later  = document.getElementById("notifLater");
   const help   = document.getElementById("notifHelp");
+  if(!wrap || !enable || !later) return;
 
-  const KEY_OK   = "co_notif_ok_v4";
-  const KEY_DAY  = "co_notif_prompt_day_v4";
+  const KEY_OK  = "co_notif_ok_v5";
+  const KEY_DAY = "co_notif_prompt_day_v5";
 
   function todayKey(){ return new Date().toISOString().slice(0,10); }
+  function showWrap(){ wrap.style.display = "flex"; }
+  function hideWrap(){ wrap.style.display = "none"; }
 
-  function showWrap(){ if(wrap) wrap.style.display = "flex"; }
-  function hideWrap(){ if(wrap) wrap.style.display = "none"; }
-
-  async function pedir(){
-    if(Notification.permission === "denied"){
-      if(help){
-        help.style.display = "block";
-        help.innerHTML =
-          `Notificações estão <b>bloqueadas</b> neste celular.<br>` +
-          `Abra as configurações do navegador/app e permita notificações para este site.`;
-      }
-      return;
-    }
-
-    const perm = await Notification.requestPermission();
-
-    if(perm === "granted"){
-      localStorage.setItem(KEY_OK, "1");
-      hideWrap();
-      await upsertDevice();
-      enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
-      return;
-    }
-
-    if(help){
-      help.style.display = "block";
-      help.innerHTML =
-        `Permissão não concedida. Para receber avisos, toque em <b>ATIVAR AGORA</b> e permita as notificações.`;
-    }
+  function showHelp(html){
+    if(!help) return;
+    help.style.display = "block";
+    help.innerHTML = html;
   }
 
-  if(enable) enable.onclick = () => pedir();
-  if(later)  later.onclick  = () => hideWrap();
+  // se browser nem suporta Notification
+  if(!("Notification" in window)){
+    // não mostra popup (não adianta)
+    return;
+  }
 
-  // se já ativou, marca e sai
+  // se já concedeu, salva e sai
   if(Notification.permission === "granted"){
     localStorage.setItem(KEY_OK, "1");
     hideWrap();
@@ -942,29 +932,75 @@ async function enviarNotificacaoLocal(title, body){
 
   const ok  = (localStorage.getItem(KEY_OK) === "1");
   const day = localStorage.getItem(KEY_DAY);
-  const isApp = isStandalone();
 
-  // ✅ mostra 1x por dia até ativar (principalmente no app instalado)
+  // ✅ força aparecer 1x por dia até ativar
   if(!ok && day !== todayKey()){
     localStorage.setItem(KEY_DAY, todayKey());
-    if(isApp){
-      showWrap();
-    }else{
-      // fora do app: não atrapalha, mas ainda lembra 1x por dia (se você quiser tirar, basta comentar)
-      showWrap();
+    showWrap();
+
+    // iOS sem instalar: aviso correto
+    if(isIOS() && !isStandalone()){
+      showHelp(
+        `No <b>iPhone</b>, as notificações só funcionam quando o site está <b>instalado</b>.<br>`+
+        `Toque em <b>Compartilhar</b> → <b>Adicionar à Tela de Início</b> e abra por lá.<br>`+
+        `Depois volte aqui e toque em <b>ATIVAR AGORA</b>.`
+      );
     }
   }
+
+  later.onclick = () => hideWrap();
+
+  enable.onclick = async () => {
+    // iOS sem instalar
+    if(!canAskNotificationInThisContext()){
+      showHelp(
+        `Para ativar no <b>iPhone</b>:<br>`+
+        `1) Compartilhar → <b>Adicionar à Tela de Início</b><br>`+
+        `2) Abra o app instalado<br>`+
+        `3) Volte e toque em <b>ATIVAR AGORA</b>.`
+      );
+      // atualiza device (perm continua default/denied)
+      upsertDevice();
+      return;
+    }
+
+    if(Notification.permission === "denied"){
+      showHelp(
+        `Notificações estão <b>bloqueadas</b> neste celular.<br>`+
+        `Abra as configurações do navegador e permita notificações para este site.`
+      );
+      upsertDevice();
+      return;
+    }
+
+    try{
+      const perm = await Notification.requestPermission();
+      await upsertDevice();
+
+      if(perm === "granted"){
+        localStorage.setItem(KEY_OK, "1");
+        hideWrap();
+        enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
+        return;
+      }
+
+      showHelp(`Permissão não concedida. Para receber avisos, toque em <b>ATIVAR AGORA</b> e permita as notificações.`);
+    }catch(e){
+      showHelp(`Não foi possível solicitar permissão agora. Tente novamente.`);
+      upsertDevice();
+    }
+  };
 })();
 
 /* ==========================================================
-   ✅ RECEBER NOTIFICAÇÕES DO PAINEL (MÁXIMO POSSÍVEL)
+   ✅ RECEBER NOTIFICAÇÕES DO PAINEL
 ========================================================== */
 (function listenPanelNotifications(){
   if(!db) return;
   if(!("Notification" in window)) return;
 
-  const LAST_TS_KEY   = "co_last_notif_ts_v2";
-  const SEEN_IDS_KEY  = "co_seen_notif_ids_v2";
+  const LAST_TS_KEY   = "co_last_notif_ts_v3";
+  const SEEN_IDS_KEY  = "co_seen_notif_ids_v3";
 
   let lastTs = Number(localStorage.getItem(LAST_TS_KEY) || "0");
 
@@ -981,31 +1017,38 @@ async function enviarNotificacaoLocal(title, body){
   function isRecipientOk(recipients){
     if(!recipients) return false;
 
+    // string "*"
     if(typeof recipients === "string"){
       return recipients === "*" ? true : (recipients === deviceId);
     }
+    // array ["id", "*"]
     if(Array.isArray(recipients)){
       return recipients.includes("*") || recipients.includes(deviceId);
     }
+    // map {"*":true} ou {"dev_x":true}
     if(typeof recipients === "object"){
       return recipients["*"] === true || recipients[deviceId] === true;
     }
     return false;
   }
 
-  db.ref(NODE_NOTIFS).limitToLast(80).on("child_added", async (snap) => {
+  db.ref(NODE_NOTIFS).limitToLast(200).on("child_added", async (snap) => {
     const notifId = snap.key;
     const d = snap.val() || {};
     const ts = Number(d.ts || d.sentAt || 0);
 
     if(notifId && seen[notifId]) return;
 
+    // evita mostrar antigos
     if(ts && ts <= lastTs) {
       if(notifId) rememberSeen(notifId);
       return;
     }
 
+    // só dispara se permitido
     if(Notification.permission !== "granted") return;
+
+    // checa destino
     if(!isRecipientOk(d.recipients)) return;
 
     if(ts){
