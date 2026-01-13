@@ -1,11 +1,10 @@
 /* ==========================================================
    CARTOMANTES ONLINE – SERVICE WORKER (CACHE + NOTIF)
    GitHub Pages / PWA
-   ✅ Em comunhão com painel + Firebase (via postMessage LOCAL_NOTIFY)
    ✅ Clique da notificação SEMPRE abre: leituras.html
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.6"; // 🔴 AUMENTE sempre que trocar arquivos
+const CACHE_VERSION = "v1.1.7"; // 🔴 AUMENTE sempre que trocar arquivos
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 /* ✅ ajuste aqui se você criar novas páginas */
@@ -43,10 +42,8 @@ self.addEventListener("activate", (event) => {
           .map((k) => caches.delete(k))
       );
 
-      // ✅ Garante que versões antigas não fiquem presas
       await self.clients.claim();
 
-      // ✅ opcional: avisa páginas abertas
       const allClients = await self.clients.matchAll({ includeUncontrolled: true });
       allClients.forEach((c) => {
         try { c.postMessage({ type: "SW_UPDATED", version: CACHE_VERSION }); } catch {}
@@ -56,7 +53,7 @@ self.addEventListener("activate", (event) => {
 });
 
 /* ===========================
-   FETCH (CACHE)
+   FETCH
    ✅ NÃO CACHEIA EXTERNOS
    ✅ Network-first para HTML
    ✅ Cache-first para assets
@@ -67,13 +64,11 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
-  // ✅ não cacheia cross-origin
   if (url.origin !== self.location.origin) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // ✅ HTML (network-first, fallback cache)
   const isHTML =
     req.mode === "navigate" ||
     (req.headers.get("accept") || "").includes("text/html");
@@ -90,14 +85,12 @@ self.addEventListener("fetch", (event) => {
           const cached = await caches.match(req);
           if (cached) return cached;
 
-          // ✅ fallback sempre para leituras (pwa=true)
           return (await caches.match("./leituras.html")) || (await caches.match("./"));
         })
     );
     return;
   }
 
-  // ✅ Assets internos (cache-first)
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -116,15 +109,12 @@ self.addEventListener("fetch", (event) => {
 
 /* ==========================================================
    ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL)
-   - Disparada via postMessage do site/app (Firebase -> app -> SW)
 ========================================================== */
 self.addEventListener("message", (event) => {
   const data = event.data || {};
   if (data.type !== "LOCAL_NOTIFY") return;
 
   const title = data.title || "Cartomantes Online";
-
-  // ✅ tag única por mensagem (evita “sumir” quando manda várias)
   const tag = data.tag || `cartomantes-${Date.now()}`;
 
   const options = {
@@ -134,7 +124,6 @@ self.addEventListener("message", (event) => {
     tag,
     renotify: true,
     data: {
-      // ✅ mesmo que o painel mande outra coisa, o CLICK vai forçar leituras.html
       url: data.url || "leituras.html?pwa=true"
     }
   };
@@ -173,8 +162,6 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  // ✅ pega o scope real do SW (ex: https://marcio2307.github.io/cartomantesonline.site/)
-  // e monta a URL correta SEMPRE:
   const targetUrl = new URL("leituras.html?pwa=true", self.registration.scope).href;
 
   event.waitUntil(
@@ -184,7 +171,6 @@ self.addEventListener("notificationclick", (event) => {
         includeUncontrolled: true
       });
 
-      // ✅ tenta usar aba já aberta
       for (const client of allClients) {
         try {
           await client.focus();
@@ -193,10 +179,7 @@ self.addEventListener("notificationclick", (event) => {
         } catch {}
       }
 
-      // ✅ senão abre nova aba/janela
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
     })()
   );
 });
