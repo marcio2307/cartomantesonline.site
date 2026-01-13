@@ -814,30 +814,20 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ==========================================================
-   ✅ PUSH / NOTIFICAÇÕES (AJUSTADO PARA O ENVIO-7 + GITHUB PAGES)
+   ✅ PUSH / NOTIFICAÇÕES (AJUSTE IMPORTANTE PARA GITHUB PAGES)
 ========================================================== */
 
 const PUSH_SERVER = "https://envio-7.onrender.com";
 
-const notifBar = document.getElementById("notifBar");
-const notifBtn = document.getElementById("notifBtn");
-const notifClose = document.getElementById("notifClose");
-const notifStatus = document.getElementById("notifStatus");
-
-function showNotifBar(msg){
-  notifBar.style.display = "block";
-  notifStatus.textContent = msg || "";
-}
-function hideNotifBar(){
-  notifBar.style.display = "none";
-  notifStatus.textContent = "";
-}
+// fallback (se o /vapid-public-key falhar)
+let VAPID_PUBLIC_KEY =
+  "BEL4FtGCVPRNJsDWokgdWnBmIUOWvKBPMDT_ega_uFwQEJUPNQ13tasi39b_gAHILf_EPB4e24LOp0P3bjU725o";
 
 function detectScopeBase(){
-  // github.io -> "/NOME-REPO/"
   const parts = location.pathname.split("/").filter(Boolean);
-  if (location.hostname.endsWith("github.io") && parts.length > 0) return `/${parts[0]}/`;
-  // domínio próprio -> raiz
+  if (location.hostname.endsWith("github.io") && parts.length > 0) {
+    return `/${parts[0]}/`;
+  }
   return "/";
 }
 
@@ -859,22 +849,19 @@ async function ensureServiceWorker(){
 
   const reg = await navigator.serviceWorker.register(SW_URL, { scope: SCOPE_BASE });
   await navigator.serviceWorker.ready;
-
-  // força update do SW (quando você muda o arquivo)
   try { await reg.update(); } catch {}
-
   return reg;
 }
 
-let VAPID_PUBLIC_KEY = "";
-
 async function getVapidFromServer(){
-  const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key", { cache:"no-store" });
-  const text = await res.text();
-  let data = null;
-  try { data = JSON.parse(text); } catch {}
-  if (!res.ok || !data?.publicKey) throw new Error("Falha ao pegar VAPID do servidor: " + text);
-  VAPID_PUBLIC_KEY = data.publicKey;
+  try{
+    const res = await fetch(PUSH_SERVER.replace(/\/+$/,"") + "/vapid-public-key?t=" + Date.now(), { cache:"no-store" });
+    if (!res.ok) throw new Error("Falha ao pegar VAPID do servidor");
+    const data = await res.json();
+    if (data?.publicKey) VAPID_PUBLIC_KEY = data.publicKey;
+  }catch{
+    // usa fallback
+  }
 }
 
 async function saveSubscriptionToServer(subscription){
@@ -890,15 +877,11 @@ async function saveSubscriptionToServer(subscription){
   if (!res.ok) throw new Error(`Falha ao salvar inscrição (HTTP ${res.status}): ${text}`);
 }
 
-async function subscribeOrResave(force=false){
+async function subscribeOrResave(){
   const reg = await navigator.serviceWorker.ready;
   let sub = await reg.pushManager.getSubscription();
 
-  if (force && sub){
-    try { await sub.unsubscribe(); } catch {}
-    sub = null;
-  }
-
+  // se já existe, re-salva (Render pode ter reiniciado)
   if (sub){
     await saveSubscriptionToServer(sub);
     return sub;
@@ -975,3 +958,4 @@ initPushUI();
 
 </body>
 </html>
+
