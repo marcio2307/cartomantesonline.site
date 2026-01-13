@@ -1,33 +1,23 @@
 {
   "name": "Cartomantes Online",
   "short_name": "Cartomantes",
-  "description": "Consulta de tarot online por chat pré-pago. Escolha seu consultor e receba notificações quando houver novidades.",
-  "id": "/cartomantes-online",
+  "description": "Consulta de tarot online por chat pré-pago.",
   "start_url": "./leituras.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "fullscreen"],
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
-  "lang": "pt-BR",
-
-  "categories": ["lifestyle", "entertainment", "business"],
-
   "icons": [
     {
       "src": "./logo.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "./logo.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-
-  "prefer_related_applications": false
+  ]
 }
