@@ -64,10 +64,8 @@
 
     <div class="card">
       <div class="small">
-        ✅ Se der erro 401, é porque seu <b>server.js</b> exige <b>ADMIN_TOKEN</b>.<br>
-        • Se você usa token, preencha o campo.<br>
-        • Se quiser “sem senha”, deixe ADMIN_TOKEN vazio no Render.<br><br>
-        ⚠️ Push funciona de verdade principalmente em <b>Android (Chrome)</b> com o site instalado (PWA).
+        ✅ Se der erro 401, é porque seu server.js exige <b>ADMIN_TOKEN</b>.<br>
+        ⚠️ Importante: Push funciona de verdade principalmente em <b>Android (Chrome)</b> com o app instalado.
       </div>
     </div>
   </div>
@@ -196,8 +194,9 @@
       showOk(
         `✅ Enviado!\n` +
         `Tentativas: ${data?.sent ?? "?"} | Sucesso: ${success} | Falhas: ${failed}\n` +
-        `Ativas (server alive): ${data?.alive ?? "?"}\n` +
-        `Total salvo no disco (antes → depois): ${beforeTotal} → ${afterTotal}`
+        `Removidas: ${data?.removed ?? 0} | Ativas (alive): ${data?.alive ?? "?"}\n` +
+        `Total salvo no disco (antes → depois): ${beforeTotal} → ${afterTotal}\n\n` +
+        `Se success = 0, veja em "results" o statusCode/error.`
       );
     }catch(e){
       showErr("❌ Erro ao enviar:\n" + (e?.message || e));
