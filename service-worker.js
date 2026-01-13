@@ -1,5 +1,5 @@
 /* ==========================================================
-   CARTOMANTES ONLINE – SERVICE WORKER (CACHE + PUSH)
+   CARTOMANTES ONLINE – SERVICE WORKER (CACHE)
    GitHub Pages / PWA
 ========================================================== */
 
@@ -88,65 +88,6 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => cached);
-    })
-  );
-});
-
-/* ==========================================================
-   🔔 PUSH NOTIFICATIONS (compatível)
-========================================================== */
-
-self.addEventListener("push", (event) => {
-  let data = {};
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch {
-    try {
-      data = { body: event.data ? event.data.text() : "" };
-    } catch {
-      data = {};
-    }
-  }
-
-  const title = data.title || "Cartomantes Online";
-  const body = data.body || "Você tem uma nova notificação.";
-
-  // ✅ abre sempre na mesma origem do SW
-  const fallbackUrl = `${self.location.origin}/cartomantesonline.site/leituras.html`;
-  const targetUrl = data.url || fallbackUrl;
-
-  // ✅ ÍCONE ABSOLUTO (melhor em Android)
-  const iconUrl = `${self.location.origin}/cartomantesonline.site/logo.png`;
-
-  const options = {
-    body,
-    data: { url: targetUrl },
-    icon: iconUrl,
-    badge: iconUrl,
-    vibrate: [120, 60, 120],
-    tag: "cartomantes-online",
-    renotify: true,
-    requireInteraction: false
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-
-  const targetUrl =
-    event.notification?.data?.url ||
-    `${self.location.origin}/cartomantesonline.site/leituras.html`;
-
-  event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      for (const client of list) {
-        if (client.url && client.url.startsWith(self.location.origin)) {
-          return client.focus();
-        }
-      }
-      return clients.openWindow(targetUrl);
     })
   );
 });
