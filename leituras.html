@@ -1,3 +1,11 @@
+<!-- =========================
+     ✅ leituras.html (COMPLETO / ATUALIZADO)
+     - Firebase OK (seu config)
+     - Presença online (/devices) SEM depender de Notification
+     - Popup 1x no app instalado
+     - Comunhão com painel (/notifications) -> Service Worker LOCAL_NOTIFY
+     - Debug discreto (canto) para confirmar gravação
+========================= -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -370,21 +378,22 @@ body{
   cursor:pointer;
   letter-spacing:.5px;
 }
-#notifEnable{
-  flex:1;
-  background:linear-gradient(180deg,#2ecc71,#1f9b50);
-  color:#fff;
-}
-#notifLater{
-  width:140px;
-  background:rgba(255,255,255,.10);
-  color:#fff;
+#notifEnable{ flex:1; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
+#notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
+#notifOk{ flex:1; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
+
+/* ✅ debug discreto */
+#coDebug{
+  position:fixed;
+  left:10px; bottom:10px;
+  z-index:999998;
+  font-size:11px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:rgba(0,0,0,.65);
   border:1px solid rgba(255,255,255,.12);
-}
-#notifOk{
-  flex:1;
-  background:linear-gradient(180deg, var(--gold-2), var(--gold-3));
-  color:#111;
+  max-width:min(520px, calc(100vw - 20px));
+  line-height:1.35;
   display:none;
 }
 </style>
@@ -428,7 +437,7 @@ body{
   <div class="container" id="cards-container"></div>
 </div>
 
-<!-- ✅ POPUP (aparece 1x no app instalado se ainda não ativou) -->
+<!-- ✅ POPUP -->
 <div id="notifPopupWrap" role="dialog" aria-label="Ativar notificações">
   <div id="notifPopup">
     <div class="t">Ativar notificações?</div>
@@ -440,6 +449,8 @@ body{
     </div>
   </div>
 </div>
+
+<div id="coDebug"></div>
 
 <!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -460,9 +471,12 @@ const firebaseConfig = {
 };
 
 let db = null;
+let fbOk = false;
+
 try{
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
+  fbOk = true;
 }catch(e){
   console.warn("Firebase falhou ao inicializar:", e);
 }
@@ -474,6 +488,16 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
   });
+}
+
+/* ==========================================================
+   ✅ DEBUG DISCRETO (para confirmar online)
+========================================================== */
+const dbg = document.getElementById("coDebug");
+function showDbg(lines){
+  if(!dbg) return;
+  dbg.style.display = "block";
+  dbg.innerHTML = lines.map(s => `<div>${s}</div>`).join("");
 }
 
 /* ✅ CARROSSEL (8s) */
@@ -533,7 +557,6 @@ consultores.forEach((c, idx) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
 
-    // ✅ limpa só o que é seleção do consultor (não apaga deviceId/notifs)
     localStorage.removeItem('consultorNome');
     localStorage.removeItem('consultorValor');
     localStorage.removeItem('consultorImagem');
@@ -549,7 +572,7 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   STATUS REALISTA (o seu)
+   STATUS REALISTA
 =========================== */
 const chance = (p) => Math.random() < p;
 const STORAGE_KEY = "status_realista_v3";
@@ -686,6 +709,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 /* ==========================================================
    ✅ NOTIFICAÇÕES EM COMUNHÃO COM O PAINEL (FIREBASE)
+   ✅ PRESENÇA ONLINE SEM depender de Notification
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -707,17 +731,18 @@ function getDeviceId(){
 }
 const deviceId = getDeviceId();
 
-async function upsertDevice(enabled){
-  if(!db) return;
+async function upsertDevice(){
+  if(!db) return false;
   try{
     await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
       id: deviceId,
-      enabled: !!enabled,
+      enabled: (("Notification" in window) && Notification.permission === "granted"),
       lastSeen: Date.now(),
       ua: (navigator.userAgent || "").slice(0,220),
       installed: isStandalone()
     });
-  }catch(e){}
+    return true;
+  }catch(e){ return false; }
 }
 async function pingLastSeen(){
   if(!db) return;
@@ -740,7 +765,25 @@ async function enviarNotificacaoLocal(title, body, url){
   });
 }
 
-/* ✅ Popup 1x no app instalado */
+/* ✅ Boot presença (sempre) + debug */
+(async function bootPresence(){
+  const ok = fbOk ? await upsertDevice() : false;
+
+  showDbg([
+    `Firebase: ${ok ? "OK" : "FALHOU"}`,
+    `deviceId: ${deviceId}`,
+    `perm: ${("Notification" in window) ? Notification.permission : "sem Notification"}`,
+    `standalone: ${isStandalone() ? "sim" : "não"}`,
+    `gravando em: /${NODE_DEVICES}/${deviceId}`
+  ]);
+
+  if(!ok) return;
+  pingLastSeen();
+  setInterval(pingLastSeen, ONLINE_PING_MS);
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
+})();
+
+/* ✅ Popup 1x no app instalado (ativa permissão) */
 (function initNotifPopup(){
   const KEY_DONE  = "notif_activated_done_v1";
   const KEY_SHOWN = "notif_popup_shown_v1";
@@ -784,30 +827,22 @@ async function enviarNotificacaoLocal(title, body, url){
     }
 
     const perm = await Notification.requestPermission();
+
     if(perm === "granted"){
       localStorage.setItem(KEY_DONE,"1");
       fechar();
-      await upsertDevice(true);
+      await upsertDevice();
       enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
-    }else{
-      const desc = wrap.querySelector(".d");
-      desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
-      btnEnable.style.display = "none";
-      btnLater.style.display = "none";
-      btnOk.style.display = "block";
-      btnOk.onclick = () => fechar();
+      return;
     }
-  };
-})();
 
-/* ✅ presença online */
-(async function bootPresence(){
-  if(!("Notification" in window)) return;
-  const enabled = (Notification.permission === "granted");
-  await upsertDevice(enabled);
-  pingLastSeen();
-  setInterval(pingLastSeen, ONLINE_PING_MS);
-  document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
+    const desc = wrap.querySelector(".d");
+    desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
+    btnEnable.style.display = "none";
+    btnLater.style.display = "none";
+    btnOk.style.display = "block";
+    btnOk.onclick = () => fechar();
+  };
 })();
 
 /* ✅ escuta painel */
@@ -817,10 +852,11 @@ async function enviarNotificacaoLocal(title, body, url){
 
   let lastTs = Number(localStorage.getItem("co_last_notif_ts") || "0");
 
-  db.ref(NODE_NOTIFS).limitToLast(30).on("child_added", async (snap) => {
+  db.ref(NODE_NOTIFS).limitToLast(40).on("child_added", async (snap) => {
     const d = snap.val() || {};
     const ts = Number(d.ts || 0);
     if(!ts || ts <= lastTs) return;
+
     if(Notification.permission !== "granted") return;
 
     const rec = Array.isArray(d.recipients) ? d.recipients : [];
