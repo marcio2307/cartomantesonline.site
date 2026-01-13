@@ -17,7 +17,6 @@
   --btn-h:56px;
   --btn-px:14px;
 }
-
 body{
   margin:0;
   min-height:100vh;
@@ -61,19 +60,9 @@ body{
   opacity:1;
   z-index:2;
 }
-.banner-carousel img{
-  width:100%;
-  height:auto;
-  display:block;
-}
-.banner-carousel .spacer{
-  width:100%;
-  pointer-events:none;
-}
-.banner-carousel .spacer img{
-  opacity:0;
-  visibility:hidden;
-}
+.banner-carousel img{ width:100%; height:auto; display:block; }
+.banner-carousel .spacer{ width:100%; pointer-events:none; }
+.banner-carousel .spacer img{ opacity:0; visibility:hidden; }
 
 @media (max-width:480px){
   .banner-carousel{ border-bottom-width:1px; }
@@ -213,7 +202,6 @@ body{
     0 0 30px rgba(199,160,8,0.14),
     0 0 0 1px rgba(255,240,166,0.10) inset;
 }
-
 .card .img-wrap{ position:relative; z-index:2; padding:10px 10px 0; }
 .card .img-wrap img{
   width:100%;
@@ -590,12 +578,11 @@ try{
 }
 
 /* ==========================================================
-   ✅ SERVICE WORKER (REGISTRO MAIS ROBUSTO para GitHub Pages)
+   ✅ SERVICE WORKER (REGISTRO ROBUSTO)
 ========================================================== */
 async function registerSW(){
   if(!("serviceWorker" in navigator)) return false;
   try{
-    // garante a URL correta no GitHub Pages / subpasta
     const swUrl = new URL("./service-worker.js", location.href).href;
     await navigator.serviceWorker.register(swUrl);
     return true;
@@ -799,9 +786,12 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 /* ==========================================================
    ✅ NOTIFICAÇÕES (MÁXIMO POSSÍVEL SEM FCM)
-   - registra o device em /devices
-   - painel manda /notifications
-   - este arquivo escuta e dispara via SW (LOCAL_NOTIFY)
+   - /devices + /notifications + SW
+   ✅ CORREÇÕES PEDIDAS:
+     1) enviarNotificacaoLocal com reg.showNotification (mais confiável)
+     2) popup reaparece sempre após instalação (qualquer navegador)
+        - detecta evento "appinstalled" (Chrome/Edge)
+        - detecta primeira execução em modo standalone (Samsung Internet / outros)
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -813,18 +803,13 @@ function isStandalone(){
 function isIOS(){
   return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
 }
-
-/* ✅ iOS só permite push/notif em PWA (Add to Home Screen) */
 function canAskNotificationInThisContext(){
   if(!("Notification" in window)) return false;
-  if(isIOS() && !isStandalone()){
-    // iOS Safari (sem instalar) não libera notificações de site
-    return false;
-  }
+  if(isIOS() && !isStandalone()) return false;
   return true;
 }
 
-/* ✅ deviceId mais estável */
+/* ✅ deviceId estável */
 function getOrMakeDeviceId(){
   const KEY = "co_device_id_v2";
   let id = localStorage.getItem(KEY);
@@ -842,7 +827,7 @@ function getOrMakeDeviceId(){
 }
 const deviceId = getOrMakeDeviceId();
 
-/* ✅ registra/atualiza device (sempre) */
+/* ✅ registra/atualiza device */
 async function upsertDevice(){
   if(!db) return false;
   try{
@@ -865,24 +850,43 @@ async function pingLastSeen(){
   try{ await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() }); }catch(e){}
 }
 
-/* ✅ mostrar notificação via SW */
+/* ✅ FUNÇÃO PEDIDA (MAIS CONFIÁVEL) */
 async function enviarNotificacaoLocal(title, body){
   if(!("serviceWorker" in navigator)) return;
   if(!("Notification" in window)) return;
   if(Notification.permission !== "granted") return;
 
-  const reg = await navigator.serviceWorker.ready;
-  if(reg && reg.active){
-    reg.active.postMessage({
-      type: "LOCAL_NOTIFY",
-      title: title || "Cartomantes Online",
-      body: body || "Nova atualização.",
-      url: "./leituras.html"
-    });
+  try{
+    const reg = await navigator.serviceWorker.ready;
+
+    // ✅ tenta direto (mais confiável com app aberto)
+    if(reg && reg.showNotification){
+      await reg.showNotification(title || "Cartomantes Online", {
+        body: body || "Nova atualização.",
+        icon: "./logo.png",
+        badge: "./logo.png",
+        tag: "co-" + Date.now(),
+        renotify: true,
+        data: { url: "leituras.html?pwa=true" }
+      });
+      return;
+    }
+
+    // fallback antigo (postMessage)
+    if(reg && reg.active){
+      reg.active.postMessage({
+        type: "LOCAL_NOTIFY",
+        title: title || "Cartomantes Online",
+        body: body || "Nova atualização.",
+        url: "./leituras.html"
+      });
+    }
+  }catch(e){
+    // silencioso
   }
 }
 
-/* ✅ presença sempre (registra mesmo com permissão default/denied) */
+/* ✅ presença sempre */
 (async function bootPresence(){
   if(!fbOk) return;
   await upsertDevice();
@@ -892,9 +896,11 @@ async function enviarNotificacaoLocal(title, body){
 })();
 
 /* ==========================================================
-   ✅ POPUP PERMISSÃO: aparece em QUALQUER navegador
-   - 1x por dia até ativar
-   - iOS sem instalar: mostra instrução “Adicionar à Tela de Início”
+   ✅ POPUP PERMISSÃO: SEMPRE APARECE APÓS INSTALAR NOVAMENTE
+   Como funciona:
+   - Evento appinstalled (Chrome/Edge/alguns)
+   - Quando entrar em standalone pela "primeira vez" após instalar
+   - Marca um "installId" novo e reseta o popup
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -903,24 +909,51 @@ async function enviarNotificacaoLocal(title, body){
   const help   = document.getElementById("notifHelp");
   if(!wrap || !enable || !later) return;
 
-  const KEY_OK  = "co_notif_ok_v5";
-  const KEY_DAY = "co_notif_prompt_day_v5";
+  const KEY_OK        = "co_notif_ok_v6";
+  const KEY_DAY       = "co_notif_prompt_day_v6";
+  const KEY_INSTALL   = "co_install_id_v1";
+  const KEY_LAST_MODE = "co_last_mode_v1"; // "standalone" | "browser"
 
   function todayKey(){ return new Date().toISOString().slice(0,10); }
   function showWrap(){ wrap.style.display = "flex"; }
   function hideWrap(){ wrap.style.display = "none"; }
-
   function showHelp(html){
     if(!help) return;
     help.style.display = "block";
     help.innerHTML = html;
   }
+  function resetPromptForNewInstall(){
+    // reseta o “ok” e o dia, pra popup aparecer de novo
+    localStorage.removeItem(KEY_OK);
+    localStorage.removeItem(KEY_DAY);
+  }
+  function newInstallId(){
+    const id = "inst_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
+    localStorage.setItem(KEY_INSTALL, id);
+    return id;
+  }
 
   // se browser nem suporta Notification
-  if(!("Notification" in window)){
-    // não mostra popup (não adianta)
-    return;
+  if(!("Notification" in window)) return;
+
+  // ✅ detecta mudança de modo (browser -> standalone)
+  const nowMode = isStandalone() ? "standalone" : "browser";
+  const lastMode = localStorage.getItem(KEY_LAST_MODE) || "";
+  localStorage.setItem(KEY_LAST_MODE, nowMode);
+
+  // Se entrou em standalone agora e antes não era standalone,
+  // isso geralmente significa “abriu o app instalado”
+  if(nowMode === "standalone" && lastMode && lastMode !== "standalone"){
+    // marca uma “nova instalação/abertura” e reseta popup
+    newInstallId();
+    resetPromptForNewInstall();
   }
+
+  // ✅ Chrome/Edge: evento real de instalação
+  window.addEventListener("appinstalled", () => {
+    newInstallId();
+    resetPromptForNewInstall();
+  });
 
   // se já concedeu, salva e sai
   if(Notification.permission === "granted"){
@@ -933,12 +966,12 @@ async function enviarNotificacaoLocal(title, body){
   const ok  = (localStorage.getItem(KEY_OK) === "1");
   const day = localStorage.getItem(KEY_DAY);
 
-  // ✅ força aparecer 1x por dia até ativar
+  // ✅ mostra 1x por dia até ativar
   if(!ok && day !== todayKey()){
     localStorage.setItem(KEY_DAY, todayKey());
     showWrap();
 
-    // iOS sem instalar: aviso correto
+    // iOS sem instalar: instrução correta
     if(isIOS() && !isStandalone()){
       showHelp(
         `No <b>iPhone</b>, as notificações só funcionam quando o site está <b>instalado</b>.<br>`+
@@ -959,7 +992,6 @@ async function enviarNotificacaoLocal(title, body){
         `2) Abra o app instalado<br>`+
         `3) Volte e toque em <b>ATIVAR AGORA</b>.`
       );
-      // atualiza device (perm continua default/denied)
       upsertDevice();
       return;
     }
@@ -1017,15 +1049,12 @@ async function enviarNotificacaoLocal(title, body){
   function isRecipientOk(recipients){
     if(!recipients) return false;
 
-    // string "*"
     if(typeof recipients === "string"){
       return recipients === "*" ? true : (recipients === deviceId);
     }
-    // array ["id", "*"]
     if(Array.isArray(recipients)){
       return recipients.includes("*") || recipients.includes(deviceId);
     }
-    // map {"*":true} ou {"dev_x":true}
     if(typeof recipients === "object"){
       return recipients["*"] === true || recipients[deviceId] === true;
     }
@@ -1039,16 +1068,12 @@ async function enviarNotificacaoLocal(title, body){
 
     if(notifId && seen[notifId]) return;
 
-    // evita mostrar antigos
     if(ts && ts <= lastTs) {
       if(notifId) rememberSeen(notifId);
       return;
     }
 
-    // só dispara se permitido
     if(Notification.permission !== "granted") return;
-
-    // checa destino
     if(!isRecipientOk(d.recipients)) return;
 
     if(ts){
