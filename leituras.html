@@ -1,3 +1,11 @@
+<!-- =========================
+     ✅ leituras.html (COMPLETO / CORRIGIDO PARA GITHUB PAGES)
+     - Firebase OK (seu config) com proteção contra init duplicado
+     - Presença online (/devices) SEM depender de Notification
+     - Popup 1x no app instalado
+     - Comunhão com painel (/notifications) -> Service Worker LOCAL_NOTIFY
+     - ✅ SEM DEBUG VISÍVEL (nenhuma mensagem na tela)
+========================= -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -14,7 +22,6 @@
   --gold-3:#c7a008;
   --gold-4:#b8860b;
   --black:#000000;
-
   --btn-h:56px;
   --btn-px:14px;
 }
@@ -78,15 +85,10 @@ body{
 
 @media (max-width:480px){
   .banner-carousel{ border-bottom-width:1px; }
-  :root{
-    --btn-h:64px;
-    --btn-px:16px;
-  }
+  :root{ --btn-h:64px; --btn-px:16px; }
 }
 
-.page{
-  padding:22px 20px 28px;
-}
+.page{ padding:22px 20px 28px; }
 
 /* Hero */
 .hero{
@@ -107,7 +109,7 @@ body{
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
 
-/* ✅ OPÇÃO A (AVISO) — MAIS CENTRALIZADO E BONITO NO CELULAR */
+/* ✅ OPÇÃO A (AVISO) */
 .hero .vip-aviso{
   display:flex;
   justify-content:center;
@@ -117,29 +119,23 @@ body{
 .hero .vip-aviso a{
   width:min(760px, 100%);
   min-height:66px;
-
   display:flex;
   align-items:center;
   justify-content:center;
   text-align:center;
-
   padding:16px 16px;
   border-radius:20px;
   text-decoration:none;
-
   font-weight:900;
   letter-spacing:.4px;
   line-height:1.25;
   color:#111;
-
   background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
   border:1px solid rgba(255,255,255,0.18);
   box-shadow:
     0 22px 46px rgba(0,0,0,0.65),
     0 0 0 1px rgba(255,240,166,0.10) inset;
-
   text-transform:uppercase;
-  /* melhora o toque no celular */
   -webkit-tap-highlight-color: transparent;
 }
 .hero .vip-aviso a:hover{ filter:brightness(1.05); }
@@ -175,22 +171,19 @@ body{
   .hero h1{ font-size:26px; }
 }
 
-/* ✅ Cards elegantes */
+/* Cards */
 .card{
   position:relative;
   border-radius:18px;
   overflow:hidden;
   isolation:isolate;
-
   background:
     radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
     linear-gradient(180deg, rgba(18,18,18,0.86) 0%, rgba(5,5,5,0.98) 100%);
-
   border:1px solid rgba(199,160,8,0.55);
   box-shadow:
     0 18px 44px rgba(0,0,0,0.60),
     0 0 0 1px rgba(255,240,166,0.08) inset;
-
   transform:none !important;
   transition:none;
 }
@@ -228,12 +221,7 @@ body{
     0 0 30px rgba(199,160,8,0.14),
     0 0 0 1px rgba(255,240,166,0.10) inset;
 }
-
-.card .img-wrap{
-  position:relative;
-  z-index:2;
-  padding:10px 10px 0;
-}
+.card .img-wrap{ position:relative; z-index:2; padding:10px 10px 0; }
 .card .img-wrap img{
   width:100%;
   height:240px;
@@ -259,8 +247,7 @@ body{
 /* Badge */
 .badge{
   position:absolute;
-  top:16px;
-  left:16px;
+  top:16px; left:16px;
   padding:7px 11px;
   font-size:11px;
   border-radius:999px;
@@ -276,11 +263,7 @@ body{
 .badge.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
 .badge.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
 
-.content{
-  padding:12px 14px 16px;
-  position:relative;
-  z-index:3;
-}
+.content{ padding:12px 14px 16px; position:relative; z-index:3; }
 
 .name{
   font-family:'Cinzel', serif;
@@ -321,12 +304,7 @@ body{
   text-shadow:0 0 18px rgba(199,160,8,0.12);
 }
 
-.price{
-  text-align:center;
-  font-size:13px;
-  color:rgba(255,255,255,0.90);
-  margin-bottom:12px;
-}
+.price{ text-align:center; font-size:13px; color:rgba(255,255,255,0.90); margin-bottom:12px; }
 .price b{
   color:transparent;
   background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 45%, var(--gold-1) 80%);
@@ -352,75 +330,57 @@ body{
   white-space:normal;
   overflow:visible;
   box-sizing:border-box;
-  box-shadow:
-    0 16px 30px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(255,240,166,0.06) inset;
+  box-shadow: 0 16px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,240,166,0.06) inset;
   border:1px solid rgba(255,255,255,0.10);
   transition:filter .18s ease;
 }
-@media (max-width:480px){
-  .btn{ font-size:12px; }
-}
+@media (max-width:480px){ .btn{ font-size:12px; } }
 
-/* ✅ DISPONÍVEL = VERDE */
-.btn.disponivel{
-  background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%);
-  color:#fff;
-  border-color:rgba(255,255,255,0.16);
-}
+.btn.disponivel{ background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%); color:#fff; border-color:rgba(255,255,255,0.16); }
 .btn:hover{ filter:brightness(1.06); }
-
-.btn.ocupado{
-  background:linear-gradient(180deg, #f39c12 0%, #d35400 100%);
-  color:#111;
-  pointer-events:none;
-}
-.btn.indisp{
-  background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
-  color:#fff;
-  pointer-events:none;
-}
+.btn.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); color:#111; pointer-events:none; }
+.btn.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); color:#fff; pointer-events:none; }
 
 .card.novo{
   border-color:rgba(246,226,122,0.95);
-  box-shadow:
-    0 20px 50px rgba(0,0,0,0.62),
-    0 0 0 1px rgba(246,226,122,0.10) inset,
-    0 0 22px rgba(199,160,8,0.10);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
 
-/* ==========================================================
-   ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares)
-========================================================== */
-fabapp-banner-footer,
-fabapp-banner-footer *{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  min-height:0 !important;
-  width:0 !important;
-  max-width:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
+/* ✅ Popup/Toast permissão notificações (estilo app) */
+#notifPopupWrap{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:14px;
+  background:rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
 }
-
-#ads-container,
-[id="ads-container"],
-[id*="ads-container"],
-[class*="ads-container"],
-iframe[src*="fabapp-ads"],
-video[src*="fabapp-ads"],
-source[src*="fabapp-ads"]{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
+#notifPopup{
+  width:min(560px, 100%);
+  border:1px solid rgba(199,160,8,.55);
+  border-radius:18px;
+  padding:14px;
+  background:rgba(0,0,0,.92);
+  color:#fff;
+  box-shadow:0 26px 70px rgba(0,0,0,.65);
 }
+#notifPopup .t{ font-weight:900; margin-bottom:6px; }
+#notifPopup .d{ opacity:.9; font-size:13px; line-height:1.4; margin-bottom:12px; }
+#notifPopup .row{ display:flex; gap:10px; }
+#notifPopup button{
+  height:48px;
+  border:0;
+  border-radius:14px;
+  font-weight:900;
+  cursor:pointer;
+  letter-spacing:.5px;
+}
+#notifEnable{ flex:1; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
+#notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
+#notifOk{ flex:1; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
 </style>
 </head>
 
@@ -444,18 +404,14 @@ source[src*="fabapp-ads"]{
     <img src="https://i.ibb.co/rRvmn4Q7/56e5b5c7-3199-4b85-a6d8-22608f6c0402.png" alt="Banner adicional" />
   </div>
 
-  <!-- ✅ NOVO BANNER (ÚLTIMO) -->
   <div class="slide" id="slideVip">
     <img src="https://i.ibb.co/cKPNwmMY/Chat-GPT-Image-12-01-2026-07-11-40.png" alt="Consultas de Tarot Exclusivas para Clientes VIP" />
   </div>
 </div>
 
 <div class="page">
-
   <section class="hero">
     <h1>✨ Consultas de Tarot Exclusivas para Clientes VIP ✨</h1>
-
-    <!-- ✅ OPÇÃO A (ÚNICA) — CENTRALIZADA E RESPONSIVA -->
     <div class="vip-aviso" aria-label="Aviso Leitura Sorteada VIP">
       <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
         TODA SEXTA-FEIRA, A PARTIR DAS 18H, ROLA A LEITURA SORTEADA VIP!
@@ -464,74 +420,82 @@ source[src*="fabapp-ads"]{
   </section>
 
   <div class="container" id="cards-container"></div>
-
 </div>
+
+<!-- ✅ POPUP -->
+<div id="notifPopupWrap" role="dialog" aria-label="Ativar notificações">
+  <div id="notifPopup">
+    <div class="t">Ativar notificações?</div>
+    <div class="d">Receba avisos do painel. (Recomendado para quem instalou o app na tela inicial)</div>
+    <div class="row">
+      <button id="notifEnable">ATIVAR</button>
+      <button id="notifLater">AGORA NÃO</button>
+      <button id="notifOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase (Compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
 /* ==========================================================
-   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
+   ✅ FIREBASE CONFIG (SEU)
 ========================================================== */
-(function bloquearPropagandasInjetadas(){
-  const SELECTORS = [
-    'fabapp-banner-footer',
-    'fabapp-banner-footer video',
-    '#ads-container',
-    '[id="ads-container"]',
-    'iframe[src*="fabapp-ads"]',
-    'video[src*="fabapp-ads"]',
-    'source[src*="fabapp-ads"]',
-    'script[src*="fabapp-ads"]'
-  ];
+const firebaseConfig = {
+  apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
+  authDomain: "coletivo2025-9de23.firebaseapp.com",
+  databaseURL: "https://coletivo2025-9de23-default-rtdb.firebaseio.com",
+  projectId: "coletivo2025-9de23",
+  storageBucket: "coletivo2025-9de23.appspot.com",
+  messagingSenderId: "740866367489",
+  appId: "1:740866367489:web:963e3f5be80cb35a71e000"
+};
 
-  function remover() {
-    for (const sel of SELECTORS) {
-      document.querySelectorAll(sel).forEach(el => {
-        try { el.remove(); } catch {}
-      });
-    }
+let db = null;
+let fbOk = false;
+
+try{
+  // ✅ evita erro se outra página já inicializou Firebase (muito comum em sites multi-página)
+  if (firebase.apps && firebase.apps.length) {
+    firebase.app();
+  } else {
+    firebase.initializeApp(firebaseConfig);
   }
+  db = firebase.database();
+  fbOk = true;
+}catch(e){
+  console.warn("Firebase falhou ao inicializar:", e);
+}
 
-  remover();
-  const obs = new MutationObserver(() => remover());
-  obs.observe(document.documentElement, { childList:true, subtree:true });
+/* ==========================================================
+   ✅ SERVICE WORKER (robusto no GitHub Pages)
+========================================================== */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    // sw deve estar no mesmo diretório do arquivo para respeitar scope do GitHub Pages
+    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  });
+}
 
-  let tries = 0;
-  const t = setInterval(() => {
-    remover();
-    tries++;
-    if (tries >= 30) clearInterval(t);
-  }, 500);
-})();
-
-/* ===========================
-   ✅ CARROSSEL (8s)
-=========================== */
+/* ✅ CARROSSEL (8s) */
 (function initBannerCarousel(){
   const carousel = document.getElementById('bannerCarousel');
   if(!carousel) return;
-
   const slides = Array.from(carousel.querySelectorAll('.slide'));
   if(slides.length <= 1) return;
-
   let i = 0;
-  function show(index){
-    slides.forEach((s, k) => s.classList.toggle('active', k === index));
-  }
-  setInterval(() => {
-    i = (i + 1) % slides.length;
-    show(i);
-  }, 8000);
+  function show(index){ slides.forEach((s, k) => s.classList.toggle('active', k === index)); }
+  setInterval(() => { i = (i + 1) % slides.length; show(i); }, 8000);
 })();
 
 /* ===========================
    LISTA DE CONSULTORES
 =========================== */
 const consultores = [
-  /* ✅ P.Márcio agora R$ 2,00 por minuto */
   { nome: "P.Márcio", valor: 2, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
-
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Dalila", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/11//0b284c7b42-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Adria", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/07/25//d6152621b2-1-_3.webp", estrelas: 5, novo: true },
@@ -539,7 +503,6 @@ const consultores = [
   { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
-
   { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
   { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
   { nome: "M.Padilha", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2025/01/27//699974ac8a-1-.jpg", estrelas: 4 },
@@ -551,9 +514,6 @@ const consultores = [
 
 const container = document.getElementById('cards-container');
 
-/* ===========================
-   RENDER DOS CARDS
-=========================== */
 consultores.forEach((c, idx) => {
   const card = document.createElement('div');
   card.className = 'card' + (c.novo ? ' novo' : '');
@@ -576,11 +536,15 @@ consultores.forEach((c, idx) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
 
-    localStorage.clear();
+    localStorage.removeItem('consultorNome');
+    localStorage.removeItem('consultorValor');
+    localStorage.removeItem('consultorImagem');
+
     localStorage.setItem('consultorNome', c.nome);
-    localStorage.setItem('consultorValor', c.valor);
+    localStorage.setItem('consultorValor', String(c.valor));
     localStorage.setItem('consultorImagem', c.imagem);
 
+    // ✅ mantém seu link (absoluto)
     window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pacotes.html';
   });
 
@@ -588,11 +552,9 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   ✅ REGRAS MAIS REAIS (ONLINE / OCUPADO / INDISPONÍVEL)
-   + NOVA REGRA: 02:00 ATÉ 10:00 TODOS INDISPONÍVEIS
+   STATUS REALISTA
 =========================== */
 const chance = (p) => Math.random() < p;
-
 const STORAGE_KEY = "status_realista_v3";
 let estado = null;
 
@@ -605,9 +567,7 @@ function carregarEstado(){
     return parsed;
   }catch{ return null; }
 }
-function salvarEstado(){
-  try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{}
-}
+function salvarEstado(){ try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{} }
 
 function setStatusDOM(card, status){
   const badge = card.querySelector('.badge');
@@ -646,38 +606,27 @@ function setStatusDOM(card, status){
     btn.style.pointerEvents = 'none';
   }
 }
-
-/* ✅ regra geral de indisponibilidade 02:00 -> 10:00 */
 function todosIndisponiveisAgora(){
   const h = new Date().getHours();
   return (h >= 2 && h < 10);
 }
-
 function initEstado(){
   const dia = new Date().toDateString();
   const anterior = carregarEstado();
-
   if(anterior && anterior.dia === dia && anterior.consultores?.length === consultores.length){
     estado = anterior;
     return;
   }
-
   estado = {
     dia,
-    consultores: consultores.map(() => ({
-      status: "online",
-      holdUntil: 0
-    }))
+    consultores: consultores.map(() => ({ status: "online", holdUntil: 0 }))
   };
-
   aplicarStatusRealista(true);
   salvarEstado();
 }
-
 function escolherIndisponiveis(cards){
   const total = cards.length;
   const qtd = chance(0.55) ? 1 : 2;
-
   const indices = [...Array(total)].map((_,i)=>i);
   for(let i=indices.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -685,18 +634,16 @@ function escolherIndisponiveis(cards){
   }
   return new Set(indices.slice(0, Math.min(qtd, total)));
 }
-
 function aplicarStatusRealista(forceAll=false){
   const now = Date.now();
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  /* ✅ NOVO: das 02:00 às 10:00 TODOS INDISPONÍVEIS */
   if(todosIndisponiveisAgora()){
     cards.forEach((card, i) => {
       const st = estado.consultores[i];
       st.status = "indisp";
-      st.holdUntil = now + 60 * 1000; // mantém “vivo” e atualiza sempre
+      st.holdUntil = now + 60 * 1000;
       setStatusDOM(card, "indisp");
     });
     salvarEstado();
@@ -713,12 +660,8 @@ function aplicarStatusRealista(forceAll=false){
 
   cards.forEach((card, i) => {
     const st = estado.consultores[i];
-
     const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
-    if (emHold){
-      setStatusDOM(card, st.status);
-      return;
-    }
+    if (emHold){ setStatusDOM(card, st.status); return; }
 
     if (indispSet.has(i)){
       st.status = "indisp";
@@ -729,7 +672,6 @@ function aplicarStatusRealista(forceAll=false){
 
     const novoStatus = chance(ocupProb) ? "ocupado" : "online";
     st.status = novoStatus;
-
     st.holdUntil = (novoStatus === "ocupado")
       ? now + Math.floor((2 + Math.random()*4) * 60 * 1000)
       : now + Math.floor((1 + Math.random()*2) * 60 * 1000);
@@ -743,12 +685,170 @@ function aplicarStatusRealista(forceAll=false){
 initEstado();
 aplicarStatusRealista(false);
 setInterval(() => aplicarStatusRealista(false), 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) aplicarStatusRealista(false);
-});
+/* ==========================================================
+   ✅ NOTIFICAÇÕES EM COMUNHÃO COM O PAINEL (FIREBASE)
+   ✅ PRESENÇA ONLINE SEM depender de Notification
+========================================================== */
+const NODE_DEVICES = "devices";
+const NODE_NOTIFS  = "notifications";
+const ONLINE_PING_MS = 20000;
+
+function isStandalone(){
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+}
+function makeId(){
+  return "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+function getDeviceId(){
+  let id = localStorage.getItem("co_device_id");
+  if(!id){
+    id = makeId();
+    localStorage.setItem("co_device_id", id);
+  }
+  return id;
+}
+const deviceId = getDeviceId();
+
+async function upsertDevice(){
+  if(!db) return false;
+  try{
+    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
+      id: deviceId,
+      enabled: (("Notification" in window) && Notification.permission === "granted"),
+      lastSeen: Date.now(),
+      ua: (navigator.userAgent || "").slice(0,220),
+      installed: isStandalone()
+    });
+    return true;
+  }catch(e){ return false; }
+}
+async function pingLastSeen(){
+  if(!db) return;
+  try{
+    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() });
+  }catch(e){}
+}
+
+async function enviarNotificacaoLocal(title, body, url){
+  if(!("serviceWorker" in navigator)) return;
+  if(!("Notification" in window)) return;
+  if(Notification.permission !== "granted") return;
+
+  const reg = await navigator.serviceWorker.ready;
+  if(reg && reg.active){
+    reg.active.postMessage({
+      type: "LOCAL_NOTIFY",
+      title: title || "Cartomantes Online",
+      body: body || "Nova atualização.",
+      url: url || "./leituras.html"
+    });
+  }
+}
+
+/* ✅ Boot presença (sempre) */
+(async function bootPresence(){
+  if(!fbOk) return;
+  const ok = await upsertDevice();
+  if(!ok) return;
+
+  pingLastSeen();
+  setInterval(pingLastSeen, ONLINE_PING_MS);
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
+})();
+
+/* ✅ Popup 1x no app instalado (ativa permissão) */
+(function initNotifPopup(){
+  const KEY_DONE  = "notif_activated_done_v1";
+  const KEY_SHOWN = "notif_popup_shown_v1";
+
+  const wrap = document.getElementById("notifPopupWrap");
+  const btnEnable = document.getElementById("notifEnable");
+  const btnLater  = document.getElementById("notifLater");
+  const btnOk     = document.getElementById("notifOk");
+
+  if(!wrap) return;
+  if(!("Notification" in window)) return;
+
+  // só no app instalado
+  if(!isStandalone()) return;
+
+  // se já ativou, nunca mais mostra
+  if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
+    localStorage.setItem(KEY_DONE,"1");
+    wrap.style.display = "none";
+    return;
+  }
+
+  // aparece só 1 vez
+  if(localStorage.getItem(KEY_SHOWN) === "1"){
+    wrap.style.display = "none";
+    return;
+  }
+
+  localStorage.setItem(KEY_SHOWN,"1");
+  wrap.style.display = "flex";
+
+  function fechar(){ wrap.style.display = "none"; }
+
+  btnLater.onclick = () => fechar();
+
+  btnEnable.onclick = async () => {
+    if(Notification.permission === "denied"){
+      const desc = wrap.querySelector(".d");
+      desc.textContent = "Notificações BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
+      btnEnable.style.display = "none";
+      btnLater.style.display = "none";
+      btnOk.style.display = "block";
+      btnOk.onclick = () => fechar();
+      return;
+    }
+
+    const perm = await Notification.requestPermission();
+
+    if(perm === "granted"){
+      localStorage.setItem(KEY_DONE,"1");
+      fechar();
+      await upsertDevice();
+      enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
+      return;
+    }
+
+    const desc = wrap.querySelector(".d");
+    desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
+    btnEnable.style.display = "none";
+    btnLater.style.display = "none";
+    btnOk.style.display = "block";
+    btnOk.onclick = () => fechar();
+  };
+})();
+
+/* ✅ escuta painel */
+(function listenPanelNotifications(){
+  if(!db) return;
+  if(!("Notification" in window)) return;
+
+  let lastTs = Number(localStorage.getItem("co_last_notif_ts") || "0");
+
+  db.ref(NODE_NOTIFS).limitToLast(40).on("child_added", async (snap) => {
+    const d = snap.val() || {};
+    const ts = Number(d.ts || 0);
+    if(!ts || ts <= lastTs) return;
+
+    if(Notification.permission !== "granted") return;
+
+    const rec = Array.isArray(d.recipients) ? d.recipients : [];
+    const ok = rec.includes("*") || rec.includes(deviceId);
+    if(!ok) return;
+
+    localStorage.setItem("co_last_notif_ts", String(ts));
+    lastTs = ts;
+
+    await enviarNotificacaoLocal(d.title, d.body, d.url);
+  });
+})();
 </script>
 
 </body>
 </html>
-
