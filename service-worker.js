@@ -1,10 +1,11 @@
 /* ==========================================================
    CARTOMANTES ONLINE – SERVICE WORKER (CACHE + NOTIF)
    GitHub Pages / PWA
-   ✅ Clique da notificação SEMPRE abre: leituras.html
+   ✅ Clique da notificação SEMPRE abre: leituras.html?pwa=true
+   ✅ LOCAL_NOTIFY mais compatível (Chrome + Samsung + Tablet)
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.7"; // 🔴 AUMENTE sempre que trocar arquivos
+const CACHE_VERSION = "v1.1.8"; // 🔴 AUMENTE sempre que trocar arquivos
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 /* ✅ ajuste aqui se você criar novas páginas */
@@ -108,27 +109,39 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
-   ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL)
+   ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL) — MAIS COMPATÍVEL
+   Recebe postMessage do site:
+     { type:"LOCAL_NOTIFY", title, body, url, tag }
 ========================================================== */
 self.addEventListener("message", (event) => {
-  const data = event.data || {};
-  if (data.type !== "LOCAL_NOTIFY") return;
+  try{
+    const data = event.data || {};
+    if (data.type !== "LOCAL_NOTIFY") return;
 
-  const title = data.title || "Cartomantes Online";
-  const tag = data.tag || `cartomantes-${Date.now()}`;
+    const title = data.title || "Cartomantes Online";
+    const body  = data.body  || "Você tem uma nova atualização.";
 
-  const options = {
-    body: data.body || "Você tem uma nova atualização.",
-    icon: "./logo.png",
-    badge: "./logo.png",
-    tag,
-    renotify: true,
-    data: {
-      url: data.url || "leituras.html?pwa=true"
-    }
-  };
+    // ✅ Garante URL correta no GitHub Pages
+    // Se vier "./leituras.html" ou "leituras.html", normaliza com scope
+    const rawUrl = data.url || "leituras.html?pwa=true";
+    const targetUrl = new URL(rawUrl, self.registration.scope).href;
 
-  event.waitUntil(self.registration.showNotification(title, options));
+    const tag = data.tag || `co-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+    const options = {
+      body,
+      icon: "./logo.png",
+      badge: "./logo.png",
+      tag,
+      renotify: true,
+      requireInteraction: false,
+      data: { url: targetUrl }
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+  }catch(e){
+    // silencioso
+  }
 });
 
 /* ==========================================================
@@ -143,13 +156,15 @@ self.addEventListener("push", (event) => {
   }
 
   const title = payload.title || "Cartomantes Online";
+  const body  = payload.body  || "Você tem uma nova atualização.";
+
+  const targetUrl = new URL(payload.url || "leituras.html?pwa=true", self.registration.scope).href;
+
   const options = {
-    body: payload.body || "Você tem uma nova atualização.",
+    body,
     icon: "./logo.png",
     badge: "./logo.png",
-    data: {
-      url: payload.url || "leituras.html?pwa=true"
-    }
+    data: { url: targetUrl }
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -157,29 +172,33 @@ self.addEventListener("push", (event) => {
 
 /* ===========================
    CLICK NA NOTIFICAÇÃO
-   ✅ SEMPRE abre/foca leituras.html no caminho CERTO do GitHub Pages
+   ✅ Foca aba existente e navega
+   ✅ Se não existir, abre uma nova
 =========================== */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const targetUrl = new URL("leituras.html?pwa=true", self.registration.scope).href;
+  const targetUrl =
+    (event.notification && event.notification.data && event.notification.data.url)
+      ? event.notification.data.url
+      : new URL("leituras.html?pwa=true", self.registration.scope).href;
 
-  event.waitUntil(
-    (async () => {
-      const allClients = await clients.matchAll({
-        type: "window",
-        includeUncontrolled: true
-      });
+  event.waitUntil((async () => {
+    const allClients = await self.clients.matchAll({
+      type: "window",
+      includeUncontrolled: true
+    });
 
-      for (const client of allClients) {
-        try {
-          await client.focus();
-          try { await client.navigate(targetUrl); } catch {}
-          return;
-        } catch {}
-      }
+    for (const client of allClients) {
+      try {
+        await client.focus();
+        try { await client.navigate(targetUrl); } catch {}
+        return;
+      } catch {}
+    }
 
-      if (clients.openWindow) return clients.openWindow(targetUrl);
-    })()
-  );
+    if (self.clients.openWindow) {
+      await self.clients.openWindow(targetUrl);
+    }
+  })());
 });
