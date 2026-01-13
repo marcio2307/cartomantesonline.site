@@ -157,7 +157,7 @@ hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
     <div>
       <h1>🔔 Painel de Notificações — Cartomantes Online</h1>
       <div class="sub">
-        Este painel envia aviso para quem <b>já ativou notificações</b> e está com o app/site <b>aberto</b> (ou em segundo plano).
+        Envia aviso para quem <b>já ativou notificações</b> e está com o app/site <b>aberto</b> (ou em segundo plano).
         Mostra quantos dispositivos estão <b>registrados</b> e quantos estão <b>online agora</b>.
       </div>
     </div>
@@ -187,7 +187,7 @@ hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
       <div class="small">
         ✅ <b>Registrado</b> = dispositivo que clicou “ATIVAR” e concedeu permissão.<br/>
         ✅ <b>Online</b> = abriu o app/site recentemente (lastSeen &lt; 70s).<br/>
-        ⚠️ Notificar com app totalmente fechado exige Push real (FCM/VAPID + backend).
+        ⚠️ App totalmente fechado exige Push real (FCM/VAPID + backend).
       </div>
 
       <hr class="sep"/>
@@ -253,21 +253,21 @@ hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
 /* ==========================================================
-   ✅ COLE AQUI seu firebaseConfig (o MESMO do site)
+   ✅ FIREBASE CONFIG (SEU)
 ========================================================== */
 const firebaseConfig = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI",
-  databaseURL: "COLE_AQUI",
-  projectId: "COLE_AQUI",
-  storageBucket: "COLE_AQUI",
-  messagingSenderId: "COLE_AQUI",
-  appId: "COLE_AQUI"
+  apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
+  authDomain: "coletivo2025-9de23.firebaseapp.com",
+  databaseURL: "https://coletivo2025-9de23-default-rtdb.firebaseio.com",
+  projectId: "coletivo2025-9de23",
+  storageBucket: "coletivo2025-9de23.appspot.com",
+  messagingSenderId: "740866367489",
+  appId: "1:740866367489:web:963e3f5be80cb35a71e000"
 };
 
 let db;
@@ -275,7 +275,7 @@ try{
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
 }catch(e){
-  alert("ERRO: configure o firebaseConfig corretamente no painel.html");
+  alert("ERRO: Firebase não inicializou. Verifique as chaves.");
   console.error(e);
 }
 
@@ -364,7 +364,7 @@ async function refreshAll(){
     renderTable(devs);
   }catch(e){
     console.error(e);
-    log("ERRO ao atualizar lista (verifique databaseURL e regras do Firebase).");
+    log("ERRO ao atualizar lista (verifique regras do Firebase).");
   }
 }
 
@@ -396,7 +396,7 @@ async function sendNotification({title, body, url, target}){
     title, body, url,
     ts: now,
     target,
-    recipients,       // app filtra pelo deviceId
+    recipients,
     sentBy: "painel",
     sentAt: now
   };
