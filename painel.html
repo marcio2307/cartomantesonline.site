@@ -1,13 +1,3 @@
-<!-- =========================
-     ✅ painel.html (COMPLETO / ATUALIZADO) — 2026
-     - Mobile-first (bonito e fácil)
-     - Lista /devices em tempo real (sem “erro atualizar lista”)
-     - Conta Registrados (enabled=true)
-     - Conta Online (enabled=true + lastSeen < 70s)
-     - Envia /notifications com recipients EM MAPA (compatível com Rules)
-     - Botão TESTE broadcast "*" (recipients: {"*":true})
-     - Link ao clicar: SEMPRE abre leituras.html (força)
-========================= -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -27,9 +17,7 @@
   --card: rgba(0,0,0,.82);
   --line: rgba(199,160,8,.55);
   --soft: rgba(255,255,255,.10);
-  --soft2: rgba(255,255,255,.06);
   --ok:#2ecc71;
-  --warn:#f39c12;
   --bad:#e74c3c;
 }
 
@@ -97,7 +85,7 @@ h1{
   gap:8px;
   padding:10px 12px;
   border-radius:999px;
-  border:1px solid var(--soft);
+  border:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.06);
   font-size:12px;
   font-weight:800;
@@ -152,7 +140,7 @@ h1{
   letter-spacing:.2px;
   font-weight:900;
   color:transparent;
-  background-image:linear-gradient(180deg, var(--gold-1), var(--gold-3));
+  background-image:linear-gradient(180deg, #fff0a6, #c7a008);
   -webkit-background-clip:text;
   background-clip:text;
 }
@@ -177,7 +165,7 @@ h1{
   font-weight:900;
   margin-top:4px;
   color:transparent;
-  background-image:linear-gradient(180deg, var(--gold-2), var(--gold-3));
+  background-image:linear-gradient(180deg, #f6e27a, #c7a008);
   -webkit-background-clip:text;
   background-clip:text;
 }
@@ -195,10 +183,7 @@ hr.sep{
 }
 .note b{ color:#fff; opacity:1; }
 
-.form{
-  display:grid;
-  gap:10px;
-}
+.form{ display:grid; gap:10px; }
 label{
   display:block;
   font-size:12px;
@@ -215,10 +200,7 @@ input, textarea, select{
   outline:none;
   font-family:'Poppins',sans-serif;
 }
-textarea{
-  min-height:120px;
-  resize:vertical;
-}
+textarea{ min-height:120px; resize:vertical; }
 
 .row2{
   display:grid;
@@ -244,7 +226,7 @@ textarea{
   letter-spacing:.4px;
   cursor:pointer;
   color:#111;
-  background:linear-gradient(180deg, var(--gold-1), var(--gold-3));
+  background:linear-gradient(180deg, #fff0a6, #c7a008);
   box-shadow: 0 14px 30px rgba(0,0,0,0.55);
   transition:filter .18s ease, transform .12s ease;
 }
@@ -286,9 +268,7 @@ textarea{
   gap:10px;
   flex-wrap:wrap;
 }
-.search{
-  width:min(360px, 100%);
-}
+.search{ width:min(360px, 100%); }
 .table{
   width:100%;
   border-collapse:collapse;
@@ -302,6 +282,7 @@ textarea{
   vertical-align:top;
 }
 .table th{ opacity:.85; font-weight:900; }
+
 .badge{
   display:inline-flex;
   align-items:center;
@@ -321,7 +302,7 @@ textarea{
 .badge.on{ background:rgba(46,204,113,.12); }
 .badge.off{ background:rgba(231,76,60,.12); }
 .badge.reg{ background:rgba(246,226,122,.10); }
-.badge.reg .bdot{ background:var(--gold-2); box-shadow:0 0 10px rgba(246,226,122,.25); }
+.badge.reg .bdot{ background:#f6e27a; box-shadow:0 0 10px rgba(246,226,122,.25); }
 
 .mini{
   opacity:.75;
@@ -347,19 +328,17 @@ textarea{
 .toast.show{ display:block; }
 .toast .t{ font-weight:900; margin-bottom:4px; }
 .toast .d{ font-size:13px; opacity:.9; line-height:1.35; }
-
 </style>
 </head>
 
 <body>
 <div class="wrap">
-
   <div class="header">
     <div class="title">
       <h1>🔔 Painel de Notificações — Cartomantes Online</h1>
       <p class="sub">
-        Envia aviso para quem <b>ativou notificações</b> (enabled=true).
-        <br/>✅ <b>Online</b> = enabled=true e lastSeen &lt; 70s. (App fechado total: só Push real)
+        Envia aviso para quem <b>ativou notificações</b> (enabled=true).<br/>
+        ✅ <b>Online</b> = enabled=true e lastSeen &lt; 70s.
       </p>
     </div>
 
@@ -370,8 +349,6 @@ textarea{
   </div>
 
   <div class="grid">
-
-    <!-- ESQUERDA -->
     <div class="card">
       <h2>📊 Status + Envio</h2>
 
@@ -393,9 +370,9 @@ textarea{
       <hr class="sep"/>
 
       <div class="note">
-        ✅ <b>Registrado</b>: permitiu notificações.<br/>
-        ✅ <b>Online</b>: abriu o app/site recentemente (lastSeen &lt; 70s).<br/>
-        📌 <b>Link ao clicar</b>: este painel força sempre <b>./leituras.html</b>.
+        ✅ <b>Registrado</b>: permitiu notificações (enabled=true).<br/>
+        ✅ <b>Online</b>: abriu o app/site recentemente.<br/>
+        📌 Clique da notificação abre: <b>./leituras.html</b>.
       </div>
 
       <hr class="sep"/>
@@ -418,7 +395,7 @@ textarea{
             <label>Enviar para</label>
             <select id="nTarget">
               <option value="online">Somente ONLINE agora</option>
-              <option value="registered">Todos REGISTRADOS</option>
+              <option value="registered">Todos REGISTRADOS (ativaram)</option>
             </select>
           </div>
           <div>
@@ -429,7 +406,7 @@ textarea{
 
         <div class="actions">
           <button class="btn green" id="btnSend">ENVIAR AGORA</button>
-          <button class="btn ghost" id="btnTest">TESTAR (broadcast)</button>
+          <button class="btn ghost" id="btnTest">ENVIAR PRA TODOS (broadcast)</button>
           <button class="btn" id="btnRefresh">ATUALIZAR LISTA</button>
           <button class="btn ghost small" id="btnClearLog" title="Limpar log">LIMPAR LOG</button>
         </div>
@@ -438,11 +415,10 @@ textarea{
       </div>
     </div>
 
-    <!-- DIREITA -->
     <div class="card">
       <div class="list-head">
         <div>
-          <h2>👥 Dispositivos (Registrados / Online)</h2>
+          <h2>👥 Dispositivos</h2>
           <div class="note">Dica: para “zerar” todos, apague <b>/devices</b> no Firebase.</div>
         </div>
         <div class="search">
@@ -463,9 +439,7 @@ textarea{
           <tr><td colspan="3" style="opacity:.8">Carregando…</td></tr>
         </tbody>
       </table>
-
     </div>
-
   </div>
 </div>
 
@@ -474,7 +448,6 @@ textarea{
   <div class="d" id="toastD">—</div>
 </div>
 
-<!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -493,7 +466,7 @@ const firebaseConfig = {
 };
 
 const ONLINE_WINDOW_MS = 70 * 1000;
-const LIST_LIMIT = 160;
+const LIST_LIMIT = 200;
 
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -534,16 +507,13 @@ function log(msg){
   const stamp = new Date().toLocaleString("pt-BR");
   logBox.textContent = `[${stamp}] ${msg}\n` + logBox.textContent;
 }
-
 function fmtTime(ms){
   if(!ms) return "—";
   return new Date(ms).toLocaleString("pt-BR");
 }
-
 function safeStr(x){
   return String(x ?? "").replace(/[<>]/g, "");
 }
-
 function setFirebaseState(ok, msg){
   if(ok){
     pillDb.classList.remove("off");
@@ -557,7 +527,7 @@ function setFirebaseState(ok, msg){
 }
 
 /* ==========================================================
-   INIT Firebase (com try/catch pra não quebrar)
+   INIT Firebase
 ========================================================== */
 let db = null;
 try{
@@ -570,7 +540,7 @@ try{
 }
 
 /* ==========================================================
-   LER /devices em tempo real (resolve “erro atualizar lista”)
+   LER /devices em tempo real
 ========================================================== */
 let cacheDevices = [];
 let lastRefresh = 0;
@@ -643,7 +613,8 @@ async function refreshDevicesOnce(){
     cacheDevices = arr;
     lastRefresh = Date.now();
     refreshUI();
-    log(`Lista atualizada: ${computeCounts(arr).registered} registrados / ${computeCounts(arr).online} online.`);
+    const c = computeCounts(arr);
+    log(`Lista atualizada: ${c.registered} registrados / ${c.online} online.`);
   }catch(e){
     console.error(e);
     setFirebaseState(false, "ERRO ao atualizar lista (regras/URL).");
@@ -651,12 +622,9 @@ async function refreshDevicesOnce(){
   }
 }
 
-/* 🔥 Real-time: escuta mudanças sem ficar “dando erro” em loop */
 function startRealtimeDevices(){
   if(!db) return;
-
   try{
-    // se seu Firebase bloquear .on, use o refresh manual (mas normalmente funciona)
     db.ref(NODE_DEVICES).orderByChild("lastSeen").limitToLast(LIST_LIMIT).on("value", (snap) => {
       const val = snap.val() || {};
       const arr = Object.entries(val).map(([id, d]) => ({ id, ...d }));
@@ -676,18 +644,20 @@ function startRealtimeDevices(){
     refreshDevicesOnce();
   }
 }
-
 searchId.addEventListener("input", () => renderTable(cacheDevices));
 
 /* ==========================================================
    ENVIAR NOTIFICAÇÃO
-   ✅ recipients EM MAPA (compatível com Rules)
-   ✅ URL travada em ./leituras.html (sempre)
 ========================================================== */
 function buildRecipientsMap(ids){
   const m = {};
   for(const id of ids) m[id] = true;
   return m;
+}
+
+async function pushNotification(payload){
+  const ref = db.ref(NODE_NOTIFS).push();
+  await ref.set(payload);
 }
 
 async function sendNotification({title, body, target}){
@@ -709,16 +679,15 @@ async function sendNotification({title, body, target}){
   const payload = {
     title,
     body,
-    url: "./leituras.html",     // ✅ SEMPRE
+    url: "./leituras.html",
     ts: now,
     target,
-    recipients: buildRecipientsMap(ids),  // ✅ MAPA
+    recipients: buildRecipientsMap(ids),
     sentBy: "painel",
     sentAt: now
   };
 
-  const ref = db.ref(NODE_NOTIFS).push();
-  await ref.set(payload);
+  await pushNotification(payload);
 
   elLastSend.textContent = new Date(now).toLocaleTimeString("pt-BR");
   log(`Enviado para ${ids.length} dispositivo(s) (${target}).`);
@@ -731,8 +700,6 @@ document.getElementById("btnSend").onclick = async () => {
       alert("Digite a mensagem antes de enviar.");
       return;
     }
-
-    // se estiver sem cache, tenta buscar uma vez
     if(!cacheDevices.length) await refreshDevicesOnce();
 
     await sendNotification({
@@ -748,33 +715,33 @@ document.getElementById("btnSend").onclick = async () => {
   }
 };
 
+/* ✅ ENVIAR PRA TODOS (broadcast) */
 document.getElementById("btnTest").onclick = async () => {
   try{
     if(!db) return;
     const now = Date.now();
-    const ref = db.ref(NODE_NOTIFS).push();
-    await ref.set({
-      title: "Teste do Painel ✅",
-      body: "Se o app estiver aberto e com permissão, você verá esta notificação.",
-      url: "./leituras.html",     // ✅ SEMPRE
+    await pushNotification({
+      title: (nTitle.value || "Cartomantes Online").trim(),
+      body: (nBody.value.trim() || "Mensagem para todos que ativaram notificações."),
+      url: "./leituras.html",
       ts: now,
-      target: "test",
-      recipients: { "*": true },  // ✅ broadcast MAPA
+      target: "broadcast",
+      recipients: { "*": true },
       sentBy: "painel",
       sentAt: now
     });
+
     elLastSend.textContent = new Date(now).toLocaleTimeString("pt-BR");
-    log("Teste enviado (broadcast '*').");
-    toastShow("Teste enviado ✅", "Broadcast para todos (quando o app estiver aberto).");
+    log("Broadcast enviado para TODOS (recipients {'*':true}).");
+    toastShow("Enviado ✅", "Broadcast para todos que ativaram (quando estiverem com o app/site aberto).");
   }catch(e){
     console.error(e);
-    log("ERRO ao enviar teste (regras/notifications).");
-    toastShow("Erro", "Não foi possível enviar o teste. Confira Rules.");
+    log("ERRO ao enviar broadcast (regras/notifications).");
+    toastShow("Erro", "Não foi possível enviar. Confira Rules.");
   }
 };
 
 document.getElementById("btnRefresh").onclick = () => refreshDevicesOnce();
-
 document.getElementById("btnClearLog").onclick = () => {
   logBox.textContent = "Log limpo.\n";
   toastShow("Ok", "Log limpo.");
@@ -792,13 +759,11 @@ document.getElementById("btnClearLog").onclick = () => {
   startRealtimeDevices();
   refreshDevicesOnce();
   setInterval(() => {
-    // fallback leve: se o realtime falhar em algum browser
     if(Date.now() - lastRefresh > 15000){
       refreshDevicesOnce();
     }
   }, 12000);
 })();
 </script>
-
 </body>
 </html>
