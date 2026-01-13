@@ -1,3 +1,11 @@
+<!-- =========================
+     ✅ painel.html (COMPLETO / ATUALIZADO)
+     - Lista /devices
+     - Conta Registrados (enabled=true)
+     - Conta Online (enabled=true + lastSeen < 70s)
+     - Envia /notifications com recipients (online ou registrados)
+     - Botão TESTE broadcast "*"
+========================= -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -157,8 +165,7 @@ hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
     <div>
       <h1>🔔 Painel de Notificações — Cartomantes Online</h1>
       <div class="sub">
-        Envia aviso para quem <b>já ativou notificações</b> e está com o app/site <b>aberto</b> (ou em segundo plano).
-        Mostra quantos dispositivos estão <b>registrados</b> e quantos estão <b>online agora</b>.
+        Envia aviso para quem <b>ativou notificações</b> (enabled=true) e está <b>online</b> (lastSeen recente).
       </div>
     </div>
   </div>
@@ -185,9 +192,9 @@ hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
       <hr class="sep"/>
 
       <div class="small">
-        ✅ <b>Registrado</b> = dispositivo que clicou “ATIVAR” e concedeu permissão.<br/>
-        ✅ <b>Online</b> = abriu o app/site recentemente (lastSeen &lt; 70s).<br/>
-        ⚠️ App totalmente fechado exige Push real (FCM/VAPID + backend).
+        ✅ <b>Registrado</b> = enabled=true (permitiu notificações).<br/>
+        ✅ <b>Online</b> = enabled=true e lastSeen &lt; 70s.<br/>
+        ⚠️ Com app totalmente fechado: só com Push real (FCM/VAPID + backend).
       </div>
 
       <hr class="sep"/>
@@ -258,7 +265,7 @@ hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
 
 <script>
 /* ==========================================================
-   ✅ FIREBASE CONFIG (SEU)
+   ✅ COLE AQUI seu firebaseConfig (o MESMO do site)
 ========================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
@@ -271,19 +278,14 @@ const firebaseConfig = {
 };
 
 let db;
-try{
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-}catch(e){
-  alert("ERRO: Firebase não inicializou. Verifique as chaves.");
-  console.error(e);
-}
+firebase.initializeApp(firebaseConfig);
+db = firebase.database();
 
 /* ==========================================================
    AJUSTES
 ========================================================== */
 const ONLINE_WINDOW_MS = 70 * 1000;
-const LIST_LIMIT = 80;
+const LIST_LIMIT = 120;
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
 
@@ -334,7 +336,7 @@ function computeCounts(devs){
 function renderTable(devs){
   const now = Date.now();
   if(!devs.length){
-    tbody.innerHTML = `<tr><td colspan="3" style="opacity:.8">Nenhum dispositivo registrado ainda.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" style="opacity:.8">Nenhum dispositivo ainda.</td></tr>`;
     return;
   }
 
@@ -346,7 +348,7 @@ function renderTable(devs){
 
     return `
       <tr>
-        <td><b>${safeStr(d.id).slice(0,10)}…</b></td>
+        <td><b>${safeStr(d.id).slice(0,12)}…</b></td>
         <td>${badge}</td>
         <td>${fmtTime(d.lastSeen)}<div style="opacity:.7;margin-top:4px">${safeStr(d.ua||"")}</div></td>
       </tr>
@@ -364,7 +366,7 @@ async function refreshAll(){
     renderTable(devs);
   }catch(e){
     console.error(e);
-    log("ERRO ao atualizar lista (verifique regras do Firebase).");
+    log("ERRO ao atualizar lista (verifique databaseURL e regras).");
   }
 }
 
