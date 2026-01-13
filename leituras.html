@@ -4,7 +4,7 @@
      - Presença online (/devices) SEM depender de Notification
      - Popup 1x no app instalado
      - Comunhão com painel (/notifications) -> Service Worker LOCAL_NOTIFY
-     - Debug discreto (canto) para confirmar gravação
+     - ✅ SEM DEBUG VISÍVEL (nenhuma mensagem na tela)
 ========================= -->
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -381,21 +381,6 @@ body{
 #notifEnable{ flex:1; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
 #notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
 #notifOk{ flex:1; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
-
-/* ✅ debug discreto */
-#coDebug{
-  position:fixed;
-  left:10px; bottom:10px;
-  z-index:999998;
-  font-size:11px;
-  padding:10px 12px;
-  border-radius:12px;
-  background:rgba(0,0,0,.65);
-  border:1px solid rgba(255,255,255,.12);
-  max-width:min(520px, calc(100vw - 20px));
-  line-height:1.35;
-  display:none;
-}
 </style>
 </head>
 
@@ -450,8 +435,6 @@ body{
   </div>
 </div>
 
-<div id="coDebug"></div>
-
 <!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -488,16 +471,6 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
   });
-}
-
-/* ==========================================================
-   ✅ DEBUG DISCRETO (para confirmar online)
-========================================================== */
-const dbg = document.getElementById("coDebug");
-function showDbg(lines){
-  if(!dbg) return;
-  dbg.style.display = "block";
-  dbg.innerHTML = lines.map(s => `<div>${s}</div>`).join("");
 }
 
 /* ✅ CARROSSEL (8s) */
@@ -765,19 +738,12 @@ async function enviarNotificacaoLocal(title, body, url){
   });
 }
 
-/* ✅ Boot presença (sempre) + debug */
+/* ✅ Boot presença (sempre) */
 (async function bootPresence(){
-  const ok = fbOk ? await upsertDevice() : false;
-
-  showDbg([
-    `Firebase: ${ok ? "OK" : "FALHOU"}`,
-    `deviceId: ${deviceId}`,
-    `perm: ${("Notification" in window) ? Notification.permission : "sem Notification"}`,
-    `standalone: ${isStandalone() ? "sim" : "não"}`,
-    `gravando em: /${NODE_DEVICES}/${deviceId}`
-  ]);
-
+  if(!fbOk) return;
+  const ok = await upsertDevice();
   if(!ok) return;
+
   pingLastSeen();
   setInterval(pingLastSeen, ONLINE_PING_MS);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
@@ -795,14 +761,18 @@ async function enviarNotificacaoLocal(title, body, url){
 
   if(!wrap) return;
   if(!("Notification" in window)) return;
+
+  // só no app instalado
   if(!isStandalone()) return;
 
+  // se já ativou, nunca mais mostra
   if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
     localStorage.setItem(KEY_DONE,"1");
     wrap.style.display = "none";
     return;
   }
 
+  // aparece só 1 vez
   if(localStorage.getItem(KEY_SHOWN) === "1"){
     wrap.style.display = "none";
     return;
