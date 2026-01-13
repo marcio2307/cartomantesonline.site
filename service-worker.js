@@ -5,10 +5,10 @@
    ✅ Ajustado para start_url com ?pwa=true
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.5"; // 🔴 aumente sempre que trocar arquivos
+const CACHE_VERSION = "v1.1.6"; // 🔴 aumente sempre que trocar arquivos
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
-/* ✅ ajuste aqui se você criar novas páginas */
+/* ✅ coloque aqui APENAS arquivos que EXISTEM no repo */
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -21,38 +21,45 @@ const APP_SHELL = [
 ];
 
 /* ===========================
-   INSTALL
+   INSTALL (tolerante a 404)
 =========================== */
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+
+    // ✅ tenta cachear tudo, mas não deixa um 404 derrubar o SW
+    await Promise.all(
+      APP_SHELL.map(async (path) => {
+        try {
+          const res = await fetch(path, { cache: "no-store" });
+          if (res && res.ok) await cache.put(path, res.clone());
+        } catch {}
+      })
+    );
+
+    await self.skipWaiting();
+  })());
 });
 
 /* ===========================
    ACTIVATE
 =========================== */
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    (async () => {
-      const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
-          .map((k) => caches.delete(k))
-      );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
+        .map((k) => caches.delete(k))
+    );
 
-      // ✅ Garante que versões antigas não fiquem presas
-      await self.clients.claim();
+    await self.clients.claim();
 
-      // ✅ opcional: força atualizar páginas abertas
-      const allClients = await self.clients.matchAll({ includeUncontrolled: true });
-      allClients.forEach((c) => {
-        try { c.postMessage({ type: "SW_UPDATED", version: CACHE_VERSION }); } catch {}
-      });
-    })()
-  );
+    const allClients = await self.clients.matchAll({ includeUncontrolled: true });
+    allClients.forEach((c) => {
+      try { c.postMessage({ type: "SW_UPDATED", version: CACHE_VERSION }); } catch {}
+    });
+  })());
 });
 
 /* ===========================
@@ -79,53 +86,53 @@ self.addEventListener("fetch", (event) => {
     (req.headers.get("accept") || "").includes("text/html");
 
   if (isHTML) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(async () => {
-          const cached = await caches.match(req);
-          if (cached) return cached;
+    event.respondWith((async () => {
+      try {
+        const res = await fetch(req);
+        const copy = res.clone();
+        const cache = await caches.open(CACHE_NAME);
+        // ✅ guarda a versão sem depender do query
+        await cache.put(url.pathname === "/" ? "./" : url.pathname, copy);
+        return res;
+      } catch {
+        // ✅ fallback ignorando query
+        const cached =
+          (await caches.match(url.pathname, { ignoreSearch: true })) ||
+          (await caches.match("./leituras.html", { ignoreSearch: true })) ||
+          (await caches.match("./", { ignoreSearch: true }));
 
-          // ✅ fallback sempre para leituras (com pwa=true igual ao manifest)
-          return caches.match("./leituras.html") || caches.match("./");
-        })
-    );
+        return cached || Response.error();
+      }
+    })());
     return;
   }
 
   // ✅ Assets internos (cache-first)
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
+  event.respondWith((async () => {
+    const cached = await caches.match(req);
+    if (cached) return cached;
 
-      return fetch(req)
-        .then((res) => {
-          if (!res || res.status !== 200) return res;
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(() => cached);
-    })
-  );
+    try {
+      const res = await fetch(req);
+      if (!res || res.status !== 200) return res;
+      const copy = res.clone();
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(req, copy);
+      return res;
+    } catch {
+      return cached || Response.error();
+    }
+  })());
 });
 
 /* ==========================================================
    ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL)
-   - Funciona com o app/site aberto ou em segundo plano
-   - Disparada via postMessage do site/app (Firebase -> app -> SW)
 ========================================================== */
 self.addEventListener("message", (event) => {
   const data = event.data || {};
   if (data.type !== "LOCAL_NOTIFY") return;
 
   const title = data.title || "Cartomantes Online";
-
-  // ✅ tag única por mensagem (evita “sumir” se mandar várias diferentes)
   const tag = data.tag || `cartomantes-${Date.now()}`;
 
   const options = {
@@ -134,17 +141,14 @@ self.addEventListener("message", (event) => {
     badge: "./logo.png",
     tag,
     renotify: true,
-    data: {
-      url: data.url || "./leituras.html?pwa=true"
-    }
+    data: { url: data.url || "./leituras.html?pwa=true" }
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
 /* ==========================================================
-   ✅ (OPCIONAL) PUSH REAL FUTURO
-   - Se algum dia você ativar FCM/VAPID, isso já fica pronto
+   ✅ PUSH REAL FUTURO
 ========================================================== */
 self.addEventListener("push", (event) => {
   let payload = {};
@@ -159,9 +163,7 @@ self.addEventListener("push", (event) => {
     body: payload.body || "Você tem uma nova atualização.",
     icon: "./logo.png",
     badge: "./logo.png",
-    data: {
-      url: payload.url || "./leituras.html?pwa=true"
-    }
+    data: { url: payload.url || "./leituras.html?pwa=true" }
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -169,38 +171,28 @@ self.addEventListener("push", (event) => {
 
 /* ===========================
    CLICK NA NOTIFICAÇÃO
-   ✅ abre/foca e navega para url
 =========================== */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || "./leituras.html?pwa=true";
+  const rel = (event.notification.data && event.notification.data.url) || "./leituras.html?pwa=true";
+  const target = new URL(rel, self.location.origin).href;
 
-  event.waitUntil(
-    (async () => {
-      const allClients = await clients.matchAll({
-        type: "window",
-        includeUncontrolled: true
-      });
+  event.waitUntil((async () => {
+    const allClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
 
-      // ✅ tenta usar aba já aberta do seu site
-      for (const client of allClients) {
-        try {
-          const cUrl = new URL(client.url);
-          const targetUrl = new URL(url, self.location.origin);
+    for (const client of allClients) {
+      try {
+        const cUrl = new URL(client.url);
+        const tUrl = new URL(target);
 
-          // ✅ se for do mesmo origin, foca e navega
-          if (cUrl.origin === targetUrl.origin) {
-            await client.focus();
-            try { await client.navigate(targetUrl.href); } catch {}
-            return;
-          }
-        } catch {}
-      }
+        if (cUrl.origin === tUrl.origin) {
+          await client.focus();
+          try { await client.navigate(target); } catch {}
+          return;
+        }
+      } catch {}
+    }
 
-      // ✅ senão abre nova aba/janela
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })()
-  );
+    if (clients.openWindow) return clients.openWindow(target);
+  })());
 });
