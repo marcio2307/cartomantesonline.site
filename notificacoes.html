@@ -1,159 +1,229 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Ativar Notificações</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ativar Notificações - Cartomantes Online</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff;margin:0;padding:18px}
-    .wrap{max-width:760px;margin:0 auto}
-    .card{background:#121212;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:14px}
-    h1{margin:0 0 10px;font-size:22px}
-    button{width:100%;padding:14px;border-radius:12px;border:none;font-weight:900;cursor:pointer}
-    .on{background:#2ecc71;color:#111}
-    .off{background:#ff6b6b;color:#111}
-    .small{font-size:12px;opacity:.8;white-space:pre-wrap}
-    input{width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#fff;box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;background:#0b0b0b;color:#fff;margin:0;padding:18px}
+    .wrap{max-width:820px;margin:0 auto}
+    .card{background:#151515;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:14px}
+    h1{margin:0 0 10px;font-size:20px}
+    .small{font-size:12px;opacity:.85;line-height:1.35}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    button{width:100%;box-sizing:border-box;border-radius:12px;border:none;background:#2ecc71;color:#000;padding:14px;font-weight:900;cursor:pointer;margin-top:10px}
+    button.secondary{background:#3b82f6;color:#fff}
+    button.ghost{background:#222;border:1px solid #333;color:#fff}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .ok{color:#2ecc71}
+    .err{color:#ff6b6b;white-space:pre-wrap}
+    pre{background:#0f0f0f;border:1px solid #2a2a2a;border-radius:12px;padding:12px;white-space:pre-wrap;word-break:break-word;margin:10px 0 0}
+    input{width:100%;box-sizing:border-box;border-radius:10px;border:1px solid #333;background:#0f0f0f;color:#fff;padding:12px}
+    label{display:block;margin:10px 0 6px;font-size:13px;opacity:.9}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>🔔 Ativar notificações</h1>
-    <div class="small">Servidor: <span class="mono" id="serverUrl"></span></div>
-    <div class="small">Abra esta página no celular e toque em “Permitir”.</div>
-  </div>
+  <div class="wrap">
+    <div class="card">
+      <h1>🔔 Ativar notificações (cadastro no servidor)</h1>
+      <div class="small">
+        Este arquivo é o responsável por <b>cadastrar o seu celular</b> no Render via <span class="mono">/save-subscription</span>.
+        <br><br>
+        ✅ Depois de cadastrar, o painel de envio consegue entregar as notificações.
+      </div>
+    </div>
 
-  <div class="card">
-    <label class="small">URL do servidor (Render)</label>
-    <input id="apiBase" value="https://envio-6.onrender.com" />
-    <button id="enableBtn" class="on" style="margin-top:12px">ATIVAR NOTIFICAÇÕES</button>
-    <button id="disableBtn" class="off" style="margin-top:10px">DESATIVAR (remover inscrição)</button>
-    <div id="status" class="small" style="margin-top:12px;"></div>
-  </div>
+    <div class="card">
+      <label>Servidor (Render)</label>
+      <input id="server" value="https://envio-6.onrender.com" />
 
-  <div class="card">
-    <div class="small">
-      ✅ Importante: seu site já tem um <b>service-worker.js</b> (cache).  
-      Você precisa adicionar nele o suporte a <b>push</b> (eu deixei abaixo).
+      <div class="row">
+        <button id="btnActivate">ATIVAR E CADASTRAR</button>
+        <button id="btnResub" class="secondary" type="button">RECADASTRAR (FORÇAR NOVA)</button>
+      </div>
+
+      <button id="btnStats" class="ghost" type="button">VER /stats</button>
+
+      <div id="status" class="small" style="margin-top:10px;"></div>
+      <pre id="log" class="small mono"></pre>
+    </div>
+
+    <div class="card">
+      <div class="small">
+        ✅ Se o cadastro der certo, o <span class="mono">/stats</span> deve subir para <b>1</b> (ou mais).
+        <br>
+        ⚠️ Se aparecer erro aqui, copie e me mande o texto do log.
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="small" id="swHint"></div>
-  </div>
-</div>
-
 <script>
   const $ = (id) => document.getElementById(id);
-  const apiBaseEl = $("apiBase");
-  const serverUrlEl = $("serverUrl");
+  const serverEl = $("server");
+  const btnActivate = $("btnActivate");
+  const btnResub = $("btnResub");
+  const btnStats = $("btnStats");
   const statusEl = $("status");
-  const enableBtn = $("enableBtn");
-  const disableBtn = $("disableBtn");
-  const swHint = $("swHint");
+  const logEl = $("log");
 
-  serverUrlEl.textContent = apiBaseEl.value;
+  function serverBase(){
+    return serverEl.value.trim().replace(/\/+$/,"");
+  }
 
-  apiBaseEl.addEventListener("input", () => {
-    serverUrlEl.textContent = apiBaseEl.value.trim();
-  });
+  function setStatusOk(msg){
+    statusEl.className = "small ok";
+    statusEl.textContent = msg;
+  }
+  function setStatusErr(msg){
+    statusEl.className = "small err";
+    statusEl.textContent = msg;
+  }
+  function setLog(objOrText){
+    if(typeof objOrText === "string") logEl.textContent = objOrText;
+    else {
+      try{ logEl.textContent = JSON.stringify(objOrText, null, 2); }
+      catch{ logEl.textContent = String(objOrText); }
+    }
+  }
 
-  function log(msg){ statusEl.textContent = msg; }
-
-  function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  function urlBase64ToUint8Array(base64String){
+    const padding = "=".repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
     const raw = atob(base64);
-    const outputArray = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; ++i) outputArray[i] = raw.charCodeAt(i);
-    return outputArray;
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
   }
 
-  async function getPublicKey(apiBase){
-    const res = await fetch(apiBase + "/vapid-public-key");
-    if(!res.ok) throw new Error("Não consegui pegar a publicKey do servidor.");
-    const data = await res.json();
-    return data.publicKey;
+  async function fetchJsonOrText(url, opts){
+    const res = await fetch(url, opts);
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch {}
+    return { res, text, json };
   }
 
-  async function saveSubscription(apiBase, sub){
-    const res = await fetch(apiBase + "/save-subscription", {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
+  async function getVapidKey(){
+    const { res, text, json } = await fetchJsonOrText(serverBase() + "/vapid-public-key", { cache:"no-store" });
+    setLog(json || text);
+    if(!res.ok) throw new Error("Falha ao obter /vapid-public-key: " + text);
+    if(!json?.publicKey) throw new Error("Servidor não retornou publicKey.");
+    return json.publicKey;
+  }
+
+  async function registerSW(){
+    if(!("serviceWorker" in navigator)) throw new Error("Service Worker não suportado neste navegador.");
+    const reg = await navigator.serviceWorker.register("./service-worker.js", { scope:"./" });
+    await navigator.serviceWorker.ready;
+    return reg;
+  }
+
+  async function saveSubscription(sub){
+    const { res, text, json } = await fetchJsonOrText(serverBase() + "/save-subscription", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
       body: JSON.stringify(sub)
     });
-    const text = await res.text();
-    if(!res.ok) throw new Error(text);
-    return JSON.parse(text);
+
+    setLog(json || text);
+
+    if(!res.ok){
+      throw new Error(`Falha ao salvar subscription (HTTP ${res.status}): ${json?.error || text}`);
+    }
+    return json;
   }
 
-  async function removeSubscription(apiBase, endpoint){
-    const res = await fetch(apiBase + "/remove-subscription", {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ endpoint })
-    });
-    const text = await res.text();
-    if(!res.ok) throw new Error(text);
-    return JSON.parse(text);
-  }
-
-  async function ensureSW(){
-    if(!("serviceWorker" in navigator)) throw new Error("Seu navegador não suporta Service Worker.");
-    // Usa o seu service-worker.js existente (cache) — só precisa ter o handler de push adicionado.
-    return navigator.serviceWorker.register("./service-worker.js");
-  }
-
-  async function enable(){
-    const apiBase = apiBaseEl.value.trim().replace(/\/+$/,"");
-
-    if(!("Notification" in window)) throw new Error("Seu navegador não suporta notificações.");
+  async function ensureSubscription(forceNew=false){
+    // permissão
     const perm = await Notification.requestPermission();
-    if(perm !== "granted") throw new Error("Permissão negada. Você precisa permitir notificações.");
+    if(perm !== "granted") throw new Error("Permissão não concedida. (Permission = " + perm + ")");
 
-    const reg = await ensureSW();
-    const publicKey = await getPublicKey(apiBase);
+    const reg = await registerSW();
+    const vapid = await getVapidKey();
 
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
-    });
+    let sub = await reg.pushManager.getSubscription();
 
-    const r = await saveSubscription(apiBase, sub);
-    log("✅ Notificações ATIVADAS!\nInscrições salvas no servidor: " + r.total);
+    if(forceNew && sub){
+      try{ await sub.unsubscribe(); }catch{}
+      sub = null;
+    }
+
+    if(!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapid)
+      });
+    }
+
+    const saved = await saveSubscription(sub);
+    return { sub, saved };
   }
 
-  async function disable(){
-    const apiBase = apiBaseEl.value.trim().replace(/\/+$/,"");
-    const reg = await navigator.serviceWorker.getRegistration("./");
-    if(!reg) return log("Nenhum service worker encontrado.");
-    const sub = await reg.pushManager.getSubscription();
-    if(!sub) return log("Você não tem inscrição ativa.");
-
-    await sub.unsubscribe();
-    await removeSubscription(apiBase, sub.endpoint);
-    log("✅ Inscrição removida e notificações desativadas.");
+  async function stats(){
+    const { res, text, json } = await fetchJsonOrText(serverBase() + "/stats", { cache:"no-store" });
+    setLog(json || text);
+    if(!res.ok) throw new Error("Erro /stats: " + text);
+    return json;
   }
 
-  enableBtn.addEventListener("click", async () => {
-    enableBtn.disabled = true;
-    try{ log("Ativando..."); await enable(); }
-    catch(e){ log("❌ " + (e.message || e)); }
-    finally{ enableBtn.disabled = false; }
+  btnStats.addEventListener("click", async () => {
+    btnStats.disabled = true;
+    try{
+      setStatusOk("Consultando /stats...");
+      const s = await stats();
+      setStatusOk("✅ /stats OK — total inscrições: " + s.total);
+    }catch(e){
+      setStatusErr("❌ " + (e?.message || e));
+    }finally{
+      btnStats.disabled = false;
+    }
   });
 
-  disableBtn.addEventListener("click", async () => {
-    disableBtn.disabled = true;
-    try{ log("Removendo..."); await disable(); }
-    catch(e){ log("❌ " + (e.message || e)); }
-    finally{ disableBtn.disabled = false; }
+  btnActivate.addEventListener("click", async () => {
+    btnActivate.disabled = true;
+    btnResub.disabled = true;
+    btnStats.disabled = true;
+    setLog("");
+    try{
+      setStatusOk("Ativando e cadastrando...");
+      const { saved } = await ensureSubscription(false);
+      setStatusOk("✅ Cadastrado no servidor! Total agora: " + (saved?.total ?? "?") + " (abra /stats para confirmar)");
+    }catch(e){
+      setStatusErr("❌ ERRO ao cadastrar:\n" + (e?.message || e));
+    }finally{
+      btnActivate.disabled = false;
+      btnResub.disabled = false;
+      btnStats.disabled = false;
+    }
   });
 
-  swHint.textContent =
-`⚠️ Se der erro de CORS (bloqueio do navegador), você precisa liberar CORS no server.js do Render.
-Se aparecer erro, me mande o print que eu te passo o patch certinho.`;
+  btnResub.addEventListener("click", async () => {
+    btnActivate.disabled = true;
+    btnResub.disabled = true;
+    btnStats.disabled = true;
+    setLog("");
+    try{
+      setStatusOk("Forçando novo cadastro (reinscrevendo)...");
+      const { saved } = await ensureSubscription(true);
+      setStatusOk("✅ RECADASTRADO! Total agora: " + (saved?.total ?? "?") + " (abra /stats para confirmar)");
+    }catch(e){
+      setStatusErr("❌ ERRO ao recadastrar:\n" + (e?.message || e));
+    }finally{
+      btnActivate.disabled = false;
+      btnResub.disabled = false;
+      btnStats.disabled = false;
+    }
+  });
+
+  // status inicial
+  (async () => {
+    try{
+      if(!("Notification" in window)){
+        setStatusErr("❌ Este navegador não suporta Notification API.");
+        return;
+      }
+      setStatusOk("Permissão atual: " + Notification.permission + " | Abra /stats para ver inscrições.");
+    }catch{}
+  })();
 </script>
 </body>
 </html>
