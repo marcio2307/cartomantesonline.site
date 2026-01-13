@@ -375,7 +375,7 @@ body{
 #notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
 #notifOk{ flex:1; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
 
-/* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS (FabApp / similares) */
+/* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS */
 fabapp-banner-footer,
 fabapp-banner-footer *{
   display:none !important;
@@ -463,7 +463,7 @@ source[src*="fabapp-ads"]{
 
 <script>
 /* ==========================================================
-   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
+   ✅ REMOÇÃO FORÇADA (propagandas injetadas)
 ========================================================== */
 (function bloquearPropagandasInjetadas(){
   const SELECTORS = [
@@ -484,13 +484,8 @@ source[src*="fabapp-ads"]{
   remover();
   const obs = new MutationObserver(remover);
   obs.observe(document.documentElement, { childList:true, subtree:true });
-
   let tries = 0;
-  const t = setInterval(() => {
-    remover();
-    tries++;
-    if (tries >= 30) clearInterval(t);
-  }, 500);
+  const t = setInterval(() => { remover(); if(++tries>=30) clearInterval(t); }, 500);
 })();
 
 /* ✅ CARROSSEL (8s) */
@@ -521,11 +516,8 @@ let db = null;
 let fbOk = false;
 
 try{
-  if (firebase.apps && firebase.apps.length) {
-    firebase.app();
-  } else {
-    firebase.initializeApp(firebaseConfig);
-  }
+  if (firebase.apps && firebase.apps.length) firebase.app();
+  else firebase.initializeApp(firebaseConfig);
   db = firebase.database();
   fbOk = true;
 }catch(e){
@@ -533,7 +525,8 @@ try{
 }
 
 /* ==========================================================
-   ✅ SERVICE WORKER (precisa existir o arquivo service-worker.js)
+   ✅ SERVICE WORKER (GitHub Pages)
+   - precisa existir service-worker.js na mesma pasta do site
 ========================================================== */
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -587,7 +580,6 @@ consultores.forEach((c, idx) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
 
-    // ⚠️ não usar clear() (pode apagar configs do seu site)
     localStorage.removeItem('consultorNome');
     localStorage.removeItem('consultorValor');
     localStorage.removeItem('consultorImagem');
@@ -603,22 +595,23 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   STATUS REALISTA
+   STATUS REALISTA (SEM DUPLICAR VAR)
 =========================== */
-function chance(p){ return Math.random() < p; }
-const STORAGE_KEY = "status_realista_v3";
+function randChance(p){ return Math.random() < p; }
+
+const STATUS_STORAGE_KEY = "status_realista_v3";
 let estado = null;
 
 function carregarEstado(){
   try{
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STATUS_STORAGE_KEY);
     if(!raw) return null;
     const parsed = JSON.parse(raw);
     if(!parsed || !Array.isArray(parsed.consultores)) return null;
     return parsed;
   }catch{ return null; }
 }
-function salvarEstado(){ try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{} }
+function salvarEstado(){ try{ sessionStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(estado)); }catch{} }
 
 function setStatusDOM(card, status){
   const badge = card.querySelector('.badge');
@@ -630,7 +623,6 @@ function setStatusDOM(card, status){
   badge.classList.remove('ocupado','indisp');
   dot.classList.remove('ocupado','indisp');
   btn.classList.remove('ocupado','indisp','disponivel');
-
   dot.style.animation = '';
 
   if(status === "online"){
@@ -657,10 +649,12 @@ function setStatusDOM(card, status){
     btn.style.pointerEvents = 'none';
   }
 }
+
 function todosIndisponiveisAgora(){
   const h = new Date().getHours();
   return (h >= 2 && h < 10);
 }
+
 function initEstado(){
   const dia = new Date().toDateString();
   const anterior = carregarEstado();
@@ -672,9 +666,10 @@ function initEstado(){
   aplicarStatusRealista(true);
   salvarEstado();
 }
+
 function escolherIndisponiveis(cards){
   const total = cards.length;
-  const qtd = chance(0.55) ? 1 : 2;
+  const qtd = randChance(0.55) ? 1 : 2;
   const indices = [...Array(total)].map((_,i)=>i);
   for(let i=indices.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -682,6 +677,7 @@ function escolherIndisponiveis(cards){
   }
   return new Set(indices.slice(0, Math.min(qtd, total)));
 }
+
 function aplicarStatusRealista(forceAll=false){
   const now = Date.now();
   const hora = new Date().getHours();
@@ -718,7 +714,7 @@ function aplicarStatusRealista(forceAll=false){
       return;
     }
 
-    const novoStatus = chance(ocupProb) ? "ocupado" : "online";
+    const novoStatus = randChance(ocupProb) ? "ocupado" : "online";
     st.status = novoStatus;
     st.holdUntil = (novoStatus === "ocupado")
       ? now + Math.floor((2 + Math.random()*4) * 60 * 1000)
@@ -729,6 +725,7 @@ function aplicarStatusRealista(forceAll=false){
 
   salvarEstado();
 }
+
 initEstado();
 aplicarStatusRealista(false);
 setInterval(() => aplicarStatusRealista(false), 20000);
@@ -813,7 +810,6 @@ async function enviarNotificacaoLocal(title, body, url){
 
   if(!wrap) return;
   if(!("Notification" in window)) return;
-
   if(!isStandalone()) return;
 
   if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
@@ -829,7 +825,6 @@ async function enviarNotificacaoLocal(title, body, url){
 
   localStorage.setItem(KEY_SHOWN,"1");
   wrap.style.display = "flex";
-
   function fechar(){ wrap.style.display = "none"; }
 
   btnLater.onclick = () => fechar();
