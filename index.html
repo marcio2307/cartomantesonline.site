@@ -5,6 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consultores Disponíveis</title>
 
+<!-- ✅ PWA -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#000000" />
+<link rel="icon" href="logo.png" />
+
+<!-- ✅ iOS (não mexi na lógica, só mantive tags úteis) -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Cartomantes" />
+<link rel="apple-touch-icon" href="logo.png" />
+
+<!-- ✅ NOVO: Redireciona APENAS quando abrir pelo ícone (APP instalado) -->
+<script>
+(function () {
+  const isStandalone =
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    window.navigator.standalone === true; // iOS
+
+  if (isStandalone) {
+    const path = (location.pathname || "").toLowerCase();
+
+    // Se abrir index.html (ou a raiz), manda para leituras.html
+    if (!path.endsWith("/leituras.html") && !path.endsWith("leituras.html")) {
+      location.replace("./leituras.html");
+    }
+  }
+})();
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
 
 <style>
@@ -30,7 +59,7 @@ body{
   color:#fff;
 }
 
-/* ✅ CARROSSEL DE BANNERS (SEM CORTE) */
+/* ✅ CARROSSEL */
 .banner-carousel{
   width:100%;
   margin:0;
@@ -50,30 +79,11 @@ body{
   pointer-events:none;
   z-index:3;
 }
-.banner-carousel .slide{
-  position:absolute;
-  inset:0;
-  opacity:0;
-  transition:opacity .45s ease;
-  z-index:1;
-}
-.banner-carousel .slide.active{
-  opacity:1;
-  z-index:2;
-}
-.banner-carousel img{
-  width:100%;
-  height:auto;
-  display:block;
-}
-.banner-carousel .spacer{
-  width:100%;
-  pointer-events:none;
-}
-.banner-carousel .spacer img{
-  opacity:0;
-  visibility:hidden;
-}
+.banner-carousel .slide{ position:absolute; inset:0; opacity:0; transition:opacity .45s ease; z-index:1; }
+.banner-carousel .slide.active{ opacity:1; z-index:2; }
+.banner-carousel img{ width:100%; height:auto; display:block; }
+.banner-carousel .spacer{ width:100%; pointer-events:none; }
+.banner-carousel .spacer img{ opacity:0; visibility:hidden; }
 
 @media (max-width:480px){
   .banner-carousel{ border-bottom-width:1px; }
@@ -83,12 +93,7 @@ body{
 .page{ padding:22px 20px 28px; }
 
 /* Hero */
-.hero{
-  max-width:1200px;
-  margin:0 auto 22px;
-  text-align:center;
-  padding:0 10px;
-}
+.hero{ max-width:1200px; margin:0 auto 22px; text-align:center; padding:0 10px; }
 .hero h1{
   margin:0 0 10px;
   font-size:36px;
@@ -100,50 +105,7 @@ body{
   background-clip:text;
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
-
-/* ✅ AVISO */
-.hero .vip-aviso{
-  display:flex;
-  justify-content:center;
-  width:100%;
-  margin:14px auto 0;
-}
-.hero .vip-aviso a{
-  width:min(760px, 100%);
-  min-height:66px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:16px 16px;
-  border-radius:20px;
-  text-decoration:none;
-  font-weight:900;
-  letter-spacing:.4px;
-  line-height:1.25;
-  color:#111;
-  background:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 45%, var(--gold-3) 100%);
-  border:1px solid rgba(255,255,255,0.18);
-  box-shadow:
-    0 22px 46px rgba(0,0,0,0.65),
-    0 0 0 1px rgba(255,240,166,0.10) inset;
-  text-transform:uppercase;
-  -webkit-tap-highlight-color: transparent;
-}
-.hero .vip-aviso a:hover{ filter:brightness(1.05); }
-.hero .vip-aviso a:active{ transform: translateY(1px); }
-
-@media (max-width:480px){
-  .hero .vip-aviso{ margin-top:12px; }
-  .hero .vip-aviso a{
-    width:100%;
-    min-height:74px;
-    padding:16px 14px;
-    font-size:13px;
-    letter-spacing:.35px;
-    border-radius:18px;
-  }
-}
+.hero p{ display:none; }
 
 /* Grid */
 .container{
@@ -173,9 +135,7 @@ body{
     radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
     linear-gradient(180deg, rgba(18,18,18,0.86) 0%, rgba(5,5,5,0.98) 100%);
   border:1px solid rgba(199,160,8,0.55);
-  box-shadow:
-    0 18px 44px rgba(0,0,0,0.60),
-    0 0 0 1px rgba(255,240,166,0.08) inset;
+  box-shadow: 0 18px 44px rgba(0,0,0,0.60), 0 0 0 1px rgba(255,240,166,0.08) inset;
   transform:none !important;
   transition:none;
 }
@@ -196,11 +156,7 @@ body{
   position:absolute;
   inset:0;
   background:
-    linear-gradient(120deg,
-      rgba(255,240,166,0.00) 0%,
-      rgba(255,240,166,0.04) 28%,
-      rgba(255,240,166,0.00) 55%,
-      rgba(255,240,166,0.00) 100%);
+    linear-gradient(120deg, rgba(255,240,166,0.00) 0%, rgba(255,240,166,0.04) 28%, rgba(255,240,166,0.00) 55%, rgba(255,240,166,0.00) 100%);
   mix-blend-mode:screen;
   opacity:.55;
   pointer-events:none;
@@ -208,12 +164,8 @@ body{
 }
 .card:hover{
   border-color:rgba(246,226,122,0.95);
-  box-shadow:
-    0 18px 44px rgba(0,0,0,0.60),
-    0 0 30px rgba(199,160,8,0.14),
-    0 0 0 1px rgba(255,240,166,0.10) inset;
+  box-shadow: 0 18px 44px rgba(0,0,0,0.60), 0 0 30px rgba(199,160,8,0.14), 0 0 0 1px rgba(255,240,166,0.10) inset;
 }
-
 .card .img-wrap{ position:relative; z-index:2; padding:10px 10px 0; }
 .card .img-wrap img{
   width:100%;
@@ -222,9 +174,7 @@ body{
   display:block;
   border-radius:14px;
   border:1px solid rgba(199,160,8,0.35);
-  box-shadow:
-    0 12px 30px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(255,240,166,0.06) inset;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,240,166,0.06) inset;
   filter:saturate(1.06) contrast(1.06);
 }
 .card .img-wrap::after{
@@ -305,7 +255,7 @@ body{
   background-clip:text;
 }
 
-/* Botões */
+/* Buttons */
 .btn{
   width:100%;
   height:var(--btn-h);
@@ -328,7 +278,6 @@ body{
   transition:filter .18s ease;
 }
 @media (max-width:480px){ .btn{ font-size:12px; } }
-
 .btn.disponivel{ background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%); color:#fff; border-color:rgba(255,255,255,0.16); }
 .btn:hover{ filter:brightness(1.06); }
 .btn.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); color:#111; pointer-events:none; }
@@ -339,83 +288,128 @@ body{
   box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
 
-/* ✅ Popup/Toast permissão notificações (estilo app) */
-#notifPopupWrap{
-  position:fixed;
-  inset:0;
-  z-index:999999;
-  display:none;
-  align-items:flex-end;
-  justify-content:center;
-  padding:14px;
-  background:rgba(0,0,0,.35);
-  backdrop-filter: blur(2px);
+/* ✅ Block ads injected */
+fabapp-banner-footer, fabapp-banner-footer *{
+  display:none !important; visibility:hidden !important; opacity:0 !important;
+  height:0 !important; max-height:0 !important; min-height:0 !important;
+  width:0 !important; max-width:0 !important; overflow:hidden !important; pointer-events:none !important;
 }
-#notifPopup{
-  width:min(560px, 100%);
-  border:1px solid rgba(199,160,8,.55);
-  border-radius:18px;
-  padding:14px;
-  background:rgba(0,0,0,.92);
-  color:#fff;
-  box-shadow:0 26px 70px rgba(0,0,0,.65);
+#ads-container,[id="ads-container"],[id*="ads-container"],[class*="ads-container"],
+iframe[src*="fabapp-ads"],video[src*="fabapp-ads"],source[src*="fabapp-ads"]{
+  display:none !important; visibility:hidden !important; opacity:0 !important;
+  height:0 !important; max-height:0 !important; overflow:hidden !important; pointer-events:none !important;
 }
-#notifPopup .t{ font-weight:900; margin-bottom:6px; }
-#notifPopup .d{ opacity:.9; font-size:13px; line-height:1.4; margin-bottom:12px; }
-#notifPopup .row{ display:flex; gap:10px; }
-#notifPopup button{
-  height:48px;
-  border:0;
-  border-radius:14px;
-  font-weight:900;
-  cursor:pointer;
-  letter-spacing:.5px;
-}
-#notifEnable{ flex:1; background:linear-gradient(180deg,#2ecc71,#1f9b50); color:#fff; }
-#notifLater{ width:140px; background:rgba(255,255,255,.10); color:#fff; border:1px solid rgba(255,255,255,.12); }
-#notifOk{ flex:1; background:linear-gradient(180deg, var(--gold-2), var(--gold-3)); color:#111; display:none; }
 
-/* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS */
-fabapp-banner-footer,
-fabapp-banner-footer *{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  min-height:0 !important;
-  width:0 !important;
-  max-width:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
+/* ✅ Popup */
+.app-popup-overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.72);
+  backdrop-filter: blur(4px);
+  z-index:99999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
 }
-#ads-container,
-[id="ads-container"],
-[id*="ads-container"],
-[class*="ads-container"],
-iframe[src*="fabapp-ads"],
-video[src*="fabapp-ads"],
-source[src*="fabapp-ads"]{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
+.app-popup{
+  width:min(520px, 96vw);
+  border-radius:18px;
+  overflow:hidden;
+  border:1px solid rgba(199,160,8,0.55);
+  background:
+    radial-gradient(560px 260px at 50% -10%, rgba(199,160,8,0.25), rgba(0,0,0,0) 60%),
+    linear-gradient(180deg, rgba(18,18,18,0.96) 0%, rgba(5,5,5,0.99) 100%);
+  box-shadow:0 30px 80px rgba(0,0,0,0.70);
+  position:relative;
+}
+.app-popup .inner{ padding:18px 16px 16px; }
+.app-popup .close{
+  position:absolute; top:10px; right:10px;
+  width:42px; height:42px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(0,0,0,0.35);
+  color:#fff;
+  cursor:pointer;
+  font-size:20px;
+  line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 14px 30px rgba(0,0,0,0.55);
+}
+.app-popup .head{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.app-popup .logo{
+  width:54px; height:54px; border-radius:14px;
+  overflow:hidden;
+  border:1px solid rgba(199,160,8,0.35);
+  box-shadow:0 12px 26px rgba(0,0,0,0.55);
+  background:#000;
+  flex:0 0 auto;
+}
+.app-popup .logo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.app-popup h2{
+  margin:0;
+  font-family:'Cinzel', serif;
+  font-size:18px;
+  letter-spacing:0.2px;
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-1) 0%, var(--gold-3) 55%, var(--gold-2) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+.app-popup p{ margin:8px 0 14px; color:rgba(255,255,255,0.88); font-size:14px; line-height:1.6; }
+.app-popup .actions{ display:grid; grid-template-columns:1fr; gap:10px; }
+.app-btn{
+  height:56px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.10);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900;
+  letter-spacing:0.7px;
+  cursor:pointer;
+  box-shadow: 0 16px 30px rgba(0,0,0,0.55);
+}
+.app-btn.primary{
+  background:
+    radial-gradient(220px 90px at 50% 0%, rgba(255,240,166,0.18), rgba(0,0,0,0) 65%),
+    linear-gradient(180deg, rgba(199,160,8,0.95) 0%, rgba(184,134,11,0.95) 38%, rgba(246,226,122,0.95) 100%);
+  color:#111;
+}
+.app-btn.secondary{ background:rgba(255,255,255,0.08); color:#fff; }
+.app-popup .small{ margin-top:10px; font-size:12px; color:rgba(255,255,255,0.70); }
+
+/* steps */
+.steps{
+  margin:10px 0 14px;
+  padding:12px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.90);
+  font-size:13px;
+  line-height:1.55;
+}
+.steps .row{ display:flex; gap:10px; align-items:flex-start; margin:8px 0; }
+.steps .num{
+  width:26px; height:26px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900;
+  background:rgba(199,160,8,0.22);
+  border:1px solid rgba(199,160,8,0.40);
+  flex:0 0 auto;
 }
 </style>
 </head>
 
 <body>
 
+<!-- ✅ Carrossel -->
 <div class="banner-carousel" id="bannerCarousel" aria-label="Carrossel de banners">
   <div class="spacer">
-    <img src="https://i.ibb.co/4Z8xDjcV/Chat-GPT-Image-12-01-2026-04-49-28.png" alt="" />
+    <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="" />
   </div>
 
   <div class="slide active">
-    <img src="https://i.ibb.co/4Z8xDjcV/Chat-GPT-Image-12-01-2026-04-49-28.png" alt="Consultas de tarot para clientes VIP" />
+    <img src="https://i.ibb.co/ZRmkC0xL/Chat-GPT-Image-10-01-2026-20-47-55.png" alt="Cartomantes Online - Banner" />
   </div>
 
   <div class="slide">
@@ -425,46 +419,241 @@ source[src*="fabapp-ads"]{
   <div class="slide">
     <img src="https://i.ibb.co/rRvmn4Q7/56e5b5c7-3199-4b85-a6d8-22608f6c0402.png" alt="Banner adicional" />
   </div>
-
-  <div class="slide" id="slideVip">
-    <img src="https://i.ibb.co/cKPNwmMY/Chat-GPT-Image-12-01-2026-07-11-40.png" alt="Consultas de Tarot Exclusivas para Clientes VIP" />
-  </div>
 </div>
 
 <div class="page">
   <section class="hero">
-    <h1>✨ Consultas de Tarot Exclusivas para Clientes VIP ✨</h1>
-    <div class="vip-aviso" aria-label="Aviso Leitura Sorteada VIP">
-      <a href="https://marcio2307.github.io/cartomantesonline.site/sorteio.html">
-        TODA SEXTA-FEIRA, A PARTIR DAS 18H, ROLA A LEITURA SORTEADA VIP!
-      </a>
-    </div>
+    <h1>Consulta de tarot online</h1>
   </section>
 
   <div class="container" id="cards-container"></div>
 </div>
 
 <!-- ✅ POPUP -->
-<div id="notifPopupWrap" role="dialog" aria-label="Ativar notificações">
-  <div id="notifPopup">
-    <div class="t">Ativar notificações?</div>
-    <div class="d">Receba avisos do painel. (Recomendado para quem instalou o app na tela inicial)</div>
-    <div class="row">
-      <button id="notifEnable">ATIVAR</button>
-      <button id="notifLater">AGORA NÃO</button>
-      <button id="notifOk">OK</button>
+<div class="app-popup-overlay" id="appPopup" aria-hidden="true">
+  <div class="app-popup" role="dialog" aria-modal="true" aria-label="Instalar aplicativo">
+    <button class="close" id="appPopupClose" aria-label="Fechar">✕</button>
+    <div class="inner">
+      <div class="head">
+        <div class="logo"><img src="logo.png" alt="Logo do aplicativo"></div>
+        <div>
+          <h2 id="popupTitle">Baixe o aplicativo do site</h2>
+          <div class="small" id="subtitleInstall">Instale no celular e acesse mais rápido.</div>
+        </div>
+      </div>
+
+      <p id="installText"></p>
+
+      <div class="steps" id="stepsBox" style="display:none;"></div>
+
+      <div class="actions">
+        <button class="app-btn primary" id="installAppBtn">ENTENDI</button>
+        <button class="app-btn secondary" id="laterAppBtn">AGORA NÃO</button>
+      </div>
+
+      <div class="small" id="extraHint" style="display:none;"></div>
     </div>
   </div>
 </div>
 
-<!-- Firebase (Compat) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-/* ==========================================================
-   ✅ REMOÇÃO FORÇADA (propagandas injetadas)
-========================================================== */
+/* ✅ Service Worker */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+  });
+}
+
+/* ===========================
+   ✅ POPUP REGRAS
+   - iOS: não mexi
+   - Instagram/Facebook: título mais visível + NÃO mostra URL
+   - Copiar link: copia link limpo (sem fbclid)
+=========================== */
+(function initInstallPopup(){
+  const popup = document.getElementById('appPopup');
+  const btnInstall = document.getElementById('installAppBtn');
+  const btnLater = document.getElementById('laterAppBtn');
+  const btnClose = document.getElementById('appPopupClose');
+  const stepsBox = document.getElementById('stepsBox');
+  const installText = document.getElementById('installText');
+  const subtitle = document.getElementById('subtitleInstall');
+  const extraHint = document.getElementById('extraHint');
+  const popupTitle = document.getElementById('popupTitle');
+
+  let deferredPrompt = null;
+
+  const isStandalone = () =>
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true;
+
+  const isIOS = () => {
+    const ua = navigator.userAgent || "";
+    const iOSUA = /iphone|ipad|ipod/i.test(ua);
+    const iPadOS13Plus = (ua.includes("Macintosh") && navigator.maxTouchPoints && navigator.maxTouchPoints > 1);
+    return iOSUA || iPadOS13Plus;
+  };
+
+  const isInAppBrowser = () => {
+    const ua = (navigator.userAgent || "").toLowerCase();
+    return (
+      ua.includes("instagram") ||
+      ua.includes("fbav") ||
+      ua.includes("fban") ||
+      ua.includes("fb_iab") ||
+      ua.includes("messenger") ||
+      ua.includes("wv")
+    );
+  };
+
+  // ✅ Link LIMPO (remove ?fbclid=... etc)
+  function getCleanUrl(){
+    const clean = new URL(location.href);
+    clean.search = ""; // remove query
+    clean.hash = location.hash || "";
+    return clean.toString();
+  }
+
+  function openPopup(){
+    popup.style.display = 'flex';
+    popup.setAttribute('aria-hidden','false');
+  }
+  function closePopup(){
+    popup.style.display = 'none';
+    popup.setAttribute('aria-hidden','true');
+  }
+  function setSteps(html){
+    stepsBox.innerHTML = html;
+    stepsBox.style.display = 'block';
+  }
+  function hideSteps(){
+    stepsBox.style.display = 'none';
+    stepsBox.innerHTML = "";
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (popup.style.display === "flex") prepararConteudo();
+  });
+
+  function prepararConteudo(){
+    hideSteps();
+    extraHint.style.display = "none";
+    extraHint.textContent = "";
+    popupTitle.style.fontSize = "18px"; // padrão
+
+    if (isStandalone()) return;
+
+    // ✅ iOS (não mexi)
+    if (isIOS()){
+      btnInstall.textContent = "ENTENDI";
+      subtitle.textContent = "No iPhone/iPad, você adiciona pela Tela de Início.";
+      installText.innerHTML = "Siga o passo a passo abaixo para adicionar à <b>Tela de Início</b>.";
+
+      setSteps(`
+        <div class="row"><div class="num">1</div><div>Toque em <b>Compartilhar</b> ⤴️ (no Safari).</div></div>
+        <div class="row"><div class="num">2</div><div>Toque em <b>Adicionar à Tela de Início</b> ➕.</div></div>
+        <div class="row"><div class="num">3</div><div>Confirme em <b>Adicionar</b>. Pronto ✅</div></div>
+      `);
+
+      extraHint.style.display = "block";
+      extraHint.textContent = "Se não aparecer, abra no Safari (não no Instagram/Facebook).";
+      return;
+    }
+
+    // ✅ Instagram/Facebook (MELHORADO: mais visível + sem URL na tela)
+    if (isInAppBrowser()){
+      popupTitle.textContent = "BAIXE O APLICATIVO DO SITE";
+      popupTitle.style.fontSize = "20px";
+      popupTitle.style.letterSpacing = "0.6px";
+
+      btnInstall.textContent = "COPIAR LINK PARA O NAVEGADOR";
+     
+      setSteps(`
+        <div class="row"><div class="num">1</div><div>Toque em <b>COPIAR LINK PARA O NAVEGADOR</b>.</div></div>
+        <div class="row"><div class="num">2</div><div>Abra o <b>Chrome</b> (ou <b>Safari</b>) no seu celular.</div></div>
+        <div class="row"><div class="num">3</div><div>Cole o link na barra de endereço do navegador e <b>abra o site</b>.</div></div>
+        <div class="row"><div class="num">4</div><div>Depois toque no menu <b>⋮</b> → <b>Adicionar à tela inicial</b> / <b>Instalar app</b>.</div></div>
+      `);
+
+      extraHint.style.display = "block";
+      
+      return;
+    }
+
+    // ✅ Android navegador normal
+    if (deferredPrompt){
+      popupTitle.textContent = "Baixe o aplicativo do site";
+      btnInstall.textContent = "BAIXAR O APLICATIVO";
+      subtitle.textContent = "Instalação direta disponível.";
+      installText.innerHTML = "Toque em <b>BAIXAR O APLICATIVO</b> para instalar agora.";
+      return;
+    }
+
+    popupTitle.textContent = "Baixe o aplicativo do site";
+    btnInstall.textContent = "ADICIONAR À TELA INICIAL";
+    subtitle.textContent = "Instalação manual pelo menu do navegador.";
+    installText.innerHTML = "Seu navegador não liberou instalação direta. Use <b>Adicionar à tela inicial</b> pelo menu.";
+
+    setSteps(`
+      <div class="row"><div class="num">1</div><div>Toque no menu do navegador (<b>⋮</b> ou <b>☰</b>).</div></div>
+      <div class="row"><div class="num">2</div><div>Toque em <b>Adicionar à tela inicial</b> ou <b>Instalar app</b>.</div></div>
+      <div class="row"><div class="num">3</div><div>Confirme em <b>Adicionar</b>.</div></div>
+    `);
+  }
+
+  function showPopupIfNotInstalled(){
+    if (isStandalone()) return;
+    prepararConteudo();
+    setTimeout(openPopup, 900);
+  }
+
+  window.addEventListener('load', showPopupIfNotInstalled);
+
+  btnInstall.addEventListener('click', async () => {
+    // iOS: só fecha (não mexi)
+    if (isIOS()){
+      closePopup();
+      return;
+    }
+
+    // Instagram/Facebook: copia link limpo (sem fbclid)
+    if (isInAppBrowser()){
+      const cleanUrl = getCleanUrl();
+      try{
+        await navigator.clipboard.writeText(cleanUrl);
+        extraHint.style.display = "block";
+        extraHint.textContent = "✅ Link copiado! Agora abra o Chrome (ou Safari) e cole na barra de endereço.";
+      }catch{
+        // fallback: seleciona e mostra em alert curto (sem expor no layout)
+        try { window.prompt("Copie o link abaixo e cole no Chrome/Safari:", cleanUrl); } catch {}
+        extraHint.style.display = "block";
+        extraHint.textContent = "Se não copiou automático, apareceu uma caixa para copiar manualmente.";
+      }
+      return;
+    }
+
+    // Android com prompt: instalar direto
+    if (deferredPrompt){
+      closePopup();
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch {}
+      deferredPrompt = null;
+      return;
+    }
+
+    // Android sem prompt: fecha (tutorial já ensinou)
+    closePopup();
+  });
+
+  function dismiss(){ closePopup(); }
+  btnLater.addEventListener('click', dismiss);
+  btnClose.addEventListener('click', dismiss);
+  popup.addEventListener('click', (e) => { if (e.target === popup) dismiss(); });
+})();
+
+/* ✅ Remoção forçada (FabApp / similares) */
 (function bloquearPropagandasInjetadas(){
   const SELECTORS = [
     'fabapp-banner-footer',
@@ -478,17 +667,17 @@ source[src*="fabapp-ads"]{
   ];
   function remover() {
     for (const sel of SELECTORS) {
-      document.querySelectorAll(sel).forEach(el => { try{ el.remove(); }catch{} });
+      document.querySelectorAll(sel).forEach(el => { try { el.remove(); } catch {} });
     }
   }
   remover();
-  const obs = new MutationObserver(remover);
+  const obs = new MutationObserver(() => remover());
   obs.observe(document.documentElement, { childList:true, subtree:true });
   let tries = 0;
-  const t = setInterval(() => { remover(); if(++tries>=30) clearInterval(t); }, 500);
+  const t = setInterval(() => { remover(); tries++; if (tries >= 30) clearInterval(t); }, 500);
 })();
 
-/* ✅ CARROSSEL (8s) */
+/* ✅ Carrossel (8s) */
 (function initBannerCarousel(){
   const carousel = document.getElementById('bannerCarousel');
   if(!carousel) return;
@@ -499,47 +688,13 @@ source[src*="fabapp-ads"]{
   setInterval(() => { i = (i + 1) % slides.length; show(i); }, 8000);
 })();
 
-/* ==========================================================
-   ✅ FIREBASE CONFIG (SEU) + init seguro
-========================================================== */
-const firebaseConfig = {
-  apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
-  authDomain: "coletivo2025-9de23.firebaseapp.com",
-  databaseURL: "https://coletivo2025-9de23-default-rtdb.firebaseio.com",
-  projectId: "coletivo2025-9de23",
-  storageBucket: "coletivo2025-9de23.appspot.com",
-  messagingSenderId: "740866367489",
-  appId: "1:740866367489:web:963e3f5be80cb35a71e000"
-};
-
-let db = null;
-let fbOk = false;
-
-try{
-  if (firebase.apps && firebase.apps.length) firebase.app();
-  else firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-  fbOk = true;
-}catch(e){
-  // sem debug na tela
-}
-
-/* ==========================================================
-   ✅ SERVICE WORKER (GitHub Pages)
-   - precisa existir service-worker.js na mesma pasta do site
-========================================================== */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-  });
-}
-
 /* ===========================
    LISTA DE CONSULTORES
 =========================== */
 const consultores = [
-  { nome: "P.Márcio", valor: 2, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
+  { nome: "P.Márcio", valor: 3, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
   { nome: "Flora", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/11/06//5dfb048cce-1-_3.webp", estrelas: 5, novo: true },
+
   { nome: "Carina", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/04//5aea31bd77-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Dalila", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/11//0b284c7b42-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Adria", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/07/25//d6152621b2-1-_3.webp", estrelas: 5, novo: true },
@@ -547,6 +702,7 @@ const consultores = [
   { nome: "Analu", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/12/19//fe3f4b6a8a-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Benedita", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2025/10/23//9f9ffa4ba9-1-_3.webp", estrelas: 5, novo: true },
   { nome: "Estrela", valor: 1, imagem: "https://www.mestresmisticos.com.br/Assets/Imagens/2026/01/01//b2a24fc4f7-1-_3.webp", estrelas: 5, novo: true },
+
   { nome: "Sulamita", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2024/05/27//47a447851c-1-.jpg", estrelas: 5 },
   { nome: "Esmeralda", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2020/05/18//41c4696d05-1-.jpg", estrelas: 5 },
   { nome: "M.Padilha", valor: 1, imagem: "https://www.rainhasdotarot.com.br/Assets/Imagens/2025/01/27//699974ac8a-1-.jpg", estrelas: 4 },
@@ -580,38 +736,36 @@ consultores.forEach((c, idx) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
 
-    localStorage.removeItem('consultorNome');
-    localStorage.removeItem('consultorValor');
-    localStorage.removeItem('consultorImagem');
-
+    localStorage.clear();
     localStorage.setItem('consultorNome', c.nome);
-    localStorage.setItem('consultorValor', String(c.valor));
+    localStorage.setItem('consultorValor', c.valor);
     localStorage.setItem('consultorImagem', c.imagem);
 
-    window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pacotes.html';
+    window.location.href = 'https://marcio2307.github.io/cartomantesonline.site/pix.html';
   });
 
   container.appendChild(card);
 });
 
 /* ===========================
-   STATUS REALISTA (SEM DUPLICAR VAR)
+   ✅ STATUS REALISTA (seu original)
 =========================== */
-function randChance(p){ return Math.random() < p; }
+const randInt = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
+const chance = (p) => Math.random() < p;
 
-const STATUS_STORAGE_KEY = "status_realista_v3";
+const STORAGE_KEY = "status_realista_v3";
 let estado = null;
 
 function carregarEstado(){
   try{
-    const raw = sessionStorage.getItem(STATUS_STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     if(!raw) return null;
     const parsed = JSON.parse(raw);
     if(!parsed || !Array.isArray(parsed.consultores)) return null;
     return parsed;
   }catch{ return null; }
 }
-function salvarEstado(){ try{ sessionStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(estado)); }catch{} }
+function salvarEstado(){ try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(estado)); }catch{} }
 
 function setStatusDOM(card, status){
   const badge = card.querySelector('.badge');
@@ -623,6 +777,7 @@ function setStatusDOM(card, status){
   badge.classList.remove('ocupado','indisp');
   dot.classList.remove('ocupado','indisp');
   btn.classList.remove('ocupado','indisp','disponivel');
+
   dot.style.animation = '';
 
   if(status === "online"){
@@ -650,11 +805,6 @@ function setStatusDOM(card, status){
   }
 }
 
-function todosIndisponiveisAgora(){
-  const h = new Date().getHours();
-  return (h >= 2 && h < 10);
-}
-
 function initEstado(){
   const dia = new Date().toDateString();
   const anterior = carregarEstado();
@@ -662,14 +812,25 @@ function initEstado(){
     estado = anterior;
     return;
   }
-  estado = { dia, consultores: consultores.map(() => ({ status:"online", holdUntil:0 })) };
+  estado = {
+    dia,
+    consultores: consultores.map(() => ({ status: "online", holdUntil: 0 }))
+  };
   aplicarStatusRealista(true);
   salvarEstado();
 }
 
+function janelaSonoGlobal(){
+  const d = new Date();
+  const minutos = d.getHours() * 60 + d.getMinutes();
+  const ini = 2 * 60;
+  const fim = 7 * 60 + 35;
+  return minutos >= ini && minutos < fim;
+}
+
 function escolherIndisponiveis(cards){
   const total = cards.length;
-  const qtd = randChance(0.55) ? 1 : 2;
+  const qtd = chance(0.55) ? 1 : 2;
   const indices = [...Array(total)].map((_,i)=>i);
   for(let i=indices.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -683,11 +844,10 @@ function aplicarStatusRealista(forceAll=false){
   const hora = new Date().getHours();
   const cards = Array.from(document.querySelectorAll('.card'));
 
-  if(todosIndisponiveisAgora()){
+  if (janelaSonoGlobal()){
     cards.forEach((card, i) => {
-      const st = estado.consultores[i];
-      st.status = "indisp";
-      st.holdUntil = now + 60 * 1000;
+      estado.consultores[i].status = "indisp";
+      estado.consultores[i].holdUntil = now + randInt(2, 6) * 60 * 1000;
       setStatusDOM(card, "indisp");
     });
     salvarEstado();
@@ -704,21 +864,23 @@ function aplicarStatusRealista(forceAll=false){
 
   cards.forEach((card, i) => {
     const st = estado.consultores[i];
+
     const emHold = !forceAll && st.holdUntil && now < st.holdUntil;
     if (emHold){ setStatusDOM(card, st.status); return; }
 
     if (indispSet.has(i)){
       st.status = "indisp";
-      st.holdUntil = now + Math.floor((2 + Math.random()*3) * 60 * 1000);
+      st.holdUntil = now + randInt(2, 5) * 60 * 1000;
       setStatusDOM(card, "indisp");
       return;
     }
 
-    const novoStatus = randChance(ocupProb) ? "ocupado" : "online";
+    const novoStatus = chance(ocupProb) ? "ocupado" : "online";
     st.status = novoStatus;
+
     st.holdUntil = (novoStatus === "ocupado")
-      ? now + Math.floor((2 + Math.random()*4) * 60 * 1000)
-      : now + Math.floor((1 + Math.random()*2) * 60 * 1000);
+      ? now + randInt(2, 6) * 60 * 1000
+      : now + randInt(1, 3) * 60 * 1000;
 
     setStatusDOM(card, novoStatus);
   });
@@ -730,159 +892,6 @@ initEstado();
 aplicarStatusRealista(false);
 setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
-
-/* ==========================================================
-   ✅ COMUNHÃO COM PAINEL: /devices + /notifications
-========================================================== */
-const NODE_DEVICES = "devices";
-const NODE_NOTIFS  = "notifications";
-const ONLINE_PING_MS = 20000;
-
-function isStandalone(){
-  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
-}
-function makeId(){
-  return "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-function getDeviceId(){
-  let id = localStorage.getItem("co_device_id");
-  if(!id){
-    id = makeId();
-    localStorage.setItem("co_device_id", id);
-  }
-  return id;
-}
-const deviceId = getDeviceId();
-
-async function upsertDevice(){
-  if(!db) return false;
-  try{
-    await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
-      id: deviceId,
-      enabled: (("Notification" in window) && Notification.permission === "granted"),
-      lastSeen: Date.now(),
-      ua: (navigator.userAgent || "").slice(0,220),
-      installed: isStandalone()
-    });
-    return true;
-  }catch(e){ return false; }
-}
-async function pingLastSeen(){
-  if(!db) return;
-  try{ await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() }); }catch(e){}
-}
-
-async function enviarNotificacaoLocal(title, body, url){
-  if(!("serviceWorker" in navigator)) return;
-  if(!("Notification" in window)) return;
-  if(Notification.permission !== "granted") return;
-
-  const reg = await navigator.serviceWorker.ready;
-  if(reg && reg.active){
-    reg.active.postMessage({
-      type: "LOCAL_NOTIFY",
-      title: title || "Cartomantes Online",
-      body: body || "Nova atualização.",
-      url: url || "./leituras.html"
-    });
-  }
-}
-
-/* ✅ presença sempre */
-(async function bootPresence(){
-  if(!fbOk) return;
-  const ok = await upsertDevice();
-  if(!ok) return;
-  pingLastSeen();
-  setInterval(pingLastSeen, ONLINE_PING_MS);
-  document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
-})();
-
-/* ✅ popup 1x no app instalado */
-(function initNotifPopup(){
-  const KEY_DONE  = "notif_activated_done_v1";
-  const KEY_SHOWN = "notif_popup_shown_v1";
-
-  const wrap = document.getElementById("notifPopupWrap");
-  const btnEnable = document.getElementById("notifEnable");
-  const btnLater  = document.getElementById("notifLater");
-  const btnOk     = document.getElementById("notifOk");
-
-  if(!wrap) return;
-  if(!("Notification" in window)) return;
-  if(!isStandalone()) return;
-
-  if(localStorage.getItem(KEY_DONE) === "1" || Notification.permission === "granted"){
-    localStorage.setItem(KEY_DONE,"1");
-    wrap.style.display = "none";
-    return;
-  }
-
-  if(localStorage.getItem(KEY_SHOWN) === "1"){
-    wrap.style.display = "none";
-    return;
-  }
-
-  localStorage.setItem(KEY_SHOWN,"1");
-  wrap.style.display = "flex";
-  function fechar(){ wrap.style.display = "none"; }
-
-  btnLater.onclick = () => fechar();
-
-  btnEnable.onclick = async () => {
-    if(Notification.permission === "denied"){
-      const desc = wrap.querySelector(".d");
-      desc.textContent = "Notificações BLOQUEADAS. Vá nas configurações do navegador e permita notificações para este site.";
-      btnEnable.style.display = "none";
-      btnLater.style.display = "none";
-      btnOk.style.display = "block";
-      btnOk.onclick = () => fechar();
-      return;
-    }
-
-    const perm = await Notification.requestPermission();
-
-    if(perm === "granted"){
-      localStorage.setItem(KEY_DONE,"1");
-      fechar();
-      await upsertDevice();
-      enviarNotificacaoLocal("Notificações ativadas ✅", "Você receberá avisos do painel.", "./leituras.html");
-      return;
-    }
-
-    const desc = wrap.querySelector(".d");
-    desc.textContent = "Permissão não concedida. Se estiver bloqueado, libere nas configurações do navegador.";
-    btnEnable.style.display = "none";
-    btnLater.style.display = "none";
-    btnOk.style.display = "block";
-    btnOk.onclick = () => fechar();
-  };
-})();
-
-/* ✅ escuta painel (/notifications) */
-(function listenPanelNotifications(){
-  if(!db) return;
-  if(!("Notification" in window)) return;
-
-  let lastTs = Number(localStorage.getItem("co_last_notif_ts") || "0");
-
-  db.ref(NODE_NOTIFS).limitToLast(40).on("child_added", async (snap) => {
-    const d = snap.val() || {};
-    const ts = Number(d.ts || 0);
-    if(!ts || ts <= lastTs) return;
-
-    if(Notification.permission !== "granted") return;
-
-    const rec = Array.isArray(d.recipients) ? d.recipients : [];
-    const ok = rec.includes("*") || rec.includes(deviceId);
-    if(!ok) return;
-
-    localStorage.setItem("co_last_notif_ts", String(ts));
-    lastTs = ts;
-
-    await enviarNotificacaoLocal(d.title, d.body, d.url);
-  });
-})();
 </script>
 
 </body>
