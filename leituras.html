@@ -579,18 +579,24 @@ try{
 
 /* ==========================================================
    ✅ SERVICE WORKER (REGISTRO ROBUSTO)
+   ✅ CORRIGIDO: garante que existe registration antes de usar ready
 ========================================================== */
-async function registerSW(){
-  if(!("serviceWorker" in navigator)) return false;
+async function ensureSW(){
+  if(!("serviceWorker" in navigator)) return null;
   try{
     const swUrl = new URL("./service-worker.js", location.href).href;
-    await navigator.serviceWorker.register(swUrl);
-    return true;
+    let reg = await navigator.serviceWorker.getRegistration();
+    if(!reg){
+      reg = await navigator.serviceWorker.register(swUrl);
+    }
+    // força pegar o registration "pronto"
+    try{ reg = await navigator.serviceWorker.ready; }catch{}
+    return reg || null;
   }catch(e){
-    return false;
+    return null;
   }
 }
-window.addEventListener("load", () => { registerSW(); });
+window.addEventListener("load", () => { ensureSW(); });
 
 /* ===========================
    LISTA DE CONSULTORES
@@ -786,12 +792,10 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 /* ==========================================================
    ✅ NOTIFICAÇÕES (MÁXIMO POSSÍVEL SEM FCM)
-   - /devices + /notifications + SW
-   ✅ CORREÇÕES PEDIDAS:
-     1) enviarNotificacaoLocal com reg.showNotification (mais confiável)
-     2) popup reaparece sempre após instalação (qualquer navegador)
-        - detecta evento "appinstalled" (Chrome/Edge)
-        - detecta primeira execução em modo standalone (Samsung Internet / outros)
+   ✅ CORRIGIDO PRA FUNCIONAR NO S25 E NO TABLET:
+   - tentar showNotification
+   - se falhar (tablet), faz fallback pro postMessage
+   - se ainda falhar, tenta new Notification (último recurso)
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -850,19 +854,21 @@ async function pingLastSeen(){
   try{ await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() }); }catch(e){}
 }
 
-/* ✅ FUNÇÃO PEDIDA (MAIS CONFIÁVEL) */
+/* ✅ FUNÇÃO (COM FALLBACKS PRA TABLET) */
 async function enviarNotificacaoLocal(title, body){
   if(!("serviceWorker" in navigator)) return;
   if(!("Notification" in window)) return;
   if(Notification.permission !== "granted") return;
 
-  try{
-    const reg = await navigator.serviceWorker.ready;
+  const t = title || "Cartomantes Online";
+  const b = body  || "Nova atualização.";
 
-    // ✅ tenta direto (mais confiável com app aberto)
+  // 1) tenta SW showNotification
+  try{
+    const reg = await ensureSW();
     if(reg && reg.showNotification){
-      await reg.showNotification(title || "Cartomantes Online", {
-        body: body || "Nova atualização.",
+      await reg.showNotification(t, {
+        body: b,
         icon: "./logo.png",
         badge: "./logo.png",
         tag: "co-" + Date.now(),
@@ -871,16 +877,29 @@ async function enviarNotificacaoLocal(title, body){
       });
       return;
     }
+  }catch(e){
+    // continua para fallback
+  }
 
-    // fallback antigo (postMessage)
-    if(reg && reg.active){
-      reg.active.postMessage({
+  // 2) fallback: postMessage pro SW (funciona em vários tablets)
+  try{
+    const reg2 = await ensureSW();
+    if(reg2 && reg2.active){
+      reg2.active.postMessage({
         type: "LOCAL_NOTIFY",
-        title: title || "Cartomantes Online",
-        body: body || "Nova atualização.",
+        title: t,
+        body: b,
         url: "./leituras.html"
       });
+      return;
     }
+  }catch(e){
+    // continua
+  }
+
+  // 3) último recurso: Notification direto (nem sempre funciona em PWA)
+  try{
+    new Notification(t, { body: b, icon: "./logo.png" });
   }catch(e){
     // silencioso
   }
@@ -896,11 +915,11 @@ async function enviarNotificacaoLocal(title, body){
 })();
 
 /* ==========================================================
-   ✅ POPUP PERMISSÃO: SEMPRE APARECE APÓS INSTALAR NOVAMENTE
-   Como funciona:
-   - Evento appinstalled (Chrome/Edge/alguns)
-   - Quando entrar em standalone pela "primeira vez" após instalar
-   - Marca um "installId" novo e reseta o popup
+   ✅ POPUP PERMISSÃO: APARECE SEMPRE APÓS INSTALAR/ADICIONAR À TELA INICIAL
+   ✅ CORRIGIDO (funciona em vários navegadores):
+   - appinstalled (Chrome/Edge/etc)
+   - primeira vez abrindo em standalone (qualquer navegador)
+   - se o usuário instalou e o popup já tinha sido “adiado” antes, agora reseta
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -909,10 +928,10 @@ async function enviarNotificacaoLocal(title, body){
   const help   = document.getElementById("notifHelp");
   if(!wrap || !enable || !later) return;
 
-  const KEY_OK        = "co_notif_ok_v6";
-  const KEY_DAY       = "co_notif_prompt_day_v6";
-  const KEY_INSTALL   = "co_install_id_v1";
-  const KEY_LAST_MODE = "co_last_mode_v1"; // "standalone" | "browser"
+  const KEY_OK          = "co_notif_ok_v7";
+  const KEY_DAY         = "co_notif_prompt_day_v7";
+  const KEY_INSTALL_ID  = "co_install_id_v2";
+  const KEY_STANDALONE1 = "co_first_standalone_seen_v1";
 
   function todayKey(){ return new Date().toISOString().slice(0,10); }
   function showWrap(){ wrap.style.display = "flex"; }
@@ -922,38 +941,39 @@ async function enviarNotificacaoLocal(title, body){
     help.style.display = "block";
     help.innerHTML = html;
   }
+
   function resetPromptForNewInstall(){
-    // reseta o “ok” e o dia, pra popup aparecer de novo
     localStorage.removeItem(KEY_OK);
     localStorage.removeItem(KEY_DAY);
   }
-  function newInstallId(){
+  function markInstall(){
     const id = "inst_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
-    localStorage.setItem(KEY_INSTALL, id);
-    return id;
+    localStorage.setItem(KEY_INSTALL_ID, id);
+    resetPromptForNewInstall();
   }
 
-  // se browser nem suporta Notification
   if(!("Notification" in window)) return;
 
-  // ✅ detecta mudança de modo (browser -> standalone)
-  const nowMode = isStandalone() ? "standalone" : "browser";
-  const lastMode = localStorage.getItem(KEY_LAST_MODE) || "";
-  localStorage.setItem(KEY_LAST_MODE, nowMode);
-
-  // Se entrou em standalone agora e antes não era standalone,
-  // isso geralmente significa “abriu o app instalado”
-  if(nowMode === "standalone" && lastMode && lastMode !== "standalone"){
-    // marca uma “nova instalação/abertura” e reseta popup
-    newInstallId();
-    resetPromptForNewInstall();
-  }
-
-  // ✅ Chrome/Edge: evento real de instalação
+  // ✅ detecta instalação por evento (Chrome/Edge)
   window.addEventListener("appinstalled", () => {
-    newInstallId();
-    resetPromptForNewInstall();
+    markInstall();
+    // mostra na hora (se não estiver granted)
+    if(Notification.permission !== "granted"){
+      localStorage.setItem(KEY_DAY, ""); // força aparecer
+    }
   });
+
+  // ✅ detecta “Add to Home Screen / instalado” em QUALQUER navegador:
+  // primeira vez que o app abre em standalone
+  if(isStandalone()){
+    if(localStorage.getItem(KEY_STANDALONE1) !== "1"){
+      localStorage.setItem(KEY_STANDALONE1, "1");
+      markInstall();
+      localStorage.setItem(KEY_DAY, ""); // força aparecer
+    }
+  }else{
+    // se voltou pro navegador, não faz nada
+  }
 
   // se já concedeu, salva e sai
   if(Notification.permission === "granted"){
@@ -966,7 +986,7 @@ async function enviarNotificacaoLocal(title, body){
   const ok  = (localStorage.getItem(KEY_OK) === "1");
   const day = localStorage.getItem(KEY_DAY);
 
-  // ✅ mostra 1x por dia até ativar
+  // ✅ mostra 1x por dia até ativar (mas após instalação forçamos KEY_DAY = "")
   if(!ok && day !== todayKey()){
     localStorage.setItem(KEY_DAY, todayKey());
     showWrap();
@@ -998,7 +1018,7 @@ async function enviarNotificacaoLocal(title, body){
 
     if(Notification.permission === "denied"){
       showHelp(
-        `Notificações estão <b>bloqueadas</b> neste celular.<br>`+
+        `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
         `Abra as configurações do navegador e permita notificações para este site.`
       );
       upsertDevice();
