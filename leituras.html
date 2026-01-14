@@ -554,38 +554,12 @@ source[src*="fabapp-ads"]{
 })();
 
 /* ==========================================================
-   ✅ FIREBASE CONFIG (SEU)
+   ✅ FIREBASE CONFIG (RTDB + FCM) — cartomantes-online-675c1
 ========================================================== */
 const firebaseConfig = {
-  apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
-  authDomain: "coletivo2025-9de23.firebaseapp.com",
-  databaseURL: "https://coletivo2025-9de23-default-rtdb.firebaseio.com",
-  projectId: "coletivo2025-9de23",
-  storageBucket: "coletivo2025-9de23.appspot.com",
-  messagingSenderId: "740866367489",
-  appId: "1:740866367489:web:963e3f5be80cb35a71e000"
-};
-
-let db = null;
-let fbOk = false;
-
-try{
-  if (firebase.apps && firebase.apps.length) firebase.app();
-  else firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-  fbOk = true;
-}catch(e){
-  fbOk = false;
-
-
-/* ==========================================================
-   ✅ FIREBASE CLOUD MESSAGING (FCM) — PUSH REAL (APP FECHADO)
-   - Projeto FCM: cartomantes-online-675c1
-   - VAPID Key (Web Push): BEar829y3IYIudp7K52rMrPSY0X27wmDyQH72vg6cV2mOUBvUykwo2LkDhbT33aDtqIV118zzN4dDaFLAXYqI2w
-========================================================== */
-const FCM_CONFIG = {
   apiKey: "AIzaSyBeeIiNU_-OfPiQfmn0ORIgJrqCkorsP6U",
   authDomain: "cartomantes-online-675c1.firebaseapp.com",
+  databaseURL: "https://cartomantes-online-675c1-default-rtdb.firebaseio.com",
   projectId: "cartomantes-online-675c1",
   storageBucket: "cartomantes-online-675c1.firebasestorage.app",
   messagingSenderId: "801459451704",
@@ -594,55 +568,21 @@ const FCM_CONFIG = {
 
 const FCM_VAPID_KEY = "BEar829y3IYIudp7K52rMrPSY0X27wmDyQH72vg6cV2mOUBvUykwo2LkDhbT33aDtqIV118zzN4dDaFLAXYqI2w";
 
-let fcmApp = null;
-let fcmMessaging = null;
+let db = null;
+let fbOk = false;
+let messaging = null;
 
 try{
-  // ✅ Segundo app Firebase (não interfere no seu RTDB atual)
-  fcmApp = firebase.initializeApp(FCM_CONFIG, "fcmApp");
-  // precisa do firebase-messaging-compat.js carregado
-  fcmMessaging = firebase.messaging(fcmApp);
+  if (firebase.apps && firebase.apps.length) firebase.app();
+  else firebase.initializeApp(firebaseConfig);
+
+  db = firebase.database();
+  messaging = firebase.messaging();
+  fbOk = true;
 }catch(e){
-  fcmApp = null;
-  fcmMessaging = null;
-}
-
-// ✅ Pega/renova o token FCM e salva no seu RTDB em devices/{deviceId}
-async function ensureFCMToken(){
-  try{
-    if(!fcmMessaging) return null;
-    if(!("Notification" in window)) return null;
-    if(Notification.permission !== "granted") return null;
-
-    const reg = await ensureSW();
-    if(!reg) return null;
-
-    const token = await fcmMessaging.getToken({
-      vapidKey: FCM_VAPID_KEY,
-      serviceWorkerRegistration: reg
-    });
-
-    if(token && db){
-      await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
-        fcmToken: token,
-        fcmEnabled: true,
-        fcmUpdatedAt: Date.now()
-      });
-    }
-    return token || null;
-  }catch(e){
-    // se falhar, continua com notificação local (sem travar)
-    try{
-      if(db){
-        await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
-          fcmEnabled: false,
-          fcmErrorAt: Date.now()
-        });
-      }
-    }catch{}
-    return null;
-  }
-}
+  fbOk = false;
+  db = null;
+  messaging = null;
 }
 
 /* ==========================================================
@@ -678,6 +618,57 @@ async function ensureSW(){
   }
 }
 window.addEventListener("load", () => { ensureSW(); });
+
+/* ==========================================================
+   ✅ FCM TOKEN (PUSH REAL)
+   Salva em: devices/{deviceId}/fcmToken
+========================================================== */
+async function ensureFCMToken(){
+  try{
+    if(!fbOk || !db || !messaging) return null;
+    if(!("Notification" in window)) return null;
+    if(Notification.permission !== "granted") return null;
+
+    const reg = await ensureSW();
+    if(!reg) return null;
+
+    const token = await messaging.getToken({
+      vapidKey: FCM_VAPID_KEY,
+      serviceWorkerRegistration: reg
+    });
+
+    if(token){
+      await db.ref(`devices/${deviceId}`).update({
+        fcmToken: token,
+        fcmEnabled: true,
+        fcmUpdatedAt: Date.now()
+      });
+    }
+    return token || null;
+  }catch(e){
+    try{
+      if(db){
+        await db.ref(`devices/${deviceId}`).update({
+          fcmEnabled: false,
+          fcmErrorAt: Date.now()
+        });
+      }
+    }catch{}
+    return null;
+  }
+}
+
+// Quando o app estiver ABERTO (foreground)
+(function listenForegroundFCM(){
+  try{
+    if(!messaging) return;
+    messaging.onMessage(async (payload) => {
+      const title = payload?.notification?.title || "Cartomantes Online";
+      const body  = payload?.notification?.body  || "Você tem uma nova atualização.";
+      await enviarNotificacaoLocal(title, body);
+    });
+  }catch(e){}
+})();
 
 /* ===========================
    LISTA DE CONSULTORES
@@ -872,7 +863,7 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 
 /* ==========================================================
-   ✅ NOTIFICAÇÕES (SEM FCM)
+   ✅ NOTIFICAÇÕES (PAINEL + LOCAL)
 ========================================================== */
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
@@ -919,7 +910,7 @@ async function pingLastSeen(){
   try{ await db.ref(`${NODE_DEVICES}/${deviceId}`).update({ lastSeen: Date.now() }); }catch(e){}
 }
 
-/* ✅ FUNÇÃO (COM FALLBACKS PRA TABLET) */
+/* ✅ FUNÇÃO (COM FALLBACKS) */
 async function enviarNotificacaoLocal(title, body){
   if(!("serviceWorker" in navigator)) return;
   if(!("Notification" in window)) return;
@@ -928,7 +919,6 @@ async function enviarNotificacaoLocal(title, body){
   const t = title || "Cartomantes Online";
   const b = body  || "Nova atualização.";
 
-  // 1) tenta SW showNotification
   try{
     const reg = await ensureSW();
     if(reg && reg.showNotification){
@@ -944,7 +934,6 @@ async function enviarNotificacaoLocal(title, body){
     }
   }catch(e){}
 
-  // 2) fallback: postMessage pro SW
   try{
     const reg2 = await ensureSW();
     if(reg2 && reg2.active){
@@ -958,7 +947,6 @@ async function enviarNotificacaoLocal(title, body){
     }
   }catch(e){}
 
-  // 3) último recurso
   try{
     new Notification(t, { body: b, icon: "./logo.png" });
   }catch(e){}
@@ -969,23 +957,18 @@ async function enviarNotificacaoLocal(title, body){
   if(!fbOk) return;
   await upsertDevice();
 
-  // ✅ Se já estiver permitido, tenta registrar/renovar token FCM automaticamente
+  // se já está permitido, tenta registrar token FCM automaticamente
   if(("Notification" in window) && Notification.permission === "granted"){
     await ensureFCMToken();
   }
+
   pingLastSeen();
   setInterval(pingLastSeen, ONLINE_PING_MS);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
 })();
 
 /* ==========================================================
-   ✅ PERMISSÃO: "FORÇAR" EM TODA INSTALAÇÃO + LEMBRAR ATÉ ATIVAR
-   Regras:
-   - Se não estiver granted: popup aparece SEMPRE ao abrir (app ou navegador)
-   - Se clicar "DEPOIS": some, mas volta sozinho após um tempo
-   - Se instalar de novo: reseta e volta a pedir
-   - Se permission = denied: não dá pra abrir o popup nativo de novo (Chrome bloqueia),
-     mas a gente continua mostrando o popup com instrução para liberar nas configs.
+   ✅ PERMISSÃO: POPUP
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -995,11 +978,9 @@ async function enviarNotificacaoLocal(title, body){
   if(!wrap || !enable || !later) return;
 
   const KEY_INSTALL_STAMP = "co_install_stamp_v3";
-  const KEY_LAST_MODE     = "co_last_mode_v3";   // "standalone" | "browser"
-  const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_v1"; // timestamp em ms (só pra não travar o usuário)
-
-  // Ajuste aqui: em quanto tempo volta a lembrar se clicar "DEPOIS"
-  const REMIND_AFTER_MS = 90 * 1000; // 1min30
+  const KEY_LAST_MODE     = "co_last_mode_v3";
+  const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_v1";
+  const REMIND_AFTER_MS = 90 * 1000;
 
   function showWrap(){ wrap.style.display = "flex"; }
   function hideWrap(){ wrap.style.display = "none"; }
@@ -1015,32 +996,24 @@ async function enviarNotificacaoLocal(title, body){
   }
 
   function markInstall(reason){
-    // A cada "instalação/primeira abertura em standalone" criamos um stamp novo
-    // (isso faz o app "se comportar como recém-instalado")
     const stamp = "inst_" + (reason||"x") + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2);
     localStorage.setItem(KEY_INSTALL_STAMP, stamp);
-    // remove snooze pra voltar a pedir
     localStorage.removeItem(KEY_SNOOZE_UNTIL);
   }
 
   function shouldShowNow(){
     if(!("Notification" in window)) return false;
     if(Notification.permission === "granted") return false;
-
-    // não bloquear totalmente: se o usuário clicou "depois", espera um pouco e volta
     const until = Number(localStorage.getItem(KEY_SNOOZE_UNTIL) || "0");
     if(until && Date.now() < until) return false;
-
     return true;
   }
 
   async function openPopupIfNeeded(){
     if(!shouldShowNow()) return;
-
     clearHelp();
     showWrap();
 
-    // iOS sem instalar: instrução correta
     if(isIOS() && !isStandalone()){
       showHelp(
         `No <b>iPhone</b>, as notificações só funcionam quando o site está <b>instalado</b>.<br>`+
@@ -1049,65 +1022,49 @@ async function enviarNotificacaoLocal(title, body){
       );
     }
 
-    // Se já está denied, avisa como liberar
     if(Notification.permission === "denied"){
       showHelp(
         `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
-        `Abra as configurações do navegador/app e permita notificações para este site.<br>`+
-        `<b>Depois</b> volte aqui que vai funcionar.`
+        `Abra as configurações do navegador/app e permita notificações para este site.`
       );
     }
   }
 
-  // ✅ Detecta evento de instalação (Chrome/Edge)
   window.addEventListener("appinstalled", () => {
     markInstall("appinstalled");
-    // se estiver aberto, já pede
     openPopupIfNeeded();
   });
 
-  // ✅ Detecta primeira abertura em modo "instalado" (serve pra Samsung Internet e outros)
   (function detectStandaloneTransition(){
     const modeNow  = isStandalone() ? "standalone" : "browser";
     const lastMode = localStorage.getItem(KEY_LAST_MODE) || "";
     localStorage.setItem(KEY_LAST_MODE, modeNow);
 
-    // Entrou em standalone agora (geralmente significa "abriu o app instalado")
     if(modeNow === "standalone" && lastMode && lastMode !== "standalone"){
       markInstall("standalone_open");
     }
-
-    // Primeira vez absoluta em standalone (sem histórico)
     if(modeNow === "standalone" && !lastMode){
       markInstall("standalone_first");
     }
   })();
 
-  // ✅ Sempre que abrir a página, se não estiver granted, pede (respeitando snooze)
-  // Pequeno delay pra não "piscar" antes de renderizar
   setTimeout(openPopupIfNeeded, 1200);
 
-  // ✅ Se voltar pro app e ainda não ativou, pede de novo
   document.addEventListener("visibilitychange", () => {
     if(!document.hidden){
       setTimeout(openPopupIfNeeded, 500);
     }
   });
 
-  // Botão "DEPOIS": fecha, mas volta depois (até ativar)
   later.onclick = () => {
     hideWrap();
-    // volta a lembrar em REMIND_AFTER_MS
     localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + REMIND_AFTER_MS));
     setTimeout(() => {
-      // se ainda não ativou, reabre
       if(Notification.permission !== "granted") openPopupIfNeeded();
     }, REMIND_AFTER_MS + 150);
   };
 
-  // Botão "ATIVAR AGORA"
   enable.onclick = async () => {
-    // iOS sem instalar
     if(!canAskNotificationInThisContext()){
       showHelp(
         `Para ativar no <b>iPhone</b>:<br>`+
@@ -1119,7 +1076,6 @@ async function enviarNotificacaoLocal(title, body){
       return;
     }
 
-    // Se denied, não tem como chamar o prompt nativo de novo
     if(Notification.permission === "denied"){
       showHelp(
         `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
@@ -1133,32 +1089,24 @@ async function enviarNotificacaoLocal(title, body){
       const perm = await Notification.requestPermission();
       await upsertDevice();
 
-  // ✅ Se já estiver permitido, tenta registrar/renovar token FCM automaticamente
-  if(("Notification" in window) && Notification.permission === "granted"){
-    await ensureFCMToken();
-  }
-
       if(perm === "granted"){
         hideWrap();
         localStorage.removeItem(KEY_SNOOZE_UNTIL);
 
-        // ✅ Ativa PUSH REAL (FCM) e salva o token
+        // ✅ PUSH REAL: pega token FCM e salva no RTDB
         await ensureFCMToken();
 
         enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
         return;
       }
 
-      // Se não concedeu, continua lembrando
       showHelp(`Permissão não concedida. Para receber avisos, toque em <b>ATIVAR AGORA</b> e permita as notificações.`);
-      // volta a lembrar logo
       localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
       setTimeout(openPopupIfNeeded, 20050);
 
     }catch(e){
       showHelp(`Não foi possível solicitar permissão agora. Tente novamente.`);
       upsertDevice();
-      // volta a lembrar
       localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
       setTimeout(openPopupIfNeeded, 20050);
     }
@@ -1166,7 +1114,7 @@ async function enviarNotificacaoLocal(title, body){
 })();
 
 /* ==========================================================
-   ✅ RECEBER NOTIFICAÇÕES DO PAINEL
+   ✅ RECEBER NOTIFICAÇÕES DO PAINEL (RTDB /notifications)
 ========================================================== */
 (function listenPanelNotifications(){
   if(!db) return;
@@ -1176,7 +1124,6 @@ async function enviarNotificacaoLocal(title, body){
   const SEEN_IDS_KEY  = "co_seen_notif_ids_v3";
 
   let lastTs = Number(localStorage.getItem(LAST_TS_KEY) || "0");
-
   let seen = {};
   try{ seen = JSON.parse(localStorage.getItem(SEEN_IDS_KEY) || "{}") || {}; }catch{ seen = {}; }
 
