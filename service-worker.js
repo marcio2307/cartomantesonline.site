@@ -14,31 +14,49 @@ try{
   importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js");
   importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js");
 
-  firebase.initializeApp({
-    apiKey: "AIzaSyBeeIiNU_-OfPiQfmn0ORIgJrqCkorsP6U",
-    authDomain: "cartomantes-online-675c1.firebaseapp.com",
-    projectId: "cartomantes-online-675c1",
-    storageBucket: "cartomantes-online-675c1.firebasestorage.app",
-    messagingSenderId: "801459451704",
-    appId: "1:801459451704:web:b6243cc21b61b67fd833cd"
-  });
+  // ✅ Evita "already exists"
+  if (!firebase.apps || !firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey: "AIzaSyBeeIiNU_-OfPiQfmn0ORIgJrqCkorsP6U",
+      authDomain: "cartomantes-online-675c1.firebaseapp.com",
+      projectId: "cartomantes-online-675c1",
+      storageBucket: "cartomantes-online-675c1.firebasestorage.app",
+      messagingSenderId: "801459451704",
+      appId: "1:801459451704:web:b6243cc21b61b67fd833cd"
+    });
+  }
 
   const messaging = firebase.messaging();
 
   // ✅ Mensagem em background (quando o app/site está fechado)
   messaging.onBackgroundMessage((payload) => {
     try{
-      const data = payload || {};
-      const title = (data.notification && data.notification.title) || data.title || "Cartomantes Online";
-      const body  = (data.notification && data.notification.body)  || data.body  || "Você tem uma nova atualização.";
+      const p = payload || {};
+      const title =
+        (p.notification && p.notification.title) ||
+        (p.data && p.data.title) ||
+        p.title ||
+        "Cartomantes Online";
 
-      const targetUrl = new URL((data.data && data.data.url) || data.url || "leituras.html?pwa=true", self.registration.scope).href;
+      const body  =
+        (p.notification && p.notification.body) ||
+        (p.data && p.data.body) ||
+        p.body ||
+        "Você tem uma nova atualização.";
+
+      // ✅ URL alvo sempre dentro do seu scope (GitHub Pages)
+      const rawUrl =
+        (p.data && (p.data.url || p.data.click_action)) ||
+        p.url ||
+        "leituras.html?pwa=true";
+
+      const targetUrl = new URL(rawUrl, self.registration.scope).href;
 
       self.registration.showNotification(title, {
         body,
         icon: "./logo.png",
         badge: "./logo.png",
-        tag: data.tag || `co-fcm-${Date.now()}`,
+        tag: (p.data && p.data.tag) || p.tag || `co-fcm-${Date.now()}`,
         renotify: true,
         data: { url: targetUrl }
       });
@@ -48,8 +66,7 @@ try{
   // silencioso: cache/LOCAL_NOTIFY continuam funcionando
 }
 
-
-const CACHE_VERSION = "v1.1.8"; // 🔴 AUMENTE sempre que trocar arquivos
+const CACHE_VERSION = "v1.1.9"; // ✅ aumentei (troque sempre que editar)
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 /* ✅ ajuste aqui se você criar novas páginas */
@@ -165,8 +182,6 @@ self.addEventListener("message", (event) => {
     const title = data.title || "Cartomantes Online";
     const body  = data.body  || "Você tem uma nova atualização.";
 
-    // ✅ Garante URL correta no GitHub Pages
-    // Se vier "./leituras.html" ou "leituras.html", normaliza com scope
     const rawUrl = data.url || "leituras.html?pwa=true";
     const targetUrl = new URL(rawUrl, self.registration.scope).href;
 
@@ -189,7 +204,8 @@ self.addEventListener("message", (event) => {
 });
 
 /* ==========================================================
-   ✅ (OPCIONAL) PUSH REAL FUTURO
+   ✅ PUSH (fallback)
+   OBS: Em FCM normalmente o onBackgroundMessage já resolve.
 ========================================================== */
 self.addEventListener("push", (event) => {
   let payload = {};
@@ -202,7 +218,8 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Cartomantes Online";
   const body  = payload.body  || "Você tem uma nova atualização.";
 
-  const targetUrl = new URL(payload.url || "leituras.html?pwa=true", self.registration.scope).href;
+  const rawUrl = payload.url || "leituras.html?pwa=true";
+  const targetUrl = new URL(rawUrl, self.registration.scope).href;
 
   const options = {
     body,
@@ -216,8 +233,8 @@ self.addEventListener("push", (event) => {
 
 /* ===========================
    CLICK NA NOTIFICAÇÃO
-   ✅ Foca aba existente e navega
-   ✅ Se não existir, abre uma nova
+   ✅ foca aba existente e navega
+   ✅ se não existir, abre nova
 =========================== */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
