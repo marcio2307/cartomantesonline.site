@@ -18,7 +18,6 @@
 }
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
-
 body{
   margin:0;
   background:
@@ -29,13 +28,7 @@ body{
   font-family:'Poppins',sans-serif;
   color:#fff;
 }
-
-.wrap{
-  max-width:780px;
-  margin:0 auto;
-  padding:16px 12px 28px;
-}
-
+.wrap{ max-width:920px; margin:0 auto; padding:16px 12px 28px; }
 h1{
   margin:0 0 12px;
   font-family:'Cinzel', serif;
@@ -47,7 +40,6 @@ h1{
   background-clip:text;
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
-
 .card{
   position:relative;
   overflow:hidden;
@@ -68,16 +60,13 @@ h1{
   opacity:.95;
   pointer-events:none;
 }
-
 .stats{
   display:grid;
-  grid-template-columns:repeat(2,1fr);
+  grid-template-columns:repeat(4,1fr);
   gap:10px;
 }
-@media (max-width:520px){
-  .stats{ grid-template-columns:1fr; }
-}
-
+@media (max-width:880px){ .stats{ grid-template-columns:repeat(2,1fr);} }
+@media (max-width:520px){ .stats{ grid-template-columns:1fr; } }
 .stat{
   border:1px solid rgba(255,255,255,.10);
   border-radius:14px;
@@ -94,25 +83,10 @@ h1{
   -webkit-background-clip:text;
   background-clip:text;
 }
-.stat .s{
-  margin-top:6px;
-  font-size:12px;
-  opacity:.82;
-}
+.stat .s{ margin-top:6px; font-size:12px; opacity:.82; }
+hr.sep{ border:0; border-top:1px solid rgba(255,255,255,.08); margin:12px 0; }
 
-hr.sep{
-  border:0;
-  border-top:1px solid rgba(255,255,255,.08);
-  margin:12px 0;
-}
-
-label{
-  display:block;
-  font-size:12px;
-  opacity:.82;
-  margin-bottom:6px;
-}
-
+label{ display:block; font-size:12px; opacity:.82; margin-bottom:6px; }
 input, textarea, select{
   width:100%;
   padding:12px 12px;
@@ -123,8 +97,14 @@ input, textarea, select{
   outline:none;
   font-family:'Poppins',sans-serif;
 }
-
 textarea{ min-height:110px; resize:vertical; }
+
+.grid2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+@media (max-width:740px){ .grid2{ grid-template-columns:1fr; } }
 
 .actions{
   display:flex;
@@ -132,7 +112,6 @@ textarea{ min-height:110px; resize:vertical; }
   gap:10px;
   margin-top:10px;
 }
-
 .btn{
   height:50px;
   padding:0 14px;
@@ -148,36 +127,47 @@ textarea{ min-height:110px; resize:vertical; }
 }
 .btn:active{ transform:translateY(1px); }
 .btn:hover{ filter:brightness(1.05); }
-
-.btn.green{
-  color:#fff;
-  background:linear-gradient(180deg,#2ecc71,#1f9b50);
-}
+.btn.green{ color:#fff; background:linear-gradient(180deg,#2ecc71,#1f9b50); }
+.btn.red{ color:#fff; background:linear-gradient(180deg,#e74c3c,#c0392b); }
 .btn.ghost{
   color:#fff;
   background:rgba(255,255,255,.10);
   border:1px solid rgba(255,255,255,.14);
   box-shadow:none;
 }
-
 .smallline{
   margin-top:10px;
   font-size:12px;
-  opacity:.80;
+  opacity:.90;
   line-height:1.35;
   border-top:1px solid rgba(255,255,255,.08);
   padding-top:10px;
 }
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  font-size:12px;
+}
+.dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#2ecc71;
+  box-shadow:0 0 10px rgba(46,204,113,.4);
+}
+.dot.off{ background:#e74c3c; box-shadow:none; }
+.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <h1>🔔 Painel de Notificações</h1>
+  <h1>🔔 Painel de Notificações (FCM + RTDB)</h1>
 
   <div class="card">
-
-    <!-- ✅ Online à esquerda / Registrados à direita -->
     <div class="stats">
       <div class="stat">
         <div class="k">Online agora</div>
@@ -186,9 +176,42 @@ textarea{ min-height:110px; resize:vertical; }
       </div>
 
       <div class="stat">
-        <div class="k">Registrados (ativaram)</div>
+        <div class="k">Registrados</div>
         <div class="v" id="vRegistered">0</div>
-        <div class="s">enabled = true</div>
+        <div class="s">enabled=true</div>
+      </div>
+
+      <div class="stat">
+        <div class="k">FCM habilitado</div>
+        <div class="v" id="vFcm">0</div>
+        <div class="s">fcmEnabled=true</div>
+      </div>
+
+      <div class="stat">
+        <div class="k">FCM + Online</div>
+        <div class="v" id="vFcmOnline">0</div>
+        <div class="s">push chega “app fechado”</div>
+      </div>
+    </div>
+
+    <hr class="sep"/>
+
+    <div class="grid2">
+      <div>
+        <label>✅ Endpoint da Function (sendPush)</label>
+        <input id="fnUrl" class="mono" />
+        <div style="margin-top:8px" class="badge">
+          <span class="dot" id="fnDot"></span>
+          <span id="fnStatus">—</span>
+        </div>
+      </div>
+
+      <div>
+        <label>✅ URL que abre ao clicar na notificação</label>
+        <input id="clickUrl" class="mono" value="leituras.html?pwa=true" />
+        <div style="margin-top:8px; opacity:.85; font-size:12px;">
+          (o service-worker normaliza isso no scope do GitHub Pages)
+        </div>
       </div>
     </div>
 
@@ -204,19 +227,33 @@ textarea{ min-height:110px; resize:vertical; }
       <textarea id="nBody" placeholder="Digite a mensagem para enviar..."></textarea>
     </div>
 
-    <div style="margin-top:10px;">
-      <label>Enviar para</label>
-      <select id="nTarget">
-        <option value="online">Somente ONLINE agora</option>
-        <option value="registered">Todos REGISTRADOS (ativaram)</option>
-      </select>
+    <div class="grid2" style="margin-top:10px;">
+      <div>
+        <label>Enviar para (lista de devices)</label>
+        <select id="nTarget">
+          <option value="fcm_online">📲 FCM + Online agora (recomendado)</option>
+          <option value="fcm_all">📲 FCM + Todos com FCM</option>
+          <option value="online">Somente ONLINE agora (RTDB/local)</option>
+          <option value="registered">Todos REGISTRADOS (RTDB/local)</option>
+        </select>
+      </div>
+      <div>
+        <label>Modo de envio</label>
+        <select id="sendMode">
+          <option value="function">✅ Push real (Function → FCM)</option>
+          <option value="rtdb">RTDB (notificação “local” quando o app estiver aberto)</option>
+        </select>
+      </div>
     </div>
 
     <div class="actions">
       <button class="btn green" id="btnSend">ENVIAR</button>
       <button class="btn" id="btnRefresh">ATUALIZAR</button>
-      <button class="btn ghost" id="btnBroadcast" title="Envia recipients {'*':true}">
+      <button class="btn ghost" id="btnBroadcast" title="recipients {'*':true}">
         BROADCAST (*)
+      </button>
+      <button class="btn red" id="btnTestFn" title="Só testa se a function responde">
+        TESTAR FUNCTION
       </button>
     </div>
 
@@ -230,37 +267,50 @@ textarea{ min-height:110px; resize:vertical; }
 
 <script>
 /* ==========================================================
-   FIREBASE CONFIG (o mesmo do site)
+   ✅ CONFIG DO PROJETO (RTDB + Function)
 ========================================================== */
+
+// 🔥 ESTE RTDB É O QUE VOCÊ MOSTROU NO PRINT (cartomantes-online-675c1)
 const firebaseConfig = {
-  apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
-  authDomain: "coletivo2025-9de23.firebaseapp.com",
-  databaseURL: "https://coletivo2025-9de23-default-rtdb.firebaseio.com",
-  projectId: "coletivo2025-9de23",
-  storageBucket: "coletivo2025-9de23.appspot.com",
-  messagingSenderId: "740866367489",
-  appId: "1:740866367489:web:963e3f5be80cb35a71e000"
+  apiKey: "AIzaSyBeeIiNU_-OfPiQfmn0ORIgJrqCkorsP6U",
+  authDomain: "cartomantes-online-675c1.firebaseapp.com",
+  databaseURL: "https://cartomantes-online-675c1-default-rtdb.firebaseio.com",
+  projectId: "cartomantes-online-675c1",
+  storageBucket: "cartomantes-online-675c1.firebasestorage.app",
+  messagingSenderId: "801459451704",
+  appId: "1:801459451704:web:b6243cc21b61b67fd833cd"
 };
+
+const PROJECT_ID = "cartomantes-online-675c1";
+const DEFAULT_FN_URL = `https://us-central1-${PROJECT_ID}.cloudfunctions.net/sendPush`;
 
 const NODE_DEVICES = "devices";
 const NODE_NOTIFS  = "notifications";
 
 const ONLINE_WINDOW_MS = 70 * 1000;
-const LIST_LIMIT = 500;
-
-// ✅ URL fixo pra Service Worker normalizar no scope do GitHub Pages
-const FIXED_CLICK_URL = "leituras.html?pwa=true";
+const LIST_LIMIT = 800;
 
 /* ==========================================================
    UI refs
 ========================================================== */
 const elRegistered = document.getElementById("vRegistered");
 const elOnline     = document.getElementById("vOnline");
+const elFcm        = document.getElementById("vFcm");
+const elFcmOnline  = document.getElementById("vFcmOnline");
 
 const nTitle  = document.getElementById("nTitle");
 const nBody   = document.getElementById("nBody");
 const nTarget = document.getElementById("nTarget");
+const sendMode = document.getElementById("sendMode");
+const clickUrl = document.getElementById("clickUrl");
+
+const fnUrl   = document.getElementById("fnUrl");
+const fnStatus = document.getElementById("fnStatus");
+const fnDot = document.getElementById("fnDot");
+
 const miniInfo  = document.getElementById("miniInfo");
+
+fnUrl.value = DEFAULT_FN_URL;
 
 function fmtTime(ms){
   if(!ms) return "—";
@@ -268,14 +318,13 @@ function fmtTime(ms){
 }
 
 /* ==========================================================
-   INIT Firebase
+   INIT Firebase RTDB
 ========================================================== */
 let db = null;
 let cacheDevices = [];
 let lastRefresh = 0;
 
 try{
-  // evita erro de "already exists" se o HTML for aberto dentro de algo que já inicializou
   if(!firebase.apps || !firebase.apps.length){
     firebase.initializeApp(firebaseConfig);
   }
@@ -291,32 +340,32 @@ try{
 ========================================================== */
 function computeCounts(devs){
   const now = Date.now();
+
   const registered = devs.filter(d => d && d.enabled === true).length;
   const online = devs.filter(d => d && d.enabled === true && (now - (d.lastSeen||0) < ONLINE_WINDOW_MS)).length;
-  return { registered, online };
+
+  const fcm = devs.filter(d => d && d.fcmEnabled === true && !!d.fcmToken).length;
+  const fcmOnline = devs.filter(d => d && d.fcmEnabled === true && !!d.fcmToken && (now - (d.lastSeen||0) < ONLINE_WINDOW_MS)).length;
+
+  return { registered, online, fcm, fcmOnline };
 }
 
 function refreshCounters(){
-  const { registered, online } = computeCounts(cacheDevices);
+  const { registered, online, fcm, fcmOnline } = computeCounts(cacheDevices);
   elRegistered.textContent = registered;
   elOnline.textContent = online;
-  miniInfo.textContent = `Atualizado: ${fmtTime(lastRefresh)} • Online: ${online} • Registrados: ${registered}`;
+  elFcm.textContent = fcm;
+  elFcmOnline.textContent = fcmOnline;
+  miniInfo.textContent = `Atualizado: ${fmtTime(lastRefresh)} • Online: ${online} • Registrados: ${registered} • FCM: ${fcm} • FCM+Online: ${fcmOnline}`;
 }
 
-/* ==========================================================
-   ✅ FIX GitHub Pages: trocar .get() por .once('value')
-   (mais compatível e evita erro em alguns ambientes)
-========================================================== */
 async function refreshDevicesOnce(){
   if(!db) return;
   try{
     const query = db.ref(NODE_DEVICES).orderByChild("lastSeen").limitToLast(LIST_LIMIT);
 
     const snap = await new Promise((resolve, reject) => {
-      query.once("value",
-        (s) => resolve(s),
-        (err) => reject(err)
-      );
+      query.once("value", (s) => resolve(s), (err) => reject(err));
     });
 
     const val = snap.val() || {};
@@ -333,114 +382,184 @@ async function refreshDevicesOnce(){
 
 function startRealtimeDevices(){
   if(!db) return;
-  try{
-    db.ref(NODE_DEVICES).orderByChild("lastSeen").limitToLast(LIST_LIMIT).on("value", (snap) => {
-      const val = snap.val() || {};
-      const arr = Object.entries(val).map(([id, d]) => ({ id, ...d }));
-      arr.sort((a,b) => (b.lastSeen||0) - (a.lastSeen||0));
-      cacheDevices = arr;
-      lastRefresh = Date.now();
-      refreshCounters();
-    }, (err) => {
-      console.error(err);
-      miniInfo.textContent = "Erro realtime /devices (Rules).";
-    });
-  }catch(e){
-    console.error(e);
-    refreshDevicesOnce();
-  }
+  db.ref(NODE_DEVICES).orderByChild("lastSeen").limitToLast(LIST_LIMIT).on("value", (snap) => {
+    const val = snap.val() || {};
+    const arr = Object.entries(val).map(([id, d]) => ({ id, ...d }));
+    arr.sort((a,b) => (b.lastSeen||0) - (a.lastSeen||0));
+    cacheDevices = arr;
+    lastRefresh = Date.now();
+    refreshCounters();
+  }, (err) => {
+    console.error(err);
+    miniInfo.textContent = "Erro realtime /devices (Rules).";
+  });
 }
 
 /* ==========================================================
-   Send notifications
+   Helper: recipients
 ========================================================== */
 function buildRecipientsMap(ids){
   const m = {};
   for(const id of ids) m[id] = true;
   return m;
 }
-
-async function pushNotification(payload){
-  const ref = db.ref(NODE_NOTIFS).push();
-  await ref.set(payload);
-}
-
-async function sendNotification({title, body, target}){
-  if(!db) throw new Error("Sem DB");
-
-  title = (title || "Cartomantes Online").trim();
-  body  = (body  || "Nova mensagem.").trim();
-  target = target || "online";
-
+function pickTargetIds(target){
   const devs = cacheDevices || [];
   const now = Date.now();
 
   const registeredIds = devs.filter(d => d && d.enabled === true).map(d => d.id);
-  const onlineIds = devs
-    .filter(d => d && d.enabled === true && (now - (d.lastSeen||0) < ONLINE_WINDOW_MS))
-    .map(d => d.id);
+  const onlineIds = devs.filter(d => d && d.enabled === true && (now - (d.lastSeen||0) < ONLINE_WINDOW_MS)).map(d => d.id);
 
-  const ids = (target === "registered") ? registeredIds : onlineIds;
+  const fcmIds = devs.filter(d => d && d.fcmEnabled === true && !!d.fcmToken).map(d => d.id);
+  const fcmOnlineIds = devs.filter(d => d && d.fcmEnabled === true && !!d.fcmToken && (now - (d.lastSeen||0) < ONLINE_WINDOW_MS)).map(d => d.id);
+
+  if(target === "registered") return registeredIds;
+  if(target === "online") return onlineIds;
+  if(target === "fcm_all") return fcmIds;
+  if(target === "fcm_online") return fcmOnlineIds;
+
+  return onlineIds;
+}
+
+/* ==========================================================
+   ✅ ENVIO 1: RTDB (para notificação local quando o app estiver aberto)
+========================================================== */
+async function pushNotificationRTDB(payload){
+  const ref = db.ref(NODE_NOTIFS).push();
+  await ref.set(payload);
+}
+
+/* ==========================================================
+   ✅ ENVIO 2: FUNCTION (push real FCM – chega “app fechado”)
+   IMPORTANTÍSSIMO:
+   - Esta function foi deployada como: sendPush
+   - A gente envia JSON simples. Se sua function exigir outro formato,
+     me diga o que ela espera que eu adapto.
+========================================================== */
+async function sendViaFunction({title, body, url, target, ids, broadcast=false}){
+  const endpoint = (fnUrl.value || "").trim() || DEFAULT_FN_URL;
 
   const payload = {
     title,
     body,
-    // ✅ Melhor pra GitHub Pages/PWA: o SW normaliza com scope
-    url: FIXED_CLICK_URL,
-    ts: now,
-    target,
-    recipients: buildRecipientsMap(ids),
-    sentBy: "painel",
-    sentAt: now
+    url,               // "leituras.html?pwa=true"
+    target,            // ex: "fcm_online"
+    broadcast,         // true/false
+    recipients: broadcast ? {"*": true} : buildRecipientsMap(ids)
   };
 
-  await pushNotification(payload);
-  miniInfo.textContent = `Enviado para ${ids.length} dispositivo(s) (${target}). • Atualizado: ${fmtTime(lastRefresh)}`;
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  // algumas functions retornam texto, outras json
+  const text = await res.text();
+  if(!res.ok){
+    throw new Error(`Function erro (${res.status}): ${text}`);
+  }
+  return text;
 }
 
+/* ==========================================================
+   UI Actions
+========================================================== */
+async function doSend(isBroadcast=false){
+  if(!db) throw new Error("Sem DB");
+
+  const title = (nTitle.value || "Cartomantes Online").trim();
+  const body  = (nBody.value || "").trim();
+  const target = isBroadcast ? "broadcast" : (nTarget.value || "fcm_online");
+  const url = (clickUrl.value || "leituras.html?pwa=true").trim();
+
+  if(!body){
+    alert("Digite a mensagem antes de enviar.");
+    return;
+  }
+
+  if(!cacheDevices.length) await refreshDevicesOnce();
+
+  const ids = isBroadcast ? [] : pickTargetIds(target);
+  const now = Date.now();
+
+  // ✅ sempre grava no RTDB /notifications também (log do que foi enviado)
+  const logPayload = {
+    title, body, url,
+    ts: now,
+    target,
+    recipients: isBroadcast ? {"*": true} : buildRecipientsMap(ids),
+    sentBy: "painel",
+    sentAt: now,
+    mode: (sendMode.value || "function")
+  };
+  await pushNotificationRTDB(logPayload);
+
+  if(sendMode.value === "rtdb"){
+    // RTDB “local”: útil para testar com o app/site aberto
+    miniInfo.textContent = `✅ Registrado no RTDB (/notifications). (Modo RTDB/local) • ${fmtTime(now)}`;
+    return;
+  }
+
+  // ✅ Function FCM (push real)
+  const ret = await sendViaFunction({
+    title, body, url, target,
+    ids,
+    broadcast: isBroadcast
+  });
+
+  miniInfo.textContent =
+    `✅ Push enviado via Function. Alvo: ${isBroadcast ? "*" : ids.length + " device(s)"} • ${fmtTime(now)} • retorno: ${String(ret).slice(0,120)}`;
+}
+
+/* ==========================================================
+   Testar se a function responde
+========================================================== */
+async function testFunction(){
+  try{
+    fnDot.classList.remove("off");
+    fnStatus.textContent = "Testando…";
+    const endpoint = (fnUrl.value || "").trim() || DEFAULT_FN_URL;
+
+    // tenta um POST “leve” (não precisa enviar push real)
+    const res = await fetch(endpoint, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ ping:true })
+    });
+
+    const txt = await res.text();
+    if(!res.ok) throw new Error(`HTTP ${res.status}: ${txt}`);
+
+    fnDot.classList.remove("off");
+    fnStatus.textContent = "OK (respondeu)";
+  }catch(e){
+    fnDot.classList.add("off");
+    fnStatus.textContent = "Falhou (veja console)";
+    console.error(e);
+    alert("A function não respondeu como esperado. Se ela exigir outro payload, me diga que eu ajusto o painel.");
+  }
+}
+
+/* ==========================================================
+   Bind buttons
+========================================================== */
 document.getElementById("btnSend").onclick = async () => {
-  try{
-    if(!nBody.value.trim()){
-      alert("Digite a mensagem antes de enviar.");
-      return;
-    }
-    if(!cacheDevices.length) await refreshDevicesOnce();
-    await sendNotification({
-      title: nTitle.value,
-      body: nBody.value,
-      target: nTarget.value
-    });
-  }catch(e){
+  try{ await doSend(false); }
+  catch(e){
     console.error(e);
-    alert("Erro ao enviar. Confira Rules do /notifications.");
+    alert("Erro ao enviar. Confira Rules do RTDB e se a Function aceita o payload.");
   }
 };
-
 document.getElementById("btnBroadcast").onclick = async () => {
-  try{
-    if(!nBody.value.trim()){
-      alert("Digite a mensagem antes de enviar.");
-      return;
-    }
-    const now = Date.now();
-    await pushNotification({
-      title: (nTitle.value || "Cartomantes Online").trim(),
-      body: (nBody.value || "").trim(),
-      url: FIXED_CLICK_URL,
-      ts: now,
-      target: "broadcast",
-      recipients: { "*": true },
-      sentBy: "painel",
-      sentAt: now
-    });
-    miniInfo.textContent = `Broadcast (*) enviado. • Atualizado: ${fmtTime(lastRefresh)}`;
-  }catch(e){
+  try{ await doSend(true); }
+  catch(e){
     console.error(e);
-    alert("Erro ao enviar broadcast. Confira Rules.");
+    alert("Erro no broadcast. Confira Rules e Function.");
   }
 };
-
 document.getElementById("btnRefresh").onclick = () => refreshDevicesOnce();
+document.getElementById("btnTestFn").onclick = () => testFunction();
 
 /* ==========================================================
    Boot
@@ -450,6 +569,10 @@ document.getElementById("btnRefresh").onclick = () => refreshDevicesOnce();
   startRealtimeDevices();
   refreshDevicesOnce();
 
+  // testa function automaticamente ao abrir
+  setTimeout(testFunction, 500);
+
+  // auto refresh
   setInterval(() => {
     if(Date.now() - lastRefresh > 20000){
       refreshDevicesOnce();
