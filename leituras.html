@@ -508,6 +508,7 @@ source[src*="fabapp-ads"]{
 <!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
 
 <script>
 /* ==========================================================
@@ -575,6 +576,73 @@ try{
   fbOk = true;
 }catch(e){
   fbOk = false;
+
+
+/* ==========================================================
+   ✅ FIREBASE CLOUD MESSAGING (FCM) — PUSH REAL (APP FECHADO)
+   - Projeto FCM: cartomantes-online-675c1
+   - VAPID Key (Web Push): BEar829y3IYIudp7K52rMrPSY0X27wmDyQH72vg6cV2mOUBvUykwo2LkDhbT33aDtqIV118zzN4dDaFLAXYqI2w
+========================================================== */
+const FCM_CONFIG = {
+  apiKey: "AIzaSyBeeIiNU_-OfPiQfmn0ORIgJrqCkorsP6U",
+  authDomain: "cartomantes-online-675c1.firebaseapp.com",
+  projectId: "cartomantes-online-675c1",
+  storageBucket: "cartomantes-online-675c1.firebasestorage.app",
+  messagingSenderId: "801459451704",
+  appId: "1:801459451704:web:b6243cc21b61b67fd833cd"
+};
+
+const FCM_VAPID_KEY = "BEar829y3IYIudp7K52rMrPSY0X27wmDyQH72vg6cV2mOUBvUykwo2LkDhbT33aDtqIV118zzN4dDaFLAXYqI2w";
+
+let fcmApp = null;
+let fcmMessaging = null;
+
+try{
+  // ✅ Segundo app Firebase (não interfere no seu RTDB atual)
+  fcmApp = firebase.initializeApp(FCM_CONFIG, "fcmApp");
+  // precisa do firebase-messaging-compat.js carregado
+  fcmMessaging = firebase.messaging(fcmApp);
+}catch(e){
+  fcmApp = null;
+  fcmMessaging = null;
+}
+
+// ✅ Pega/renova o token FCM e salva no seu RTDB em devices/{deviceId}
+async function ensureFCMToken(){
+  try{
+    if(!fcmMessaging) return null;
+    if(!("Notification" in window)) return null;
+    if(Notification.permission !== "granted") return null;
+
+    const reg = await ensureSW();
+    if(!reg) return null;
+
+    const token = await fcmMessaging.getToken({
+      vapidKey: FCM_VAPID_KEY,
+      serviceWorkerRegistration: reg
+    });
+
+    if(token && db){
+      await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
+        fcmToken: token,
+        fcmEnabled: true,
+        fcmUpdatedAt: Date.now()
+      });
+    }
+    return token || null;
+  }catch(e){
+    // se falhar, continua com notificação local (sem travar)
+    try{
+      if(db){
+        await db.ref(`${NODE_DEVICES}/${deviceId}`).update({
+          fcmEnabled: false,
+          fcmErrorAt: Date.now()
+        });
+      }
+    }catch{}
+    return null;
+  }
+}
 }
 
 /* ==========================================================
@@ -900,6 +968,11 @@ async function enviarNotificacaoLocal(title, body){
 (async function bootPresence(){
   if(!fbOk) return;
   await upsertDevice();
+
+  // ✅ Se já estiver permitido, tenta registrar/renovar token FCM automaticamente
+  if(("Notification" in window) && Notification.permission === "granted"){
+    await ensureFCMToken();
+  }
   pingLastSeen();
   setInterval(pingLastSeen, ONLINE_PING_MS);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
@@ -1060,9 +1133,18 @@ async function enviarNotificacaoLocal(title, body){
       const perm = await Notification.requestPermission();
       await upsertDevice();
 
+  // ✅ Se já estiver permitido, tenta registrar/renovar token FCM automaticamente
+  if(("Notification" in window) && Notification.permission === "granted"){
+    await ensureFCMToken();
+  }
+
       if(perm === "granted"){
         hideWrap();
         localStorage.removeItem(KEY_SNOOZE_UNTIL);
+
+        // ✅ Ativa PUSH REAL (FCM) e salva o token
+        await ensureFCMToken();
+
         enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
         return;
       }
