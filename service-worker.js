@@ -33,7 +33,8 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      // ✅ se algum arquivo falhar, não quebra tudo:
+
+      // ✅ se algum arquivo falhar, não quebra tudo
       await Promise.all(
         APP_SHELL.map(async (url) => {
           try {
@@ -44,6 +45,7 @@ self.addEventListener("install", (event) => {
       );
     })()
   );
+
   self.skipWaiting();
 });
 
@@ -59,6 +61,7 @@ self.addEventListener("activate", (event) => {
           .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
           .map((k) => caches.delete(k))
       );
+
       await self.clients.claim();
     })()
   );
@@ -98,6 +101,7 @@ self.addEventListener("fetch", (event) => {
         .catch(async () => {
           const cached = await caches.match(req);
           if (cached) return cached;
+
           return (await caches.match(BASE + "leituras.html")) || (await caches.match(BASE));
         })
     );
@@ -112,6 +116,7 @@ self.addEventListener("fetch", (event) => {
       return fetch(req)
         .then((res) => {
           if (!res || res.status !== 200) return res;
+
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
@@ -143,7 +148,7 @@ self.addEventListener("message", (event) => {
       self.registration.showNotification(title, {
         body,
         icon: BASE + "logo.png",        // ícone grande (colorido)
-        badge: BASE + "icon-mono.png",  // ✅ ícone pequeno Android (remove quadrado branco)
+        badge: BASE + "icon-mono.png",  // ✅ ícone pequeno Android (monocromático)
         tag,
         renotify: true,
         data: { url: targetUrl }
@@ -175,8 +180,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: BASE + "logo.png",        // ícone grande
-      badge: BASE + "icon-mono.png",  // ✅ ícone pequeno
+      icon: BASE + "logo.png",        // ícone grande (pode ser colorido)
+      badge: BASE + "icon-mono.png",  // ✅ ícone pequeno Android (monocromático)
       data: { url: targetUrl }
     })
   );
