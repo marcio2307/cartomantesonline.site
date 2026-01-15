@@ -3,9 +3,10 @@
    CACHE + LOCAL_NOTIFY + PUSH REAL (Render)
    GitHub Pages (subpasta: /cartomantesonline.site/)
    ✅ Clique abre: /cartomantesonline.site/leituras.html?pwa=true
+   ✅ Ícone pequeno Android (badge) usa icon-mono.png (remove quadrado branco)
 ========================================================== */
 
-const CACHE_VERSION = "v1.2.3"; // 🔴 aumente sempre que editar
+const CACHE_VERSION = "v1.2.4"; // 🔴 aumente sempre que editar
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 // ✅ base do GH Pages (subpasta)
@@ -21,6 +22,7 @@ const APP_SHELL = [
   BASE + "sorteio.html",
   BASE + "manifest.json",
   BASE + "logo.png",
+  BASE + "icon-mono.png",
   BASE + "service-worker.js"
 ];
 
@@ -140,8 +142,8 @@ self.addEventListener("message", (event) => {
     event.waitUntil(
       self.registration.showNotification(title, {
         body,
-        icon: BASE + "logo.png",
-        badge: BASE + "logo.png",
+        icon: BASE + "logo.png",        // ícone grande (colorido)
+        badge: BASE + "icon-mono.png",  // ✅ ícone pequeno Android (remove quadrado branco)
         tag,
         renotify: true,
         data: { url: targetUrl }
@@ -173,8 +175,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: BASE + "logo.png",
-      badge: BASE + "logo.png",
+      icon: BASE + "logo.png",        // ícone grande
+      badge: BASE + "icon-mono.png",  // ✅ ícone pequeno
       data: { url: targetUrl }
     })
   );
