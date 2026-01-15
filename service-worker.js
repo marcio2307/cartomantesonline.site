@@ -1,23 +1,27 @@
 /* ==========================================================
-   CARTOMANTES ONLINE – SERVICE WORKER (CACHE + NOTIF)
-   GitHub Pages / PWA
-   ✅ Clique da notificação SEMPRE abre: leituras.html?pwa=true
-   ✅ LOCAL_NOTIFY mais compatível (Chrome + Samsung + Tablet)
+   CARTOMANTES ONLINE – SERVICE WORKER (CACHE + LOCAL_NOTIFY + PUSH REAL)
+   GitHub Pages (subpasta) + Render Push Server
+   ✅ Clique da notificação abre: /cartomantesonline.site/leituras.html?pwa=true
+   ✅ LOCAL_NOTIFY compatível (Chrome/Samsung)
+   ✅ PUSH REAL chega com app fechado (vindo do Render)
 ========================================================== */
 
-const CACHE_VERSION = "v1.1.8"; // 🔴 AUMENTE sempre que trocar arquivos
+const CACHE_VERSION = "v1.2.0"; // 🔴 AUMENTE sempre que trocar arquivos
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
-/* ✅ ajuste aqui se você criar novas páginas */
+// ✅ base do GH Pages (subpasta)
+const BASE = "/cartomantesonline.site/";
+
+// ✅ ajuste aqui se você criar novas páginas
 const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./leituras.html",
-  "./manifest.json",
-  "./logo.png",
-  "./service-worker.js",
-  "./notificacoes.html",
-  "./painel.html"
+  BASE,
+  BASE + "index.html",
+  BASE + "leituras.html",
+  BASE + "manifest.json",
+  BASE + "logo.png",
+  BASE + "service-worker.js",
+  BASE + "notificacoes.html",
+  BASE + "painel.html"
 ];
 
 /* ===========================
@@ -65,6 +69,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url);
 
+  // externos: não cacheia
   if (url.origin !== self.location.origin) {
     event.respondWith(fetch(req));
     return;
@@ -74,6 +79,7 @@ self.addEventListener("fetch", (event) => {
     req.mode === "navigate" ||
     (req.headers.get("accept") || "").includes("text/html");
 
+  // HTML: network-first
   if (isHTML) {
     event.respondWith(
       fetch(req)
@@ -86,12 +92,14 @@ self.addEventListener("fetch", (event) => {
           const cached = await caches.match(req);
           if (cached) return cached;
 
-          return (await caches.match("./leituras.html")) || (await caches.match("./"));
+          // fallback
+          return (await caches.match(BASE + "leituras.html")) || (await caches.match(BASE));
         })
     );
     return;
   }
 
+  // Assets: cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -109,7 +117,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
-   ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL) — MAIS COMPATÍVEL
+   ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL)
    Recebe postMessage do site:
      { type:"LOCAL_NOTIFY", title, body, url, tag }
 ========================================================== */
@@ -121,17 +129,16 @@ self.addEventListener("message", (event) => {
     const title = data.title || "Cartomantes Online";
     const body  = data.body  || "Você tem uma nova atualização.";
 
-    // ✅ Garante URL correta no GitHub Pages
-    // Se vier "./leituras.html" ou "leituras.html", normaliza com scope
-    const rawUrl = data.url || "leituras.html?pwa=true";
-    const targetUrl = new URL(rawUrl, self.registration.scope).href;
+    // ✅ normaliza URL dentro do scope do GH Pages
+    const rawUrl = data.url || (BASE + "leituras.html?pwa=true");
+    const targetUrl = new URL(rawUrl, self.location.origin).href;
 
     const tag = data.tag || `co-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
     const options = {
       body,
-      icon: "./logo.png",
-      badge: "./logo.png",
+      icon: BASE + "logo.png",
+      badge: BASE + "logo.png",
       tag,
       renotify: true,
       requireInteraction: false,
@@ -145,7 +152,9 @@ self.addEventListener("message", (event) => {
 });
 
 /* ==========================================================
-   ✅ (OPCIONAL) PUSH REAL FUTURO
+   ✅ PUSH REAL (VINDO DO RENDER)
+   O servidor Render envia payload JSON:
+   { title, body, url }
 ========================================================== */
 self.addEventListener("push", (event) => {
   let payload = {};
@@ -158,12 +167,14 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Cartomantes Online";
   const body  = payload.body  || "Você tem uma nova atualização.";
 
-  const targetUrl = new URL(payload.url || "leituras.html?pwa=true", self.registration.scope).href;
+  // ✅ garante abrir sempre dentro do GH Pages
+  const desiredPath = payload.url || (BASE + "leituras.html?pwa=true");
+  const targetUrl = new URL(desiredPath, self.location.origin).href;
 
   const options = {
     body,
-    icon: "./logo.png",
-    badge: "./logo.png",
+    icon: BASE + "logo.png",
+    badge: BASE + "logo.png",
     data: { url: targetUrl }
   };
 
@@ -173,15 +184,17 @@ self.addEventListener("push", (event) => {
 /* ===========================
    CLICK NA NOTIFICAÇÃO
    ✅ Foca aba existente e navega
-   ✅ Se não existir, abre uma nova
+   ✅ Se não existir, abre nova
 =========================== */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
+  const fallback = new URL(BASE + "leituras.html?pwa=true", self.location.origin).href;
+
   const targetUrl =
     (event.notification && event.notification.data && event.notification.data.url)
       ? event.notification.data.url
-      : new URL("leituras.html?pwa=true", self.registration.scope).href;
+      : fallback;
 
   event.waitUntil((async () => {
     const allClients = await self.clients.matchAll({
