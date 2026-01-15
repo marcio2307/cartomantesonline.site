@@ -386,34 +386,6 @@ body{
   -webkit-background-clip:text;
   background-clip:text;
 }
-fabapp-banner-footer,
-fabapp-banner-footer *{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  min-height:0 !important;
-  width:0 !important;
-  max-width:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
-}
-#ads-container,
-[id="ads-container"],
-[id*="ads-container"],
-[class*="ads-container"],
-iframe[src*="fabapp-ads"],
-video[src*="fabapp-ads"],
-source[src*="fabapp-ads"]{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  height:0 !important;
-  max-height:0 !important;
-  overflow:hidden !important;
-  pointer-events:none !important;
-}
 </style>
 </head>
 
@@ -478,41 +450,7 @@ source[src*="fabapp-ads"]{
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-/* ==========================================================
-   ✅ REMOÇÃO FORÇADA (se o host injetar de novo, apaga na hora)
-========================================================== */
-(function bloquearPropagandasInjetadas(){
-  const SELECTORS = [
-    'fabapp-banner-footer',
-    'fabapp-banner-footer video',
-    '#ads-container',
-    '[id="ads-container"]',
-    'iframe[src*="fabapp-ads"]',
-    'video[src*="fabapp-ads"]',
-    'source[src*="fabapp-ads"]',
-    'script[src*="fabapp-ads"]'
-  ];
-  function remover() {
-    for (const sel of SELECTORS) {
-      document.querySelectorAll(sel).forEach(el => { try{ el.remove(); }catch{} });
-    }
-  }
-  remover();
-  const obs = new MutationObserver(remover);
-  obs.observe(document.documentElement, { childList:true, subtree:true });
-
-  let tries = 0;
-  const t = setInterval(() => {
-    remover();
-    tries++;
-    if (tries >= 30) clearInterval(t);
-  }, 500);
-})();
-
 /* ✅ CARROSSEL (8s) */
 (function initBannerCarousel(){
   const carousel = document.getElementById('bannerCarousel');
@@ -525,67 +463,18 @@ source[src*="fabapp-ads"]{
 })();
 
 /* ==========================================================
-   ✅ FIREBASE CONFIG (SEU)
-========================================================== */
-const firebaseConfig = {
-  apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
-  authDomain: "coletivo2025-9de23.firebaseapp.com",
-  databaseURL: "https://coletivo2025-9de23-default-rtdb.firebaseio.com",
-  projectId: "coletivo2025-9de23",
-  storageBucket: "coletivo2025-9de23.appspot.com",
-  messagingSenderId: "740866367489",
-  appId: "1:740866367489:web:963e3f5be80cb35a71e000"
-};
-
-let db = null;
-let fbOk = false;
-
-try{
-  if (firebase.apps && firebase.apps.length) firebase.app();
-  else firebase.initializeApp(firebaseConfig);
-  db = firebase.database();
-  fbOk = true;
-}catch(e){
-  fbOk = false;
-}
-
-/* ==========================================================
-   ✅ APP ID
-========================================================== */
-const APP_ID = "leituras";
-const NODE_DEVICES_BY_APP = "devices_by_app";
-const NODE_NOTIFS  = "notifications";
-const ONLINE_PING_MS = 20000;
-
-/* ==========================================================
-   ✅ HELPERS
-========================================================== */
-function isStandalone(){
-  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
-}
-function isIOS(){
-  return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
-}
-function canAskNotificationInThisContext(){
-  if(!("Notification" in window)) return false;
-  if(isIOS() && !isStandalone()) return false;
-  return true;
-}
-
-/* ==========================================================
-   ✅ SERVICE WORKER (GH PAGES - ABSOLUTO)
-   (aqui é o que resolve "Controlado: NÃO")
+   ✅ SERVICE WORKER ABSOLUTO (GH Pages subpasta)
 ========================================================== */
 async function ensureSW(){
   if(!("serviceWorker" in navigator)) return null;
   try{
     // ✅ ABSOLUTO (subpasta do GitHub Pages)
-    const reg = await navigator.serviceWorker.register(
+    await navigator.serviceWorker.register(
       "/cartomantesonline.site/service-worker.js",
       { scope: "/cartomantesonline.site/" }
     );
     try{ await navigator.serviceWorker.ready; }catch{}
-    return reg || (await navigator.serviceWorker.ready) || null;
+    return await navigator.serviceWorker.ready;
   }catch(e){
     return null;
   }
@@ -593,7 +482,7 @@ async function ensureSW(){
 window.addEventListener("load", () => { ensureSW(); });
 
 /* ===========================
-   LISTA DE CONSULTORES
+   LISTA DE CONSULTORES (SEU)
 =========================== */
 const consultores = [
   { nome: "P.Márcio", valor: 2, imagem: "https://i.ibb.co/B5wwzSHD/Imagem-do-Whats-App-de-2025-10-31-s-12-44-22-8316baa5.jpg", estrelas: 5 },
@@ -637,10 +526,6 @@ consultores.forEach((c, idx) => {
   card.querySelector('.btn').addEventListener('click', (e) => {
     e.preventDefault();
     if (card.dataset.status !== "online") return;
-
-    localStorage.removeItem('consultorNome');
-    localStorage.removeItem('consultorValor');
-    localStorage.removeItem('consultorImagem');
 
     localStorage.setItem('consultorNome', c.nome);
     localStorage.setItem('consultorValor', String(c.valor));
@@ -785,108 +670,7 @@ setInterval(() => aplicarStatusRealista(false), 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) aplicarStatusRealista(false); });
 
 /* ==========================================================
-   ✅ NOTIFICAÇÕES (ISOLADO POR APP) — leituras
-========================================================== */
-
-/* ✅ deviceId estável */
-function getOrMakeDeviceId(){
-  const KEY = "co_device_id_v2";
-  let id = localStorage.getItem(KEY);
-  if(id && id.length > 8) return id;
-
-  const old = localStorage.getItem("co_device_id");
-  if(old && old.length > 8){
-    localStorage.setItem(KEY, old);
-    return old;
-  }
-
-  id = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
-  localStorage.setItem(KEY, id);
-  return id;
-}
-const deviceId = getOrMakeDeviceId();
-
-function devicesRef(){
-  return db.ref(`${NODE_DEVICES_BY_APP}/${APP_ID}/${deviceId}`);
-}
-
-async function upsertDevice(){
-  if(!db) return false;
-  try{
-    const perm = ("Notification" in window) ? Notification.permission : "unsupported";
-    await devicesRef().update({
-      id: deviceId,
-      app: APP_ID,
-      enabled: (perm === "granted"),
-      perm,
-      lastSeen: Date.now(),
-      ua: (navigator.userAgent || "").slice(0,220),
-      installed: isStandalone(),
-      page: "leituras"
-    });
-    return true;
-  }catch(e){
-    return false;
-  }
-}
-async function pingLastSeen(){
-  if(!db) return;
-  try{ await devicesRef().update({ lastSeen: Date.now() }); }catch(e){}
-}
-
-async function enviarNotificacaoLocal(title, body){
-  if(!("serviceWorker" in navigator)) return;
-  if(!("Notification" in window)) return;
-  if(Notification.permission !== "granted") return;
-
-  const t = title || "Cartomantes Online";
-  const b = body  || "Nova atualização.";
-
-  try{
-    const reg = await ensureSW();
-    if(reg && reg.showNotification){
-      await reg.showNotification(t, {
-        body: b,
-        icon: "/cartomantesonline.site/logo.png",
-        badge: "/cartomantesonline.site/logo.png",
-        tag: "co-" + Date.now(),
-        renotify: true,
-        data: { url: "/cartomantesonline.site/leituras.html?pwa=true" }
-      });
-      return;
-    }
-  }catch(e){}
-
-  try{
-    const reg2 = await ensureSW();
-    if(reg2 && reg2.active){
-      reg2.active.postMessage({
-        type: "LOCAL_NOTIFY",
-        title: t,
-        body: b,
-        url: "/cartomantesonline.site/leituras.html?pwa=true"
-      });
-      return;
-    }
-  }catch(e){}
-
-  try{
-    new Notification(t, { body: b, icon: "/cartomantesonline.site/logo.png" });
-  }catch(e){}
-}
-
-/* ✅ presença sempre (SÓ DO LEITURAS) */
-(async function bootPresence(){
-  if(!fbOk) return;
-  await upsertDevice();
-  pingLastSeen();
-  setInterval(pingLastSeen, ONLINE_PING_MS);
-  document.addEventListener("visibilitychange", () => { if(!document.hidden) pingLastSeen(); });
-})();
-
-/* ==========================================================
    ✅ PUSH REAL (RENDER) — chega com app fechado
-   Mesma lógica do seu teste que funcionou
 ========================================================== */
 const RENDER_URL = "https://teste1-y25k.onrender.com";
 const VAPID_PUBLIC_KEY = "BLbTJKYvaDqGA8lE7fYgx-3mzOjCT6-pIAuidCwC08NCW3BzV0V1I4YjgkUrfJJvCySdom-X4MaxGowioHjjoaE";
@@ -900,6 +684,16 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+function getOrMakeDeviceId(){
+  const KEY = "co_render_device_id_v1";
+  let id = localStorage.getItem(KEY);
+  if(id && id.length > 8) return id;
+  id = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem(KEY, id);
+  return id;
+}
+const deviceId = getOrMakeDeviceId();
+
 async function subscribeOnRender(){
   const reg = await ensureSW();
   if(!reg) throw new Error("Service Worker não ficou ativo. Verifique /cartomantesonline.site/service-worker.js");
@@ -910,6 +704,7 @@ async function subscribeOnRender(){
   if (Notification.permission === "denied") {
     throw new Error("Notificações bloqueadas. Vá em Permissões do site e permita.");
   }
+
   const perm = await Notification.requestPermission();
   if (perm !== "granted") throw new Error("Permissão não concedida.");
 
@@ -940,16 +735,11 @@ async function subscribeOnRender(){
     throw new Error("Falha no Render /api/subscribe: " + res.status + " " + txt);
   }
 
-  // ✅ salva no firebase também (se você quiser ver "enabled")
-  await upsertDevice();
-
   return true;
 }
 
 /* ==========================================================
-   ✅ PERMISSÃO — seu UX (mantido) + agora registra no Render
-   (quando clicar em ATIVAR AGORA, além de pedir permissão,
-    também assina push real no Render)
+   ✅ POPUP (ESSENCIAL) — ativa e registra no Render
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -958,8 +748,7 @@ async function subscribeOnRender(){
   const help   = document.getElementById("notifHelp");
   if(!wrap || !enable || !later) return;
 
-  const KEY_LAST_MODE     = "co_last_mode_v3";
-  const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_v1";
+  const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_render_v1";
   const REMIND_AFTER_MS = 90 * 1000;
 
   function showWrap(){ wrap.style.display = "flex"; }
@@ -973,6 +762,12 @@ async function subscribeOnRender(){
     if(!help) return;
     help.style.display = "none";
     help.innerHTML = "";
+  }
+  function isStandalone(){
+    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  }
+  function isIOS(){
+    return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
   }
 
   function shouldShowNow(){
@@ -1002,20 +797,12 @@ async function subscribeOnRender(){
     if(Notification.permission === "denied"){
       showHelp(
         `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
-        `Abra as configurações do navegador/app e permita notificações para este site.<br>`+
-        `<b>Depois</b> volte aqui que vai funcionar.`
+        `Abra as permissões do site e permita notificações.`
       );
     }
   }
 
-  (function detectStandaloneTransition(){
-    const modeNow  = isStandalone() ? "standalone" : "browser";
-    const lastMode = localStorage.getItem(KEY_LAST_MODE) || "";
-    localStorage.setItem(KEY_LAST_MODE, modeNow);
-  })();
-
   setTimeout(openPopupIfNeeded, 1200);
-
   document.addEventListener("visibilitychange", () => {
     if(!document.hidden){
       setTimeout(openPopupIfNeeded, 500);
@@ -1025,35 +812,12 @@ async function subscribeOnRender(){
   later.onclick = () => {
     hideWrap();
     localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + REMIND_AFTER_MS));
-    setTimeout(() => {
-      if(Notification.permission !== "granted") openPopupIfNeeded();
-    }, REMIND_AFTER_MS + 150);
   };
 
   enable.onclick = async () => {
-    if(!canAskNotificationInThisContext()){
-      showHelp(
-        `Para ativar no <b>iPhone</b>:<br>`+
-        `1) Compartilhar → <b>Adicionar à Tela de Início</b><br>`+
-        `2) Abra o app instalado<br>`+
-        `3) Volte e toque em <b>ATIVAR AGORA</b>.`
-      );
-      upsertDevice();
-      return;
-    }
-
-    if(Notification.permission === "denied"){
-      showHelp(
-        `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
-        `Abra as configurações do navegador/app e permita notificações para este site.`
-      );
-      upsertDevice();
-      return;
-    }
-
     try{
       showHelp("Ativando notificações e registrando no servidor...");
-      await subscribeOnRender(); // ✅ aqui registra no Render também
+      await subscribeOnRender();
 
       hideWrap();
       localStorage.removeItem(KEY_SNOOZE_UNTIL);
@@ -1071,74 +835,10 @@ async function subscribeOnRender(){
 
     }catch(e){
       showHelp("❌ " + (e?.message || e));
-      upsertDevice();
       localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
       setTimeout(openPopupIfNeeded, 20050);
     }
   };
-})();
-
-/* ==========================================================
-   ✅ RECEBER NOTIFICAÇÕES DO PAINEL (FILTRADO POR app)
-   (mantido - suas notificações do Firebase continuam)
-========================================================== */
-(function listenPanelNotifications(){
-  if(!db) return;
-  if(!("Notification" in window)) return;
-
-  const LAST_TS_KEY   = "co_last_notif_ts_v3";
-  const SEEN_IDS_KEY  = "co_seen_notif_ids_v3";
-
-  let lastTs = Number(localStorage.getItem(LAST_TS_KEY) || "0");
-
-  let seen = {};
-  try{ seen = JSON.parse(localStorage.getItem(SEEN_IDS_KEY) || "{}") || {}; }catch{ seen = {}; }
-
-  function rememberSeen(id){
-    seen[id] = Date.now();
-    const cutoff = Date.now() - (7*24*60*60*1000);
-    for(const k in seen){ if(seen[k] < cutoff) delete seen[k]; }
-    try{ localStorage.setItem(SEEN_IDS_KEY, JSON.stringify(seen)); }catch{}
-  }
-
-  function isRecipientOk(recipients){
-    if(!recipients) return false;
-    if(typeof recipients === "object"){
-      return recipients["*"] === true || recipients[deviceId] === true;
-    }
-    return false;
-  }
-
-  function isAppOk(app){
-    if(!app) return false;
-    return String(app) === APP_ID;
-  }
-
-  db.ref(NODE_NOTIFS).limitToLast(250).on("child_added", async (snap) => {
-    const notifId = snap.key;
-    const d = snap.val() || {};
-    const ts = Number(d.ts || d.sentAt || 0);
-
-    if(notifId && seen[notifId]) return;
-
-    if(ts && ts <= lastTs) {
-      if(notifId) rememberSeen(notifId);
-      return;
-    }
-
-    if(Notification.permission !== "granted") return;
-    if(!isAppOk(d.app)) return;
-    if(!isRecipientOk(d.recipients)) return;
-
-    if(ts){
-      lastTs = ts;
-      localStorage.setItem(LAST_TS_KEY, String(ts));
-    }
-    if(notifId) rememberSeen(notifId);
-
-    await enviarNotificacaoLocal(d.title, d.body);
-    upsertDevice();
-  });
 })();
 </script>
 
