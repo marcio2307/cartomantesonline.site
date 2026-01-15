@@ -229,11 +229,11 @@ textarea{ min-height:110px; resize:vertical; }
 
 <script>
 /* ==========================================================
-   ✅ PAINEL GERAL (ISOLADO POR APP)
-   - LÊ:  devices_by_app/geral
-   - ENVIA: notifications com app:"geral"
+   ✅ JEITO 1 (PARA ENVIAR AO leituras.html)
+   - LÊ:    devices_by_app/leituras
+   - ENVIA: notifications com app:"leituras"
 ========================================================== */
-const APP_ID = "geral";
+const APP_ID = "leituras"; // ✅ AQUI É O PONTO PRINCIPAL
 
 /* Firebase config (seu) */
 const firebaseConfig = {
@@ -253,7 +253,7 @@ const NODE_NOTIFS         = "notifications";
 const ONLINE_WINDOW_MS = 70 * 1000;
 const LIST_LIMIT = 800;
 
-/* Para onde o clique da notificação vai levar */
+/* Para onde o clique da notificação vai levar (no leituras.html) */
 const FIXED_CLICK_URL = "leituras.html?pwa=true";
 
 /* UI refs */
@@ -323,7 +323,7 @@ async function refreshDevicesOnce(){
     refreshCounters();
   }catch(e){
     console.error(e);
-    miniInfo.textContent = "❌ Erro ao ler devices_by_app/geral. Confira Rules.";
+    miniInfo.textContent = "❌ Erro ao ler devices_by_app/leituras. Confira Rules.";
   }
 }
 
@@ -339,7 +339,7 @@ function startRealtimeDevices(){
     refreshCounters();
   }, (err) => {
     console.error(err);
-    miniInfo.textContent = "❌ Erro realtime em devices_by_app/geral (Rules).";
+    miniInfo.textContent = "❌ Erro realtime em devices_by_app/leituras (Rules).";
   });
 }
 
@@ -373,7 +373,7 @@ async function sendNotification({title, body, target}){
   const ids = (target === "registered") ? registeredIds : onlineIds;
 
   const payload = {
-    app: APP_ID,
+    app: APP_ID,               // ✅ "leituras"
     title,
     body,
     url: FIXED_CLICK_URL,
@@ -415,7 +415,7 @@ document.getElementById("btnBroadcast").onclick = async () => {
     }
     const now = Date.now();
     await pushNotification({
-      app: APP_ID,
+      app: APP_ID, // ✅ "leituras"
       title: (nTitle.value || "Cartomantes Online").trim(),
       body: (nBody.value || "").trim(),
       url: FIXED_CLICK_URL,
