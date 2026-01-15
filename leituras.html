@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Consultores Disponíveis</title>
 
+<!-- ✅ PWA (GitHub Pages /cartomantesonline.site/) -->
+<link rel="manifest" href="/cartomantesonline.site/manifest.json" />
+<meta name="theme-color" content="#000000" />
+
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 
 <style>
@@ -569,18 +573,19 @@ function canAskNotificationInThisContext(){
 }
 
 /* ==========================================================
-   ✅ SERVICE WORKER (mais robusto no GH Pages)
+   ✅ SERVICE WORKER (GH PAGES - ABSOLUTO)
+   (aqui é o que resolve "Controlado: NÃO")
 ========================================================== */
 async function ensureSW(){
   if(!("serviceWorker" in navigator)) return null;
   try{
-    const swUrl = new URL("service-worker.js", location.href).href;
-    let reg = await navigator.serviceWorker.getRegistration(swUrl);
-    if(!reg){
-      reg = await navigator.serviceWorker.register(swUrl);
-    }
-    try{ reg = await navigator.serviceWorker.ready; }catch{}
-    return reg || null;
+    // ✅ ABSOLUTO (subpasta do GitHub Pages)
+    const reg = await navigator.serviceWorker.register(
+      "/cartomantesonline.site/service-worker.js",
+      { scope: "/cartomantesonline.site/" }
+    );
+    try{ await navigator.serviceWorker.ready; }catch{}
+    return reg || (await navigator.serviceWorker.ready) || null;
   }catch(e){
     return null;
   }
@@ -842,11 +847,11 @@ async function enviarNotificacaoLocal(title, body){
     if(reg && reg.showNotification){
       await reg.showNotification(t, {
         body: b,
-        icon: "./logo.png",
-        badge: "./logo.png",
+        icon: "/cartomantesonline.site/logo.png",
+        badge: "/cartomantesonline.site/logo.png",
         tag: "co-" + Date.now(),
         renotify: true,
-        data: { url: "leituras.html?pwa=true" }
+        data: { url: "/cartomantesonline.site/leituras.html?pwa=true" }
       });
       return;
     }
@@ -859,14 +864,14 @@ async function enviarNotificacaoLocal(title, body){
         type: "LOCAL_NOTIFY",
         title: t,
         body: b,
-        url: "./leituras.html?pwa=true"
+        url: "/cartomantesonline.site/leituras.html?pwa=true"
       });
       return;
     }
   }catch(e){}
 
   try{
-    new Notification(t, { body: b, icon: "./logo.png" });
+    new Notification(t, { body: b, icon: "/cartomantesonline.site/logo.png" });
   }catch(e){}
 }
 
@@ -880,7 +885,71 @@ async function enviarNotificacaoLocal(title, body){
 })();
 
 /* ==========================================================
-   ✅ PERMISSÃO — seu UX (sem alterar lógica)
+   ✅ PUSH REAL (RENDER) — chega com app fechado
+   Mesma lógica do seu teste que funcionou
+========================================================== */
+const RENDER_URL = "https://teste1-y25k.onrender.com";
+const VAPID_PUBLIC_KEY = "BLbTJKYvaDqGA8lE7fYgx-3mzOjCT6-pIAuidCwC08NCW3BzV0V1I4YjgkUrfJJvCySdom-X4MaxGowioHjjoaE";
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function subscribeOnRender(){
+  const reg = await ensureSW();
+  if(!reg) throw new Error("Service Worker não ficou ativo. Verifique /cartomantesonline.site/service-worker.js");
+
+  if (!("PushManager" in window)) throw new Error("Push não suportado neste navegador.");
+  if (!("Notification" in window)) throw new Error("Notificações não suportadas.");
+
+  if (Notification.permission === "denied") {
+    throw new Error("Notificações bloqueadas. Vá em Permissões do site e permita.");
+  }
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw new Error("Permissão não concedida.");
+
+  let sub = await reg.pushManager.getSubscription();
+  if(!sub){
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+  }
+
+  const res = await fetch(RENDER_URL + "/api/subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      subscription: sub,
+      page: location.href,
+      site: "cartomantesonline.site",
+      app: "leituras",
+      deviceId,
+      createdAt: new Date().toISOString(),
+      ua: navigator.userAgent
+    })
+  });
+
+  if(!res.ok){
+    const txt = await res.text().catch(()=> "");
+    throw new Error("Falha no Render /api/subscribe: " + res.status + " " + txt);
+  }
+
+  // ✅ salva no firebase também (se você quiser ver "enabled")
+  await upsertDevice();
+
+  return true;
+}
+
+/* ==========================================================
+   ✅ PERMISSÃO — seu UX (mantido) + agora registra no Render
+   (quando clicar em ATIVAR AGORA, além de pedir permissão,
+    também assina push real no Render)
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -943,7 +1012,6 @@ async function enviarNotificacaoLocal(title, body){
     const modeNow  = isStandalone() ? "standalone" : "browser";
     const lastMode = localStorage.getItem(KEY_LAST_MODE) || "";
     localStorage.setItem(KEY_LAST_MODE, modeNow);
-    // (mantém só como histórico)
   })();
 
   setTimeout(openPopupIfNeeded, 1200);
@@ -984,22 +1052,25 @@ async function enviarNotificacaoLocal(title, body){
     }
 
     try{
-      const perm = await Notification.requestPermission();
-      await upsertDevice();
+      showHelp("Ativando notificações e registrando no servidor...");
+      await subscribeOnRender(); // ✅ aqui registra no Render também
 
-      if(perm === "granted"){
-        hideWrap();
-        localStorage.removeItem(KEY_SNOOZE_UNTIL);
-        enviarNotificacaoLocal("Notificações ativadas ✅", "Você vai receber avisos do painel.");
-        return;
-      }
+      hideWrap();
+      localStorage.removeItem(KEY_SNOOZE_UNTIL);
 
-      showHelp(`Permissão não concedida. Para receber avisos, toque em <b>ATIVAR AGORA</b> e permita as notificações.`);
-      localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
-      setTimeout(openPopupIfNeeded, 20050);
+      // ✅ teste local imediato
+      try{
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification("Notificações ativadas ✅", {
+          body: "Tudo certo! Você já pode receber avisos com o app fechado.",
+          icon: "/cartomantesonline.site/logo.png",
+          badge: "/cartomantesonline.site/logo.png",
+          data: { url: "/cartomantesonline.site/leituras.html?pwa=true" }
+        });
+      }catch{}
 
     }catch(e){
-      showHelp(`Não foi possível solicitar permissão agora. Tente novamente.`);
+      showHelp("❌ " + (e?.message || e));
       upsertDevice();
       localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
       setTimeout(openPopupIfNeeded, 20050);
@@ -1009,6 +1080,7 @@ async function enviarNotificacaoLocal(title, body){
 
 /* ==========================================================
    ✅ RECEBER NOTIFICAÇÕES DO PAINEL (FILTRADO POR app)
+   (mantido - suas notificações do Firebase continuam)
 ========================================================== */
 (function listenPanelNotifications(){
   if(!db) return;
