@@ -1,34 +1,47 @@
 /* ==========================================================
-   CARTOMANTES ONLINE – SERVICE WORKER (CACHE + LOCAL_NOTIFY + PUSH REAL)
-   GitHub Pages (subpasta) + Render Push Server
-   ✅ Clique da notificação abre: /cartomantesonline.site/leituras.html?pwa=true
-   ✅ LOCAL_NOTIFY compatível (Chrome/Samsung)
-   ✅ PUSH REAL chega com app fechado (vindo do Render)
+   CARTOMANTES ONLINE – SERVICE WORKER
+   CACHE + LOCAL_NOTIFY + PUSH REAL (Render)
+   GitHub Pages (subpasta: /cartomantesonline.site/)
+   ✅ Clique abre: /cartomantesonline.site/leituras.html?pwa=true
 ========================================================== */
 
-const CACHE_VERSION = "v1.2.1"; // 🔴 aumentei (troque sempre que editar)
+const CACHE_VERSION = "v1.2.3"; // 🔴 aumente sempre que editar
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 // ✅ base do GH Pages (subpasta)
 const BASE = "/cartomantesonline.site/";
 
-// ✅ ajuste aqui se você criar novas páginas
+// ✅ SOMENTE arquivos que EXISTEM (conforme seu print)
 const APP_SHELL = [
   BASE,
   BASE + "index.html",
   BASE + "leituras.html",
+  BASE + "pacotes.html",
+  BASE + "pix.html",
+  BASE + "sorteio.html",
   BASE + "manifest.json",
   BASE + "logo.png",
-  BASE + "service-worker.js",
-  BASE + "notificacoes.html",
-  BASE + "painel.html"
+  BASE + "service-worker.js"
 ];
 
 /* ===========================
    INSTALL
 =========================== */
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      // ✅ se algum arquivo falhar, não quebra tudo:
+      await Promise.all(
+        APP_SHELL.map(async (url) => {
+          try {
+            const res = await fetch(url, { cache: "no-cache" });
+            if (res.ok) await cache.put(url, res.clone());
+          } catch {}
+        })
+      );
+    })()
+  );
   self.skipWaiting();
 });
 
@@ -36,23 +49,24 @@ self.addEventListener("install", (event) => {
    ACTIVATE
 =========================== */
 self.addEventListener("activate", (event) => {
-  event.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(
-      keys
-        .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
-        .map((k) => caches.delete(k))
-    );
-
-    await self.clients.claim();
-  })());
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
+          .map((k) => caches.delete(k))
+      );
+      await self.clients.claim();
+    })()
+  );
 });
 
 /* ===========================
    FETCH
-   ✅ NÃO CACHEIA EXTERNOS
-   ✅ Network-first para HTML
-   ✅ Cache-first para assets
+   - Não cacheia externos
+   - HTML: network-first
+   - Assets: cache-first
 =========================== */
 self.addEventListener("fetch", (event) => {
   const req = event.request;
@@ -82,7 +96,6 @@ self.addEventListener("fetch", (event) => {
         .catch(async () => {
           const cached = await caches.match(req);
           if (cached) return cached;
-
           return (await caches.match(BASE + "leituras.html")) || (await caches.match(BASE));
         })
     );
@@ -107,24 +120,9 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
-   ✅ Helper: resolve URL dentro do scope do SW
-========================================================== */
-function resolveWithinScope(input) {
-  const scope = self.registration.scope; // ex: https://marcio2307.github.io/cartomantesonline.site/
-  try {
-    // se já for absoluta, mantém
-    const u = new URL(input);
-    return u.href;
-  } catch {
-    // se for relativa, resolve dentro do scope
-    return new URL(input || "leituras.html?pwa=true", scope).href;
-  }
-}
-
-/* ==========================================================
-   ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL)
+   ✅ LOCAL_NOTIFY (sem push)
    Recebe postMessage do site:
-     { type:"LOCAL_NOTIFY", title, body, url, tag }
+   { type:"LOCAL_NOTIFY", title, body, url, tag }
 ========================================================== */
 self.addEventListener("message", (event) => {
   try {
@@ -132,9 +130,10 @@ self.addEventListener("message", (event) => {
     if (data.type !== "LOCAL_NOTIFY") return;
 
     const title = data.title || "Cartomantes Online";
-    const body  = vcs.
-    const rawUrl = data.url || "leituras.html?pwa=true";
-    const targetUrl = resolveWithinScope(rawUrl);
+    const body  = data.body  || "Você tem uma nova atualização.";
+
+    const rawUrl = data.url || (BASE + "leituras.html?pwa=true");
+    const targetUrl = new URL(rawUrl, self.location.origin).href;
 
     const tag = data.tag || `co-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -145,19 +144,16 @@ self.addEventListener("message", (event) => {
         badge: BASE + "logo.png",
         tag,
         renotify: true,
-        requireInteraction: false,
         data: { url: targetUrl }
       })
     );
-  } catch {
-    // silencioso
-  }
+  } catch {}
 });
 
 /* ==========================================================
-   ✅ PUSH REAL (VINDO DO RENDER)
-   O servidor Render envia payload JSON:
-   { title, body, url }
+   ✅ PUSH REAL (Render)
+   Render envia payload JSON:
+   { title, body, url, icon }
 ========================================================== */
 self.addEventListener("push", (event) => {
   let payload = {};
@@ -170,8 +166,9 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Cartomantes Online";
   const body  = payload.body  || "Você tem uma nova atualização.";
 
-  // ✅ sempre resolve dentro do scope (mesmo se vier relativo)
-  const targetUrl = resolveWithinScope(payload.url || "leituras.html?pwa=true");
+  // ✅ sempre abre dentro do seu GH Pages
+  const desired = payload.url || (BASE + "leituras.html?pwa=true");
+  const targetUrl = new URL(desired, self.location.origin).href;
 
   event.waitUntil(
     self.registration.showNotification(title, {
@@ -185,15 +182,16 @@ self.addEventListener("push", (event) => {
 
 /* ===========================
    CLICK NA NOTIFICAÇÃO
-   ✅ Foca aba existente e navega
-   ✅ Se não existir, abre nova
 =========================== */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const targetUrl = (event.notification?.data?.url)
-    ? event.notification.data.url
-    : resolveWithinScope("leituras.html?pwa=true");
+  const fallback = new URL(BASE + "leituras.html?pwa=true", self.location.origin).href;
+
+  const targetUrl =
+    (event.notification && event.notification.data && event.notification.data.url)
+      ? event.notification.data.url
+      : fallback;
 
   event.waitUntil((async () => {
     const allClients = await self.clients.matchAll({
