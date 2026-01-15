@@ -2,20 +2,20 @@
   "name": "Cartomantes Online",
   "short_name": "Cartomantes",
   "description": "Consulta de tarot online por chat pré-pago.",
-  "start_url": "./leituras.html?pwa=true",
-  "scope": "./",
+  "start_url": "/cartomantesonline.site/leituras.html?pwa=true",
+  "scope": "/cartomantesonline.site/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "./logo.png",
+      "src": "/cartomantesonline.site/logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "./logo.png",
+      "src": "/cartomantesonline.site/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
