@@ -6,7 +6,7 @@
    ✅ PUSH REAL chega com app fechado (vindo do Render)
 ========================================================== */
 
-const CACHE_VERSION = "v1.2.0"; // 🔴 AUMENTE sempre que trocar arquivos
+const CACHE_VERSION = "v1.2.1"; // 🔴 aumentei (troque sempre que editar)
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 // ✅ base do GH Pages (subpasta)
@@ -28,9 +28,7 @@ const APP_SHELL = [
    INSTALL
 =========================== */
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
   self.skipWaiting();
 });
 
@@ -38,23 +36,16 @@ self.addEventListener("install", (event) => {
    ACTIVATE
 =========================== */
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    (async () => {
-      const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
-          .map((k) => caches.delete(k))
-      );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter((k) => k.startsWith("cartomantes-cache-") && k !== CACHE_NAME)
+        .map((k) => caches.delete(k))
+    );
 
-      await self.clients.claim();
-
-      const allClients = await self.clients.matchAll({ includeUncontrolled: true });
-      allClients.forEach((c) => {
-        try { c.postMessage({ type: "SW_UPDATED", version: CACHE_VERSION }); } catch {}
-      });
-    })()
-  );
+    await self.clients.claim();
+  })());
 });
 
 /* ===========================
@@ -92,7 +83,6 @@ self.addEventListener("fetch", (event) => {
           const cached = await caches.match(req);
           if (cached) return cached;
 
-          // fallback
           return (await caches.match(BASE + "leituras.html")) || (await caches.match(BASE));
         })
     );
@@ -117,36 +107,49 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
+   ✅ Helper: resolve URL dentro do scope do SW
+========================================================== */
+function resolveWithinScope(input) {
+  const scope = self.registration.scope; // ex: https://marcio2307.github.io/cartomantesonline.site/
+  try {
+    // se já for absoluta, mantém
+    const u = new URL(input);
+    return u.href;
+  } catch {
+    // se for relativa, resolve dentro do scope
+    return new URL(input || "leituras.html?pwa=true", scope).href;
+  }
+}
+
+/* ==========================================================
    ✅ NOTIFICAÇÃO LOCAL (SEM PUSH REAL)
    Recebe postMessage do site:
      { type:"LOCAL_NOTIFY", title, body, url, tag }
 ========================================================== */
 self.addEventListener("message", (event) => {
-  try{
+  try {
     const data = event.data || {};
     if (data.type !== "LOCAL_NOTIFY") return;
 
     const title = data.title || "Cartomantes Online";
-    const body  = data.body  || "Você tem uma nova atualização.";
-
-    // ✅ normaliza URL dentro do scope do GH Pages
-    const rawUrl = data.url || (BASE + "leituras.html?pwa=true");
-    const targetUrl = new URL(rawUrl, self.location.origin).href;
+    const body  = vcs.
+    const rawUrl = data.url || "leituras.html?pwa=true";
+    const targetUrl = resolveWithinScope(rawUrl);
 
     const tag = data.tag || `co-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-    const options = {
-      body,
-      icon: BASE + "logo.png",
-      badge: BASE + "logo.png",
-      tag,
-      renotify: true,
-      requireInteraction: false,
-      data: { url: targetUrl }
-    };
-
-    event.waitUntil(self.registration.showNotification(title, options));
-  }catch(e){
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon: BASE + "logo.png",
+        badge: BASE + "logo.png",
+        tag,
+        renotify: true,
+        requireInteraction: false,
+        data: { url: targetUrl }
+      })
+    );
+  } catch {
     // silencioso
   }
 });
@@ -167,18 +170,17 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Cartomantes Online";
   const body  = payload.body  || "Você tem uma nova atualização.";
 
-  // ✅ garante abrir sempre dentro do GH Pages
-  const desiredPath = payload.url || (BASE + "leituras.html?pwa=true");
-  const targetUrl = new URL(desiredPath, self.location.origin).href;
+  // ✅ sempre resolve dentro do scope (mesmo se vier relativo)
+  const targetUrl = resolveWithinScope(payload.url || "leituras.html?pwa=true");
 
-  const options = {
-    body,
-    icon: BASE + "logo.png",
-    badge: BASE + "logo.png",
-    data: { url: targetUrl }
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: BASE + "logo.png",
+      badge: BASE + "logo.png",
+      data: { url: targetUrl }
+    })
+  );
 });
 
 /* ===========================
@@ -189,12 +191,9 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
-  const fallback = new URL(BASE + "leituras.html?pwa=true", self.location.origin).href;
-
-  const targetUrl =
-    (event.notification && event.notification.data && event.notification.data.url)
-      ? event.notification.data.url
-      : fallback;
+  const targetUrl = (event.notification?.data?.url)
+    ? event.notification.data.url
+    : resolveWithinScope("leituras.html?pwa=true");
 
   event.waitUntil((async () => {
     const allClients = await self.clients.matchAll({
