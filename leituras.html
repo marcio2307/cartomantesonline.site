@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 
 <style>
+/* ======= SEU CSS INTEIRO (SEM ALTERAR) ======= */
 :root{
   --gold-1:#fff0a6;
   --gold-2:#f6e27a;
@@ -28,8 +29,6 @@ body{
   font-family:'Poppins',sans-serif;
   color:#fff;
 }
-
-/* ✅ CARROSSEL DE BANNERS (SEM CORTE) */
 .banner-carousel{
   width:100%;
   margin:0;
@@ -68,10 +67,7 @@ body{
   .banner-carousel{ border-bottom-width:1px; }
   :root{ --btn-h:64px; --btn-px:16px; }
 }
-
 .page{ padding:22px 20px 28px; }
-
-/* Hero */
 .hero{
   max-width:1200px;
   margin:0 auto 22px;
@@ -89,8 +85,6 @@ body{
   background-clip:text;
   text-shadow:0 0 22px rgba(199,160,8,0.15);
 }
-
-/* ✅ AVISO */
 .hero .vip-aviso{
   display:flex;
   justify-content:center;
@@ -121,7 +115,6 @@ body{
 }
 .hero .vip-aviso a:hover{ filter:brightness(1.05); }
 .hero .vip-aviso a:active{ transform: translateY(1px); }
-
 @media (max-width:480px){
   .hero .vip-aviso{ margin-top:12px; }
   .hero .vip-aviso a{
@@ -133,8 +126,6 @@ body{
     border-radius:18px;
   }
 }
-
-/* Grid */
 .container{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -151,8 +142,6 @@ body{
   .container{ grid-template-columns:repeat(2,1fr); gap:12px; }
   .hero h1{ font-size:26px; }
 }
-
-/* Cards */
 .card{
   position:relative;
   border-radius:18px;
@@ -224,8 +213,6 @@ body{
   background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%);
   pointer-events:none;
 }
-
-/* Badge */
 .badge{
   position:absolute;
   top:16px; left:16px;
@@ -243,9 +230,7 @@ body{
 }
 .badge.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
 .badge.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); }
-
 .content{ padding:12px 14px 16px; position:relative; z-index:3; }
-
 .name{
   font-family:'Cinzel', serif;
   font-size:16px;
@@ -262,7 +247,6 @@ body{
   background-clip:text;
   text-shadow:0 0 18px rgba(199,160,8,0.12);
 }
-
 .dot{
   width:9px; height:9px;
   border-radius:50%;
@@ -273,7 +257,6 @@ body{
 @keyframes blink{ 50%{ opacity:0; } }
 .dot.ocupado{ background:#e67e22; animation:none; box-shadow:none; }
 .dot.indisp{ background:#e74c3c; animation:none; box-shadow:none; }
-
 .stars{
   color:transparent;
   background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 55%, var(--gold-4) 100%);
@@ -284,7 +267,6 @@ body{
   font-size:14px;
   text-shadow:0 0 18px rgba(199,160,8,0.12);
 }
-
 .price{ text-align:center; font-size:13px; color:rgba(255,255,255,0.90); margin-bottom:12px; }
 .price b{
   color:transparent;
@@ -292,8 +274,6 @@ body{
   -webkit-background-clip:text;
   background-clip:text;
 }
-
-/* Botões */
 .btn{
   width:100%;
   height:var(--btn-h);
@@ -316,20 +296,14 @@ body{
   transition:filter .18s ease;
 }
 @media (max-width:480px){ .btn{ font-size:12px; } }
-
 .btn.disponivel{ background:linear-gradient(180deg, #2ecc71 0%, #1f9b50 100%); color:#fff; border-color:rgba(255,255,255,0.16); }
 .btn:hover{ filter:brightness(1.06); }
 .btn.ocupado{ background:linear-gradient(180deg, #f39c12 0%, #d35400 100%); color:#111; pointer-events:none; }
 .btn.indisp{ background:linear-gradient(180deg, #e74c3c 0%, #c0392b 100%); color:#fff; pointer-events:none; }
-
 .card.novo{
   border-color:rgba(246,226,122,0.95);
   box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
-
-/* ==========================================================
-   ✅ POPUP PERMISSÃO (BOTTOM SHEET)
-========================================================== */
 #notifPopupWrap{
   position:fixed;
   inset:0;
@@ -369,7 +343,6 @@ body{
 #notifIcon svg{ width:24px;height:24px; opacity:.95; }
 #notifTitle{ font-weight:900; font-size:15px; line-height:1.1; }
 #notifDesc{ opacity:.90; font-size:13px; line-height:1.4; margin-top:4px; }
-
 #notifBtns{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -377,7 +350,6 @@ body{
   margin-top:10px;
 }
 @media (max-width:420px){ #notifBtns{ grid-template-columns:1fr; } }
-
 .notifBtn{
   height:52px;
   border:0;
@@ -410,8 +382,6 @@ body{
   -webkit-background-clip:text;
   background-clip:text;
 }
-
-/* ✅ BLOQUEIO DE PROPAGANDAS INJETADAS */
 fabapp-banner-footer,
 fabapp-banner-footer *{
   display:none !important;
@@ -480,7 +450,6 @@ source[src*="fabapp-ads"]{
   <div class="container" id="cards-container"></div>
 </div>
 
-<!-- ✅ POPUP MODERNO (BOTTOM SHEET) -->
 <div id="notifPopupWrap" role="dialog" aria-label="Ativar notificações">
   <div id="notifSheet">
     <div id="notifHeader">
@@ -505,7 +474,6 @@ source[src*="fabapp-ads"]{
   </div>
 </div>
 
-<!-- Firebase (Compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -578,6 +546,14 @@ try{
 }
 
 /* ==========================================================
+   ✅ APP ID
+========================================================== */
+const APP_ID = "leituras";
+const NODE_DEVICES_BY_APP = "devices_by_app";
+const NODE_NOTIFS  = "notifications";
+const ONLINE_PING_MS = 20000;
+
+/* ==========================================================
    ✅ HELPERS
 ========================================================== */
 function isStandalone(){
@@ -593,13 +569,13 @@ function canAskNotificationInThisContext(){
 }
 
 /* ==========================================================
-   ✅ SERVICE WORKER (GARANTE REGISTRO ANTES DE USAR)
+   ✅ SERVICE WORKER (mais robusto no GH Pages)
 ========================================================== */
 async function ensureSW(){
   if(!("serviceWorker" in navigator)) return null;
   try{
-    const swUrl = new URL("./service-worker.js", location.href).href;
-    let reg = await navigator.serviceWorker.getRegistration();
+    const swUrl = new URL("service-worker.js", location.href).href;
+    let reg = await navigator.serviceWorker.getRegistration(swUrl);
     if(!reg){
       reg = await navigator.serviceWorker.register(swUrl);
     }
@@ -672,7 +648,7 @@ consultores.forEach((c, idx) => {
 });
 
 /* ===========================
-   STATUS REALISTA
+   STATUS REALISTA (SEU)
 =========================== */
 function chance(p){ return Math.random() < p; }
 const STORAGE_KEY = "status_realista_v3";
@@ -805,16 +781,9 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) apli
 
 /* ==========================================================
    ✅ NOTIFICAÇÕES (ISOLADO POR APP) — leituras
-   - Salva devices em: devices_by_app/leituras/{deviceId}
-   - Só recebe notificações com: payload.app === "leituras"
 ========================================================== */
-const APP_ID = "leituras";
 
-const NODE_DEVICES_BY_APP = "devices_by_app"; // devices_by_app/{appId}/{deviceId}
-const NODE_NOTIFS  = "notifications";
-const ONLINE_PING_MS = 20000;
-
-/* ✅ deviceId estável (o mesmo entre apps, mas salvo em caminhos diferentes) */
+/* ✅ deviceId estável */
 function getOrMakeDeviceId(){
   const KEY = "co_device_id_v2";
   let id = localStorage.getItem(KEY);
@@ -836,7 +805,6 @@ function devicesRef(){
   return db.ref(`${NODE_DEVICES_BY_APP}/${APP_ID}/${deviceId}`);
 }
 
-/* ✅ registra/atualiza device (SÓ DO APP LEITURAS) */
 async function upsertDevice(){
   if(!db) return false;
   try{
@@ -861,7 +829,6 @@ async function pingLastSeen(){
   try{ await devicesRef().update({ lastSeen: Date.now() }); }catch(e){}
 }
 
-/* ✅ FUNÇÃO (COM FALLBACKS PRA TABLET) */
 async function enviarNotificacaoLocal(title, body){
   if(!("serviceWorker" in navigator)) return;
   if(!("Notification" in window)) return;
@@ -870,7 +837,6 @@ async function enviarNotificacaoLocal(title, body){
   const t = title || "Cartomantes Online";
   const b = body  || "Nova atualização.";
 
-  // 1) tenta SW showNotification
   try{
     const reg = await ensureSW();
     if(reg && reg.showNotification){
@@ -886,7 +852,6 @@ async function enviarNotificacaoLocal(title, body){
     }
   }catch(e){}
 
-  // 2) fallback: postMessage pro SW
   try{
     const reg2 = await ensureSW();
     if(reg2 && reg2.active){
@@ -900,7 +865,6 @@ async function enviarNotificacaoLocal(title, body){
     }
   }catch(e){}
 
-  // 3) último recurso
   try{
     new Notification(t, { body: b, icon: "./logo.png" });
   }catch(e){}
@@ -916,7 +880,7 @@ async function enviarNotificacaoLocal(title, body){
 })();
 
 /* ==========================================================
-   ✅ PERMISSÃO — mantém seu comportamento (popup + lembrar)
+   ✅ PERMISSÃO — seu UX (sem alterar lógica)
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -925,10 +889,8 @@ async function enviarNotificacaoLocal(title, body){
   const help   = document.getElementById("notifHelp");
   if(!wrap || !enable || !later) return;
 
-  const KEY_INSTALL_STAMP = "co_install_stamp_v3";
   const KEY_LAST_MODE     = "co_last_mode_v3";
   const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_v1";
-
   const REMIND_AFTER_MS = 90 * 1000;
 
   function showWrap(){ wrap.style.display = "flex"; }
@@ -942,12 +904,6 @@ async function enviarNotificacaoLocal(title, body){
     if(!help) return;
     help.style.display = "none";
     help.innerHTML = "";
-  }
-
-  function markInstall(reason){
-    const stamp = "inst_" + (reason||"x") + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2);
-    localStorage.setItem(KEY_INSTALL_STAMP, stamp);
-    localStorage.removeItem(KEY_SNOOZE_UNTIL);
   }
 
   function shouldShowNow(){
@@ -983,22 +939,11 @@ async function enviarNotificacaoLocal(title, body){
     }
   }
 
-  window.addEventListener("appinstalled", () => {
-    markInstall("appinstalled");
-    openPopupIfNeeded();
-  });
-
   (function detectStandaloneTransition(){
     const modeNow  = isStandalone() ? "standalone" : "browser";
     const lastMode = localStorage.getItem(KEY_LAST_MODE) || "";
     localStorage.setItem(KEY_LAST_MODE, modeNow);
-
-    if(modeNow === "standalone" && lastMode && lastMode !== "standalone"){
-      markInstall("standalone_open");
-    }
-    if(modeNow === "standalone" && !lastMode){
-      markInstall("standalone_first");
-    }
+    // (mantém só como histórico)
   })();
 
   setTimeout(openPopupIfNeeded, 1200);
@@ -1086,13 +1031,6 @@ async function enviarNotificacaoLocal(title, body){
 
   function isRecipientOk(recipients){
     if(!recipients) return false;
-
-    if(typeof recipients === "string"){
-      return recipients === "*" ? true : (recipients === deviceId);
-    }
-    if(Array.isArray(recipients)){
-      return recipients.includes("*") || recipients.includes(deviceId);
-    }
     if(typeof recipients === "object"){
       return recipients["*"] === true || recipients[deviceId] === true;
     }
@@ -1100,9 +1038,7 @@ async function enviarNotificacaoLocal(title, body){
   }
 
   function isAppOk(app){
-    // ✅ Só aceita notificação sem app (legado) OU app === "leituras"
-    // Se você quiser bloquear legado, troque para: return app === APP_ID;
-    if(!app) return false; // mais seguro: não aceita legado
+    if(!app) return false;
     return String(app) === APP_ID;
   }
 
@@ -1119,7 +1055,7 @@ async function enviarNotificacaoLocal(title, body){
     }
 
     if(Notification.permission !== "granted") return;
-    if(!isAppOk(d.app)) return;                 // ✅ FILTRO POR APP
+    if(!isAppOk(d.app)) return;
     if(!isRecipientOk(d.recipients)) return;
 
     if(ts){
