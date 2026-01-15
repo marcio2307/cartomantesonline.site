@@ -224,22 +224,18 @@ textarea{ min-height:110px; resize:vertical; }
   </div>
 </div>
 
-<!-- Firebase (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
 /* ==========================================================
    ✅ PAINEL GERAL (ISOLADO POR APP)
-   - lê devices em: devices_by_app/geral
-   - envia notifications com: app:"geral"
-   Obs: isso NÃO mexe em pmarcio nem leituras.
+   - LÊ:  devices_by_app/geral
+   - ENVIA: notifications com app:"geral"
 ========================================================== */
 const APP_ID = "geral";
 
-/* ==========================================================
-   FIREBASE CONFIG (o mesmo do site)
-========================================================== */
+/* Firebase config (seu) */
 const firebaseConfig = {
   apiKey: "AIzaSyA7XSLTDxayTOczs7-sW5s0_nx7nkDgVo",
   authDomain: "coletivo2025-9de23.firebaseapp.com",
@@ -250,22 +246,19 @@ const firebaseConfig = {
   appId: "1:740866367489:web:963e3f5be80cb35a71e000"
 };
 
-/* ✅ NÓS */
-const NODE_DEVICES_BY_APP = "devices_by_app"; // devices_by_app/{appId}/{deviceId}
-const NODE_NOTIFS         = "notifications";  // payload.app define o destino
+/* Nós */
+const NODE_DEVICES_BY_APP = "devices_by_app";
+const NODE_NOTIFS         = "notifications";
 
 const ONLINE_WINDOW_MS = 70 * 1000;
 const LIST_LIMIT = 800;
 
-// ✅ URL fixo pro clique (pode ser o que você quiser no painel geral)
+/* Para onde o clique da notificação vai levar */
 const FIXED_CLICK_URL = "leituras.html?pwa=true";
 
-/* ==========================================================
-   UI refs
-========================================================== */
+/* UI refs */
 const elRegistered = document.getElementById("vRegistered");
 const elOnline     = document.getElementById("vOnline");
-
 const nTitle  = document.getElementById("nTitle");
 const nBody   = document.getElementById("nBody");
 const nTarget = document.getElementById("nTarget");
@@ -273,30 +266,33 @@ const miniInfo  = document.getElementById("miniInfo");
 
 function fmtTime(ms){
   if(!ms) return "—";
-  return new Date(ms).toLocaleTimeString("pt-BR");
+  try{ return new Date(ms).toLocaleTimeString("pt-BR"); }catch{ return "—"; }
 }
 
-/* ==========================================================
-   INIT Firebase
-========================================================== */
+/* Init firebase (robusto) */
 let db = null;
 let cacheDevices = [];
 let lastRefresh = 0;
 
 try{
-  if(!firebase.apps || !firebase.apps.length){
+  if (firebase.apps && firebase.apps.length) {
+    firebase.app();
+  } else {
     firebase.initializeApp(firebaseConfig);
   }
   db = firebase.database();
-  miniInfo.textContent = "Conectado. Carregando dispositivos…";
+  miniInfo.textContent = "✅ Conectado. Carregando dispositivos…";
 }catch(e){
   console.error(e);
-  miniInfo.textContent = "Erro ao iniciar Firebase. Confira firebaseConfig.";
+  miniInfo.textContent = "❌ Erro ao iniciar Firebase. Confira firebaseConfig.";
 }
 
-/* ==========================================================
-   Devices: counts + cache (SÓ DO APP_ID)
-========================================================== */
+/* refs */
+function devicesRootRef(){
+  return db.ref(`${NODE_DEVICES_BY_APP}/${APP_ID}`);
+}
+
+/* counts */
 function computeCounts(devs){
   const now = Date.now();
   const registered = devs.filter(d => d && d.enabled === true).length;
@@ -311,60 +307,43 @@ function refreshCounters(){
   miniInfo.textContent = `Atualizado: ${fmtTime(lastRefresh)} • Online: ${online} • Registrados: ${registered} • app=${APP_ID}`;
 }
 
-function devicesRootRef(){
-  return db.ref(`${NODE_DEVICES_BY_APP}/${APP_ID}`);
-}
-
-/* ==========================================================
-   ✅ FIX: usar .once('value') + realtime
-========================================================== */
+/* leitura */
 async function refreshDevicesOnce(){
   if(!db) return;
   try{
     const query = devicesRootRef().orderByChild("lastSeen").limitToLast(LIST_LIMIT);
-
-    const snap = await new Promise((resolve, reject) => {
-      query.once("value",
-        (s) => resolve(s),
-        (err) => reject(err)
-      );
-    });
+    const snap = await new Promise((resolve, reject) => query.once("value", resolve, reject));
 
     const val = snap.val() || {};
     const arr = Object.entries(val).map(([id, d]) => ({ id, ...d }));
     arr.sort((a,b) => (b.lastSeen||0) - (a.lastSeen||0));
+
     cacheDevices = arr;
     lastRefresh = Date.now();
     refreshCounters();
   }catch(e){
     console.error(e);
-    miniInfo.textContent = "Erro ao ler devices_by_app. Confira Rules e databaseURL.";
+    miniInfo.textContent = "❌ Erro ao ler devices_by_app/geral. Confira Rules.";
   }
 }
 
 function startRealtimeDevices(){
   if(!db) return;
-  try{
-    devicesRootRef().orderByChild("lastSeen").limitToLast(LIST_LIMIT).on("value", (snap) => {
-      const val = snap.val() || {};
-      const arr = Object.entries(val).map(([id, d]) => ({ id, ...d }));
-      arr.sort((a,b) => (b.lastSeen||0) - (a.lastSeen||0));
-      cacheDevices = arr;
-      lastRefresh = Date.now();
-      refreshCounters();
-    }, (err) => {
-      console.error(err);
-      miniInfo.textContent = "Erro realtime devices_by_app (Rules).";
-    });
-  }catch(e){
-    console.error(e);
-    refreshDevicesOnce();
-  }
+  devicesRootRef().orderByChild("lastSeen").limitToLast(LIST_LIMIT).on("value", (snap) => {
+    const val = snap.val() || {};
+    const arr = Object.entries(val).map(([id, d]) => ({ id, ...d }));
+    arr.sort((a,b) => (b.lastSeen||0) - (a.lastSeen||0));
+
+    cacheDevices = arr;
+    lastRefresh = Date.now();
+    refreshCounters();
+  }, (err) => {
+    console.error(err);
+    miniInfo.textContent = "❌ Erro realtime em devices_by_app/geral (Rules).";
+  });
 }
 
-/* ==========================================================
-   Send notifications (payload app:"geral")
-========================================================== */
+/* envio */
 function buildRecipientsMap(ids){
   const m = {};
   for(const id of ids) m[id] = true;
@@ -383,8 +362,8 @@ async function sendNotification({title, body, target}){
   body  = (body  || "Nova mensagem.").trim();
   target = target || "online";
 
-  const devs = cacheDevices || [];
   const now = Date.now();
+  const devs = cacheDevices || [];
 
   const registeredIds = devs.filter(d => d && d.enabled === true).map(d => d.id);
   const onlineIds = devs
@@ -394,7 +373,7 @@ async function sendNotification({title, body, target}){
   const ids = (target === "registered") ? registeredIds : onlineIds;
 
   const payload = {
-    app: APP_ID,                 // ✅ ISOLAMENTO
+    app: APP_ID,
     title,
     body,
     url: FIXED_CLICK_URL,
@@ -406,9 +385,10 @@ async function sendNotification({title, body, target}){
   };
 
   await pushNotification(payload);
-  miniInfo.textContent = `Enviado para ${ids.length} dispositivo(s) (${target}) • app=${APP_ID} • ${fmtTime(Date.now())}`;
+  miniInfo.textContent = `✅ Enviado para ${ids.length} dispositivo(s) (${target}) • app=${APP_ID} • ${fmtTime(Date.now())}`;
 }
 
+/* eventos UI */
 document.getElementById("btnSend").onclick = async () => {
   try{
     if(!nBody.value.trim()){
@@ -435,7 +415,7 @@ document.getElementById("btnBroadcast").onclick = async () => {
     }
     const now = Date.now();
     await pushNotification({
-      app: APP_ID,              // ✅ ISOLAMENTO
+      app: APP_ID,
       title: (nTitle.value || "Cartomantes Online").trim(),
       body: (nBody.value || "").trim(),
       url: FIXED_CLICK_URL,
@@ -445,7 +425,7 @@ document.getElementById("btnBroadcast").onclick = async () => {
       sentBy: "painel",
       sentAt: now
     });
-    miniInfo.textContent = `Broadcast (*) enviado • app=${APP_ID} • ${fmtTime(Date.now())}`;
+    miniInfo.textContent = `✅ Broadcast (*) enviado • app=${APP_ID} • ${fmtTime(Date.now())}`;
   }catch(e){
     console.error(e);
     alert("Erro ao enviar broadcast. Confira Rules.");
@@ -454,9 +434,7 @@ document.getElementById("btnBroadcast").onclick = async () => {
 
 document.getElementById("btnRefresh").onclick = () => refreshDevicesOnce();
 
-/* ==========================================================
-   Boot
-========================================================== */
+/* boot */
 (function boot(){
   if(!db) return;
   startRealtimeDevices();
