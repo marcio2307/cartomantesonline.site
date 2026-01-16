@@ -308,6 +308,8 @@ body{
   border-color:rgba(246,226,122,0.95);
   box-shadow: 0 20px 50px rgba(0,0,0,0.62), 0 0 0 1px rgba(246,226,122,0.10) inset, 0 0 22px rgba(199,160,8,0.10);
 }
+
+/* ======= POPUP NOTIF (SEU) ======= */
 #notifPopupWrap{
   position:fixed;
   inset:0;
@@ -386,6 +388,59 @@ body{
   -webkit-background-clip:text;
   background-clip:text;
 }
+
+/* ==========================================================
+   ✅ AVISO FIXO (SEMPRE) QUANDO:
+   - permissão negada
+   - não ativado ainda
+   - Render offline (dormindo)
+========================================================== */
+#coNotifBanner{
+  position:fixed;
+  left:12px;
+  right:12px;
+  bottom:12px;
+  z-index:999998;
+  display:none;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 12px;
+  border-radius:18px;
+  border:1px solid rgba(199,160,8,.55);
+  background:rgba(0,0,0,.92);
+  box-shadow:0 22px 60px rgba(0,0,0,.65);
+}
+#coNotifBanner .txt{
+  font-size:12px;
+  line-height:1.3;
+  opacity:.95;
+}
+#coNotifBanner .actions{
+  display:flex;
+  gap:8px;
+  flex:0 0 auto;
+}
+#coNotifBanner button{
+  height:40px;
+  padding:0 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+  font-family:'Poppins',sans-serif;
+}
+#coNotifBanner button.primary{
+  border:0;
+  background:linear-gradient(180deg,#2ecc71,#1f9b50);
+}
+#coNotifBanner small{
+  display:block;
+  opacity:.75;
+  margin-top:3px;
+}
 </style>
 </head>
 
@@ -426,6 +481,15 @@ body{
   <div class="container" id="cards-container"></div>
 </div>
 
+<!-- ✅ Banner fixo de aviso (sempre que precisar) -->
+<div id="coNotifBanner" role="status" aria-live="polite">
+  <div class="txt" id="coNotifBannerTxt"></div>
+  <div class="actions">
+    <button id="coNotifBannerAction" class="primary" type="button">ATIVAR</button>
+    <button id="coNotifBannerHide" type="button">OK</button>
+  </div>
+</div>
+
 <div id="notifPopupWrap" role="dialog" aria-label="Ativar notificações">
   <div id="notifSheet">
     <div id="notifHeader">
@@ -463,16 +527,36 @@ body{
 })();
 
 /* ==========================================================
-   ✅ SERVICE WORKER ABSOLUTO (GH Pages subpasta)
+   ✅ SERVICE WORKER ABSOLUTO (GH Pages subpasta) + FORCE UPDATE
 ========================================================== */
 async function ensureSW(){
   if(!("serviceWorker" in navigator)) return null;
   try{
-    // ✅ ABSOLUTO (subpasta do GitHub Pages)
-    await navigator.serviceWorker.register(
+    const reg = await navigator.serviceWorker.register(
       "/cartomantesonline.site/service-worker.js",
       { scope: "/cartomantesonline.site/" }
     );
+
+    // ✅ força checagem de atualização (ajuda todo mundo receber SW novo)
+    try { await reg.update(); } catch {}
+
+    // ✅ se existir SW novo "waiting", manda ativar agora
+    try{
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+    }catch{}
+
+    // ✅ quando um SW novo assumir, recarrega (pra aplicar cache novo)
+    try{
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        location.reload();
+      });
+    }catch{}
+
     try{ await navigator.serviceWorker.ready; }catch{}
     return await navigator.serviceWorker.ready;
   }catch(e){
@@ -694,6 +778,17 @@ function getOrMakeDeviceId(){
 }
 const deviceId = getOrMakeDeviceId();
 
+async function fetchWithTimeout(url, opts={}, timeoutMs=8000){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try{
+    const res = await fetch(url, { ...opts, signal: ctrl.signal, cache:"no-store" });
+    return res;
+  }finally{
+    clearTimeout(t);
+  }
+}
+
 async function subscribeOnRender(){
   const reg = await ensureSW();
   if(!reg) throw new Error("Service Worker não ficou ativo. Verifique /cartomantesonline.site/service-worker.js");
@@ -708,6 +803,7 @@ async function subscribeOnRender(){
   const perm = await Notification.requestPermission();
   if (perm !== "granted") throw new Error("Permissão não concedida.");
 
+  // ✅ garante subscription válida
   let sub = await reg.pushManager.getSubscription();
   if(!sub){
     sub = await reg.pushManager.subscribe({
@@ -716,7 +812,8 @@ async function subscribeOnRender(){
     });
   }
 
-  const res = await fetch(RENDER_URL + "/api/subscribe", {
+  // ✅ registra/atualiza no Render (sempre)
+  const res = await fetchWithTimeout(RENDER_URL + "/api/subscribe", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -728,7 +825,7 @@ async function subscribeOnRender(){
       createdAt: new Date().toISOString(),
       ua: navigator.userAgent
     })
-  });
+  }, 10000);
 
   if(!res.ok){
     const txt = await res.text().catch(()=> "");
@@ -739,7 +836,47 @@ async function subscribeOnRender(){
 }
 
 /* ==========================================================
+   ✅ BANNER FIXO (AVISOS)
+========================================================== */
+(function notifBanner(){
+  const banner = document.getElementById("coNotifBanner");
+  const txt = document.getElementById("coNotifBannerTxt");
+  const btn = document.getElementById("coNotifBannerAction");
+  const hide = document.getElementById("coNotifBannerHide");
+  if(!banner || !txt || !btn || !hide) return;
+
+  const KEY_HIDE_UNTIL = "co_notif_banner_hide_until_v1";
+
+  function show(message, actionText="ATIVAR"){
+    const until = Number(localStorage.getItem(KEY_HIDE_UNTIL) || "0");
+    if (until && Date.now() < until) return;
+
+    txt.innerHTML = message;
+    btn.textContent = actionText;
+    banner.style.display = "flex";
+  }
+  function hideNow(ms=10*60*1000){
+    banner.style.display = "none";
+    localStorage.setItem(KEY_HIDE_UNTIL, String(Date.now() + ms));
+  }
+
+  hide.addEventListener("click", () => hideNow());
+
+  btn.addEventListener("click", async () => {
+    // abre popup (o handler principal vai cuidar do fluxo)
+    try{
+      window.__coOpenNotifPopup?.();
+    }catch{}
+  });
+
+  // expõe helpers
+  window.__coBannerShow = show;
+  window.__coBannerHide = hideNow;
+})();
+
+/* ==========================================================
    ✅ POPUP (ESSENCIAL) — ativa e registra no Render
+   + pede ao abrir / se Render cair / se recusado: aviso sempre
 ========================================================== */
 (function notifPermissionUX(){
   const wrap   = document.getElementById("notifPopupWrap");
@@ -748,7 +885,7 @@ async function subscribeOnRender(){
   const help   = document.getElementById("notifHelp");
   if(!wrap || !enable || !later) return;
 
-  const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_render_v1";
+  const KEY_SNOOZE_UNTIL  = "co_notif_snooze_until_render_v2";
   const REMIND_AFTER_MS = 90 * 1000;
 
   function showWrap(){ wrap.style.display = "flex"; }
@@ -770,18 +907,19 @@ async function subscribeOnRender(){
     return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
   }
 
-  function shouldShowNow(){
+  function shouldShowNow(force=false){
     if(!("Notification" in window)) return false;
     if(Notification.permission === "granted") return false;
 
-    const until = Number(localStorage.getItem(KEY_SNOOZE_UNTIL) || "0");
-    if(until && Date.now() < until) return false;
-
+    if(!force){
+      const until = Number(localStorage.getItem(KEY_SNOOZE_UNTIL) || "0");
+      if(until && Date.now() < until) return false;
+    }
     return true;
   }
 
-  async function openPopupIfNeeded(){
-    if(!shouldShowNow()) return;
+  async function openPopupIfNeeded(force=false){
+    if(!shouldShowNow(force)) return;
 
     clearHelp();
     showWrap();
@@ -799,19 +937,45 @@ async function subscribeOnRender(){
         `Notificações estão <b>bloqueadas</b> neste aparelho.<br>`+
         `Abra as permissões do site e permita notificações.`
       );
+      // ✅ aviso fixo sempre quando recusado
+      try{
+        window.__coBannerShow?.(
+          `⚠️ Notificações <b>bloqueadas</b>. Para receber avisos, entre nas permissões do navegador e <b>permita</b> notificações.<small>Sem isso, o app não consegue avisar promoções e chamadas.</small>`,
+          "COMO ATIVAR"
+        );
+      }catch{}
+    }else{
+      // ✅ ainda não concedeu
+      try{
+        window.__coBannerShow?.(
+          `🔔 Ative as notificações para receber avisos com o app fechado.<small>É necessário para promoções, chamadas e atualizações.</small>`,
+          "ATIVAR"
+        );
+      }catch{}
     }
   }
 
-  setTimeout(openPopupIfNeeded, 1200);
+  // ✅ permite botão do banner abrir popup
+  window.__coOpenNotifPopup = () => openPopupIfNeeded(true);
+
+  // ✅ pede ao abrir
+  setTimeout(() => openPopupIfNeeded(false), 1200);
+
+  // ✅ pede quando volta pra aba
   document.addEventListener("visibilitychange", () => {
     if(!document.hidden){
-      setTimeout(openPopupIfNeeded, 500);
+      setTimeout(() => openPopupIfNeeded(false), 500);
     }
   });
 
   later.onclick = () => {
     hideWrap();
     localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + REMIND_AFTER_MS));
+    // mantém banner (mas deixa a pessoa respirar um pouco)
+    try{ window.__coBannerShow?.(
+      `🔔 Você pode ativar as notificações a qualquer momento.<small>Toque em <b>ATIVAR</b> para liberar.</small>`,
+      "ATIVAR"
+    ); }catch{}
   };
 
   enable.onclick = async () => {
@@ -821,6 +985,8 @@ async function subscribeOnRender(){
 
       hideWrap();
       localStorage.removeItem(KEY_SNOOZE_UNTIL);
+
+      try{ window.__coBannerHide?.(60*60*1000); }catch{} // esconde por 1h
 
       // ✅ teste local imediato
       try{
@@ -836,9 +1002,79 @@ async function subscribeOnRender(){
     }catch(e){
       showHelp("❌ " + (e?.message || e));
       localStorage.setItem(KEY_SNOOZE_UNTIL, String(Date.now() + 20*1000));
-      setTimeout(openPopupIfNeeded, 20050);
+      setTimeout(() => openPopupIfNeeded(true), 20050);
     }
   };
+})();
+
+/* ==========================================================
+   ✅ DETECTOR "RENDER DORMIU" + AUTO-RECONEXÃO
+   - se render cair/offline: mostra aviso e tenta reconectar
+   - se voltar: registra novamente /api/subscribe
+========================================================== */
+(function renderWatcher(){
+  const CHECK_EVERY_MS = 25000;
+  const FAILS_TO_WARN = 2;
+
+  let fails = 0;
+  let lastOkAt = 0;
+
+  async function ping(){
+    // endpoint "barato": se você não tiver /health, o fetch vai falhar e já serve
+    // (o importante é detectar que o Render ficou fora do ar)
+    try{
+      const res = await fetchWithTimeout(RENDER_URL + "/health", { method:"GET" }, 7000);
+      if(!res.ok) throw new Error("status " + res.status);
+      return true;
+    }catch{
+      // tenta um fallback que quase sempre existe:
+      try{
+        const res2 = await fetchWithTimeout(RENDER_URL + "/", { method:"GET" }, 7000);
+        if(!res2.ok) throw new Error("status " + res2.status);
+        return true;
+      }catch{
+        return false;
+      }
+    }
+  }
+
+  async function tick(){
+    const ok = await ping();
+
+    if(ok){
+      fails = 0;
+      lastOkAt = Date.now();
+
+      // se já tem permissão, tenta garantir que está registrado (muito importante!)
+      if ("Notification" in window && Notification.permission === "granted") {
+        try{ await subscribeOnRender(); }catch{}
+      }
+      return;
+    }
+
+    fails++;
+    if (fails >= FAILS_TO_WARN){
+      const secs = lastOkAt ? Math.floor((Date.now() - lastOkAt)/1000) : 0;
+
+      // ✅ mostra aviso fixo
+      try{
+        window.__coBannerShow?.(
+          `⚠️ Servidor temporariamente offline (Render dormiu).<small>Tentando reconectar... ${secs ? ("(" + secs + "s)") : ""}</small>`,
+          ("Notification" in window && Notification.permission === "granted") ? "RECONectar" : "ATIVAR"
+        );
+      }catch{}
+
+      // ✅ se não tem permissão, pede de novo (como você pediu)
+      if ("Notification" in window && Notification.permission !== "granted") {
+        try{ window.__coOpenNotifPopup?.(); }catch{}
+      } else {
+        // ✅ se tem permissão, tenta refazer subscribe (quando render dorme, isso ajuda)
+        try{ await subscribeOnRender(); }catch{}
+      }
+    }
+  }
+
+  setTimeout(() => { tick(); setInterval(tick, CHECK_EVERY_MS); }, 2500);
 })();
 </script>
 
