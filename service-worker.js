@@ -3,16 +3,20 @@
    CACHE + LOCAL_NOTIFY + PUSH REAL (Render)
    GitHub Pages (subpasta: /cartomantesonline.site/)
    ✅ Clique abre: /cartomantesonline.site/leituras.html?pwa=true
-   ✅ Ícone pequeno Android (badge) usa icon-mono.png (remove quadrado branco)
+   ✅ Ícone pequeno Android (badge) usa icon-mono.png
 ========================================================== */
 
-const CACHE_VERSION = "v1.2.4"; // 🔴 aumente sempre que editar
+const CACHE_VERSION = "v1.2.7"; // 🔴 aumente sempre que editar
 const CACHE_NAME = `cartomantes-cache-${CACHE_VERSION}`;
 
 // ✅ base do GH Pages (subpasta)
 const BASE = "/cartomantesonline.site/";
 
-// ✅ SOMENTE arquivos que EXISTEM (conforme seu print)
+// ✅ (opcional) para auto-reinscrever quando subscription mudar
+const RENDER_URL = "https://teste1-y25k.onrender.com";
+const VAPID_PUBLIC_KEY = "BLbTJKYvaDqGA8lE7fYgx-3mzOjCT6-pIAuidCwC08NCW3BzV0V1I4YjgkUrfJJvCySdom-X4MaxGowioHjjoaE";
+
+// ✅ SOMENTE arquivos que EXISTEM
 const APP_SHELL = [
   BASE,
   BASE + "index.html",
@@ -25,6 +29,15 @@ const APP_SHELL = [
   BASE + "icon-mono.png",
   BASE + "service-worker.js"
 ];
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
 
 /* ===========================
    INSTALL
@@ -127,13 +140,19 @@ self.addEventListener("fetch", (event) => {
 });
 
 /* ==========================================================
-   ✅ LOCAL_NOTIFY (sem push)
-   Recebe postMessage do site:
-   { type:"LOCAL_NOTIFY", title, body, url, tag }
+   ✅ MENSAGENS DO SITE
+   - LOCAL_NOTIFY
+   - SKIP_WAITING (força atualizar SW na hora)
 ========================================================== */
 self.addEventListener("message", (event) => {
   try {
     const data = event.data || {};
+
+    if (data.type === "SKIP_WAITING") {
+      self.skipWaiting();
+      return;
+    }
+
     if (data.type !== "LOCAL_NOTIFY") return;
 
     const title = data.title || "Cartomantes Online";
@@ -147,8 +166,8 @@ self.addEventListener("message", (event) => {
     event.waitUntil(
       self.registration.showNotification(title, {
         body,
-        icon: BASE + "logo.png",        // ícone grande (colorido)
-        badge: BASE + "icon-mono.png",  // ✅ ícone pequeno Android (monocromático)
+        icon: BASE + "logo.png",
+        badge: BASE + "icon-mono.png",
         tag,
         renotify: true,
         data: { url: targetUrl }
@@ -173,18 +192,48 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "Cartomantes Online";
   const body  = payload.body  || "Você tem uma nova atualização.";
 
-  // ✅ sempre abre dentro do seu GH Pages
   const desired = payload.url || (BASE + "leituras.html?pwa=true");
   const targetUrl = new URL(desired, self.location.origin).href;
 
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: BASE + "logo.png",        // ícone grande (pode ser colorido)
-      badge: BASE + "icon-mono.png",  // ✅ ícone pequeno Android (monocromático)
+      icon: BASE + "logo.png",
+      badge: BASE + "icon-mono.png",
       data: { url: targetUrl }
     })
   );
+});
+
+/* ==========================================================
+   ✅ SE O NAVEGADOR INVALIDAR O PUSH
+   tenta re-subscrever e re-registrar no Render
+========================================================== */
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil((async () => {
+    try{
+      const sub = await self.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+
+      try{
+        await fetch(RENDER_URL + "/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subscription: sub,
+            page: BASE + "leituras.html",
+            site: "cartomantesonline.site",
+            app: "leituras",
+            createdAt: new Date().toISOString(),
+            ua: "sw"
+          })
+        });
+      }catch{}
+
+    }catch{}
+  })());
 });
 
 /* ===========================
