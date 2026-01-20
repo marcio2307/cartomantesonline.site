@@ -121,6 +121,134 @@ h1{
   line-height:1.6;
 }
 
+/* ==========================================================
+   ✅ PERFIL
+========================================================== */
+.perfil-box{
+  background: rgba(255,255,255,0.05);
+  border:1px solid rgba(199,160,8,0.45);
+  border-radius:16px;
+  padding:14px 14px;
+  margin:10px 0 14px;
+  text-align:left;
+  box-shadow:
+    0 14px 28px rgba(0,0,0,0.40),
+    0 0 0 1px rgba(255,240,166,0.05) inset;
+}
+
+.perfil-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid rgba(199,160,8,0.40);
+  background:rgba(0,0,0,0.25);
+  font-size:12px;
+  font-weight:800;
+  color:rgba(255,255,255,0.92);
+}
+
+.badge strong{
+  color:transparent;
+  background-image:linear-gradient(180deg, var(--gold-2) 0%, var(--gold-3) 60%, var(--gold-4) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+
+.perfil-desc{
+  margin:8px 0 10px;
+  font-size:13px;
+  line-height:1.6;
+  color:rgba(255,255,255,0.90);
+}
+
+.comentarios-title{
+  margin:8px 0 8px;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.2px;
+  color:rgba(255,255,255,0.95);
+}
+
+.comentarios{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.comentario{
+  border-radius:14px;
+  padding:10px 10px;
+  border:1px solid rgba(255,240,166,0.10);
+  background: rgba(255,255,255,0.04);
+}
+
+.comentario .top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+
+.comentario .nome{
+  font-weight:900;
+  font-size:12px;
+  color:rgba(255,255,255,0.95);
+}
+
+.comentario .nota{
+  font-size:12px;
+  font-weight:900;
+  color:rgba(255,255,255,0.95);
+}
+
+.comentario .texto{
+  font-size:12.5px;
+  color:rgba(255,255,255,0.88);
+  line-height:1.5;
+}
+
+/* ⭐ estrelas amarelas */
+.stars{
+  letter-spacing:1px;
+  font-size:12px;
+  opacity:1;
+  color: var(--gold-2);
+  text-shadow: 0 0 10px rgba(246,226,122,0.12);
+}
+
+hr.sep{
+  border:none;
+  height:1px;
+  background:linear-gradient(90deg, rgba(199,160,8,0), rgba(199,160,8,0.45), rgba(199,160,8,0));
+  margin:12px 0 8px;
+}
+
+/* ✅ BARRA DE INSTRUÇÃO (abaixo dos comentários e acima dos pacotes) */
+.info-bar{
+  margin:12px 0 10px;
+  padding:12px 12px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(30,30,30,0.92) 0%, rgba(10,10,10,0.92) 100%);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 14px 26px rgba(0,0,0,0.48);
+  text-align:center;
+  font-size:14px;
+  font-weight:700;
+  color:rgba(255,255,255,0.92);
+}
+
 /* Opções iguais ao “peso” visual dos cards */
 .option{
   background: rgba(255,255,255,0.06);
@@ -265,7 +393,30 @@ source[src*="fabapp-ads"]{
     <div class="inner">
       <img id="consultorImagem" class="consultor-img" src="" alt="Consultor">
       <h1 id="consultorNome">Consultor</h1>
-      <p class="sub">Escolha quantos minutos deseja na sua consulta.</p>
+
+      <!-- (você pode manter ou remover este texto do topo; o solicitado está abaixo dos comentários) -->
+      <p class="sub">Selecione sua opção para continuar.</p>
+
+      <!-- ✅ PERFIL -->
+      <div class="perfil-box" aria-label="Perfil do consultor">
+        <div class="perfil-row">
+          <!-- ✅ trocado 📞 por 💬 (chat) -->
+          <div class="badge">💬 Consultas: <strong id="perfilConsultas">0</strong></div>
+          <div class="badge">⭐ Avaliação: <strong id="perfilNota">0.0</strong> <span class="stars" id="perfilStars">☆☆☆☆☆</span></div>
+        </div>
+
+        <div class="perfil-desc" id="perfilDescricao">
+          Descrição do consultor aparecerá aqui.
+        </div>
+
+        <hr class="sep">
+
+        <div class="comentarios-title">Comentários recentes</div>
+        <div class="comentarios" id="perfilComentarios"></div>
+      </div>
+
+      <!-- ✅ TEXTO SOLICITADO: abaixo dos comentários e acima dos pacotes -->
+      <div class="info-bar">Escolha quantos minutos deseja na sua consulta.</div>
 
       <div id="opcoes"></div>
 
@@ -321,7 +472,225 @@ source[src*="fabapp-ads"]{
   });
 })();
 
-// 🔮 Dados do consultor vindos do localStorage
+/* ==========================================================
+   ✅ PERFIS INDIVIDUAIS (NOME -> DADOS)
+========================================================== */
+function normalizarNome(s){
+  return (s || "")
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+function estrelasDaNota(nota){
+  const n = Math.max(0, Math.min(5, Number(nota) || 0));
+  const cheias = Math.round(n); // arredonda pra ficar bonito
+  return "★★★★★".slice(0, cheias) + "☆☆☆☆☆".slice(0, 5 - cheias);
+}
+
+function fmtInt(n){
+  const v = Number(n) || 0;
+  return v.toLocaleString('pt-BR');
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function comentariosAleatorios(){
+  const nomes = [
+    "Mariana","Ana Clara","Beatriz","Carolina","Fernanda","Isabela","Jéssica","Larissa","Bruna","Camila",
+    "Rafaela","Patrícia","Letícia","Sabrina","Vanessa","Vitória","Gisele","Juliana","Mônica","Débora",
+    "Renato","Gustavo","Henrique","Felipe","Bruno","Diego","Rafael","Lucas","Tiago","Igor",
+    "Arthur","Pedro","Rodrigo","Vitor","Caio","Matheus","João","Daniel","Sandro","Nando"
+  ];
+  const frases = [
+    "Atendimento incrível, acertou detalhes que eu não falei.",
+    "Me trouxe muita clareza e tranquilidade. Gratidão!",
+    "Direto ao ponto e com muito respeito. Recomendo.",
+    "Explicou tudo com calma e firmeza. Muito bom!",
+    "Senti a energia leve depois da consulta. Voltarei.",
+    "Me ajudou a tomar uma decisão importante hoje.",
+    "Consulta rápida, objetiva e certeira. Amei!",
+    "Falou verdades e me orientou de verdade.",
+    "Foi muito acolhedor(a), me senti segura.",
+    "Leitura bem completa, me deu direção e paz."
+  ];
+  // estrelas entre 4.6 e 5.0
+  const notas = [5.0,4.9,4.8,4.7,4.6,4.9,4.8,4.7,5.0];
+  const c1 = { nome: pick(nomes), nota: pick(notas), texto: pick(frases) };
+  let c2 = { nome: pick(nomes), nota: pick(notas), texto: pick(frases) };
+  let c3 = { nome: pick(nomes), nota: pick(notas), texto: pick(frases) };
+  // evita nomes repetidos
+  while(c2.nome === c1.nome) c2.nome = pick(nomes);
+  while(c3.nome === c1.nome || c3.nome === c2.nome) c3.nome = pick(nomes);
+  return [c1,c2,c3];
+}
+
+function perfilPadrao(nomeBase){
+  const seed = (normalizarNome(nomeBase).split('').reduce((a,c)=>a+c.charCodeAt(0),0) || 111);
+  const consultas = 2500 + (seed % 15000);
+  const nota = 4.6 + ((seed % 35) / 100); // 4.60 .. 4.95
+  return {
+    descricao: `Consultor(a) ${nomeBase} com leitura acolhedora e direta. Especialista em orientar com clareza, respeito e foco no que você precisa decidir agora.`,
+    consultas,
+    nota: Number(nota.toFixed(1)),
+    comentarios: comentariosAleatorios()
+  };
+}
+
+const PERFIS = {
+  "pai marcio": {
+    descricao: "Sacerdote espiritual com leitura direta e firme. Atua com proteção, caminhos, limpeza energética e orientação amorosa. Atendimento acolhedor e objetivo.",
+    consultas: 18473,
+    nota: 4.9,
+    comentarios: comentariosAleatorios()
+  },
+
+  "sara": {
+    descricao: "Especialista em relacionamentos e reconciliação. Leitura amorosa com conselhos práticos e clareza emocional.",
+    consultas: 12640,
+    nota: 4.8,
+    comentarios: comentariosAleatorios()
+  },
+
+  "esmeralda": {
+    descricao: "Taróloga intuitiva com foco em sentimentos, decisões e caminhos. Leitura detalhada e sem enrolação.",
+    consultas: 10311,
+    nota: 4.7,
+    comentarios: comentariosAleatorios()
+  },
+
+  "madalena": {
+    descricao: "Leitura espiritual e aconselhamento para família, trabalho e amor. Excelente para dúvidas recorrentes e ansiedade.",
+    consultas: 9874,
+    nota: 4.8,
+    comentarios: comentariosAleatorios()
+  },
+
+  "estrela": {
+    descricao: "Especialista em previsões e timing: quando acontece, como acontece e o que fazer para acelerar resultados.",
+    consultas: 14205,
+    nota: 4.9,
+    comentarios: comentariosAleatorios()
+  },
+
+  "7 saias": {
+    descricao: "Linha espiritual forte e leitura intensa. Ideal para quem quer verdade, proteção e direção sem dúvidas.",
+    consultas: 11890,
+    nota: 4.8,
+    comentarios: comentariosAleatorios()
+  },
+
+  "m.padilha": {
+    descricao: "Leitura amorosa e espiritual com firmeza. Ótima para dúvidas de traição, reconciliação e decisões do coração.",
+    consultas: 15620,
+    nota: 4.8,
+    comentarios: comentariosAleatorios()
+  },
+
+  "pablo": {
+    descricao: "Tarólogo direto e racional. Excelente para decisões, trabalho, dinheiro e leitura de intenções.",
+    consultas: 8322,
+    nota: 4.6,
+    comentarios: comentariosAleatorios()
+  },
+
+  "figueira": {
+    descricao: "Foco em espiritualidade e proteção. Leitura com orientação para abrir caminhos e remover bloqueios.",
+    consultas: 9104,
+    nota: 4.7,
+    comentarios: comentariosAleatorios()
+  },
+
+  "lua": {
+    descricao: "Leitura emocional e intuitiva. Ideal para quem precisa de clareza, paz e direcionamento no amor.",
+    consultas: 11902,
+    nota: 4.8,
+    comentarios: comentariosAleatorios()
+  },
+
+  "salome": {
+    descricao: "Especialista em relacionamentos difíceis. Leitura profunda sobre sentimentos, atitudes e decisões.",
+    consultas: 10455,
+    nota: 4.7,
+    comentarios: comentariosAleatorios()
+  },
+
+  "luz": {
+    descricao: "Aconselhamento espiritual leve e acolhedor. Indicado para ansiedade, dúvidas e recomeços.",
+    consultas: 7650,
+    nota: 4.7,
+    comentarios: comentariosAleatorios()
+  },
+
+  "odalia": {
+    descricao: "Leitura prática com foco em caminhos e escolhas. Excelente para trabalho, finanças e decisões importantes.",
+    consultas: 6890,
+    nota: 4.6,
+    comentarios: comentariosAleatorios()
+  },
+
+  "ingrid": {
+    descricao: "Taróloga intuitiva, leitura amorosa e conselhos para reconciliação. Foco em verdade e direcionamento.",
+    consultas: 5421,
+    nota: 4.7,
+    comentarios: comentariosAleatorios()
+  },
+
+  "liah": {
+    descricao: "Leitura espiritual e proteção. Ideal para quem sente peso, bloqueios e quer abrir caminhos.",
+    consultas: 4980,
+    nota: 4.6,
+    comentarios: comentariosAleatorios()
+  },
+
+  "evora": {
+    descricao: "Especialista em previsões e respostas rápidas. Excelente para dúvidas urgentes no amor e trabalho.",
+    consultas: 6210,
+    nota: 4.8,
+    comentarios: comentariosAleatorios()
+  },
+
+  "luara": {
+    descricao: "Aconselhamento amoroso e emocional. Leitura acolhedora, profunda e verdadeira.",
+    consultas: 5775,
+    nota: 4.7,
+    comentarios: comentariosAleatorios()
+  },
+
+  "paulo": {
+    descricao: "Leitura objetiva com foco em decisões, carreira e finanças. Excelente para estratégia e escolhas.",
+    consultas: 4302,
+    nota: 4.6,
+    comentarios: comentariosAleatorios()
+  },
+
+  "rose": {
+    descricao: "Leitura amorosa e sensível. Ótima para entender sentimentos e melhorar comunicação no relacionamento.",
+    consultas: 5109,
+    nota: 4.7,
+    comentarios: comentariosAleatorios()
+  },
+
+  "astaroth": {
+    descricao: "Leitura intensa e profunda. Ideal para cortes, recomeços, proteção e decisões definitivas.",
+    consultas: 3888,
+    nota: 4.6,
+    comentarios: comentariosAleatorios()
+  },
+
+  "ana rita": {
+    descricao: "Especialista em família, amor e aconselhamento espiritual. Leitura detalhada e com carinho.",
+    consultas: 7021,
+    nota: 4.8,
+    comentarios: comentariosAleatorios()
+  },
+};
+
+/* ==========================================================
+   ✅ Dados do consultor vindos do localStorage
+========================================================== */
 const nome = localStorage.getItem('consultorNome') || "Consultor";
 const valor = parseFloat(localStorage.getItem('consultorValor')) || 1.00;
 const imagem = localStorage.getItem('consultorImagem') || "https://via.placeholder.com/300";
@@ -329,7 +698,53 @@ const imagem = localStorage.getItem('consultorImagem') || "https://via.placehold
 document.getElementById('consultorNome').textContent = nome;
 document.getElementById('consultorImagem').src = imagem;
 
-// 🔢 Opções de minutos
+/* ==========================================================
+   ✅ Renderizar Perfil
+========================================================== */
+const nomeNorm = normalizarNome(nome);
+const ehPaiMarcio = nomeNorm.includes('marcio');
+
+let perfil = null;
+
+if (ehPaiMarcio) {
+  perfil = PERFIS["pai marcio"];
+} else {
+  // match exato
+  perfil = PERFIS[nomeNorm] || PERFIS[nomeNorm.replace(/\./g,'')] || null;
+
+  // match por "contém" (ex: "m padilha", "m. padilha" etc.)
+  if(!perfil){
+    const keys = Object.keys(PERFIS);
+    const k = keys.find(key => nomeNorm.includes(key));
+    if(k) perfil = PERFIS[k];
+  }
+}
+
+if(!perfil) perfil = perfilPadrao(nome);
+
+document.getElementById('perfilConsultas').textContent = fmtInt(perfil.consultas);
+document.getElementById('perfilNota').textContent = (Number(perfil.nota) || 0).toFixed(1);
+document.getElementById('perfilStars').textContent = estrelasDaNota(perfil.nota);
+document.getElementById('perfilDescricao').textContent = perfil.descricao;
+
+const comentariosBox = document.getElementById('perfilComentarios');
+comentariosBox.innerHTML = "";
+(perfil.comentarios || []).slice(0,3).forEach(c => {
+  const div = document.createElement('div');
+  div.className = "comentario";
+  div.innerHTML = `
+    <div class="top">
+      <div class="nome">${c.nome || "Cliente"}</div>
+      <div class="nota">${(Number(c.nota)||0).toFixed(1)} <span class="stars">${estrelasDaNota(c.nota)}</span></div>
+    </div>
+    <div class="texto">${c.texto || ""}</div>
+  `;
+  comentariosBox.appendChild(div);
+});
+
+/* ==========================================================
+   ✅ Opções de minutos (SEU CÓDIGO)
+========================================================== */
 const opcoesDiv = document.getElementById('opcoes');
 const precoSelecionado = document.getElementById('precoSelecionado');
 const botaoPix = document.getElementById('pixButton');
@@ -352,22 +767,12 @@ function criarOpcao(minutos, preco){
   opcoesDiv.appendChild(div);
 }
 
-// ✅ detectar Pai Márcio (aceita "P.Márcio", "Pai Marcio", etc.)
-const nomeNormalizado = (nome || "")
-  .toLowerCase()
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '');
-const ehPaiMarcio = nomeNormalizado.includes('marcio');
-
 if(ehPaiMarcio){
-  // ✅ Pai Márcio: pacotes FIXOS
   criarOpcao(10, "20.00");
   criarOpcao(20, "40.00");
   criarOpcao(30, "60.00");
 } else {
-  // ✅ Outros consultores: mantém como estava, mas SEM a palavra "PACOTE"
   criarOpcao(5, "5.00");
-
   const minutos = [10, 20, 30, 60];
   minutos.forEach(m => {
     const preco = (m * valor).toFixed(2);
